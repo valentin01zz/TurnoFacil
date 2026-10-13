@@ -38,7 +38,8 @@ clientes reciban un recordatorio y puedan reprogramar o cancelar solos.
 - Varias sucursales por negocio, estadísticas y reportes.
 
 ## 6. Supuestos
-S1 fue confirmado por el Founder; el resto quedó dentro del alcance aprobado sin confirmación explícita.
+S1, S2, S3 y S8 fueron confirmados por el Founder (2026-10-13); se revisan solo si un negocio lo pide. S4 a S7
+quedaron dentro del alcance aprobado sin confirmación explícita.
 - S1. (Confirmado) El cliente deja **nombre, teléfono y email**. El email es obligatorio porque el recordatorio del MVP es por email.
 - S2. El recordatorio se envía 24 horas antes del turno.
 - S3. El cliente puede reprogramar o cancelar hasta 2 horas antes del turno.
@@ -51,8 +52,8 @@ S1 fue confirmado por el Founder; el resto quedó dentro del alcance aprobado si
 
 ## 7. Riesgos y preguntas abiertas
 - **P1 (resuelta):** el Founder decidió email obligatorio al reservar.
-- **P2:** el piloto. ¿Hay una estética concreta disponible para probar el MVP?
-- **P3:** confirmar S2, S3 y S8.
+- **P2 (resuelta):** hay un local de estética disponible como piloto del MVP.
+- **P3 (resuelta):** el Founder confirmó S2, S3 y S8 sin cambios.
 - R1. Entregabilidad: los emails pueden caer en spam y el recordatorio pierde efecto.
 - R2. Reservas falsas o abusivas, porque no hay cuenta ni verificación del cliente.
 - R3. Datos personales de clientes finales (nombre, teléfono, email): aplica la Ley 25.326 de Argentina.

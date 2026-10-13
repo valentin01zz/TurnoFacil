@@ -25,6 +25,6 @@ Orden sugerido de construcción. El detalle de cada historia está en `USER_STOR
 - HU-16 Suscripción y cobro a los negocios
 
 ## Pendiente del Founder
-- Responder P2 y P3 del `PRD.md`.
+- Nada pendiente: P1, P2 y P3 del `PRD.md` están resueltas.
 
 Alcance del MVP aprobado por el Founder el 2026-10-13.
