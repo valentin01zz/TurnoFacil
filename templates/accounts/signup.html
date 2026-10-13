@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Registrar negocio · TurnoFacil{% endblock %}
+{% block content %}
+  <h1>Registrá tu negocio</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_div }}
+    <button class="button" type="submit">Crear cuenta</button>
+  </form>
+  <p><a href="{% url 'login' %}">Ya tengo cuenta</a></p>
+{% endblock %}

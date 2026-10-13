@@ -9,7 +9,12 @@ para lo específico del proyecto y NEXORA para las reglas generales.
 - Objetivo: estos negocios pierden turnos y no logran organizar sus reservas; TurnoFacil les da una forma simple de tomarlas y gestionarlas.
 - Alcance inicial indicado por el Founder (a refinar en el PRD): página de reservas, recordatorios, reprogramación y panel simple.
 - Stack: Django 5.2 LTS (Python 3.11) + PostgreSQL, páginas renderizadas en el servidor. Ver `docs/agentic/ADR/ADR-0001-stack-de-la-aplicacion.md`. Hosting y proveedor de email: pendientes, con ADR propio antes del primer deploy.
-- Cómo correr: lint / typecheck / tests / build: pendiente hasta que exista el stack.
+- Cómo correr (desde la raíz, con el entorno virtual `.venv` creado e instaladas las dependencias de `requirements-dev.txt`):
+  - Lint: `.venv\Scripts\python -m ruff check .` y `.venv\Scripts\python -m ruff format --check .`
+  - Typecheck: no hay en el MVP.
+  - Tests: `.venv\Scripts\python manage.py test` (necesita PostgreSQL y el archivo `.env`; ver `.env.example`).
+  - Verificación: `.venv\Scripts\python manage.py check`. No hay paso de build.
+  - Servidor local: `.venv\Scripts\python manage.py runserver`
 
 ## Idioma
 Documentación y comunicación con el Founder en español. Código, nombres técnicos y commits en inglés.

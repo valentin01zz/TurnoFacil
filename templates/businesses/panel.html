@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Panel · {{ business.name }}{% endblock %}
+{% block content %}
+  <h1>{{ business.name }}</h1>
+  <section class="card">
+    <h2>Tu link de reservas</h2>
+    <p>Compartilo con tus clientes para que reserven su turno.</p>
+    <div class="copy-row">
+      <input id="booking-url" type="text" value="{{ booking_url }}" readonly>
+      <button class="button" type="button" id="copy-booking-url">Copiar</button>
+    </div>
+  </section>
+  <script>
+    document.getElementById("copy-booking-url").addEventListener("click", function () {
+      var input = document.getElementById("booking-url");
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      this.textContent = "Copiado";
+    });
+  </script>
+{% endblock %}

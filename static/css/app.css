@@ -1,0 +1,19 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; line-height: 1.5; color: #1f2933; background: #f5f7fa; }
+main { max-width: 34rem; margin: 0 auto; padding: 1rem; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.1rem; margin-top: 0; }
+a { color: #0b6bcb; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #fff; border-bottom: 1px solid #d9e2ec; }
+.brand { font-weight: 700; text-decoration: none; color: inherit; }
+.card { background: #fff; border: 1px solid #d9e2ec; border-radius: 0.5rem; padding: 1rem; }
+.actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.button { display: inline-block; padding: 0.6rem 1rem; border: 0; border-radius: 0.4rem; background: #0b6bcb; color: #fff; font: inherit; text-decoration: none; cursor: pointer; }
+.link { border: 0; background: none; color: #0b6bcb; font: inherit; cursor: pointer; padding: 0; }
+.copy-row { display: flex; gap: 0.5rem; }
+.copy-row input { flex: 1; min-width: 0; }
+form > div { margin-bottom: 1rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 0.6rem; border: 1px solid #9fb3c8; border-radius: 0.4rem; font: inherit; }
+.errorlist { margin: 0 0 0.25rem; padding: 0; list-style: none; color: #b42318; }
+.helptext { display: block; font-size: 0.85rem; color: #52606d; }

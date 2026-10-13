@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Ingresar · TurnoFacil{% endblock %}
+{% block content %}
+  <h1>Ingresar</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_div }}
+    <button class="button" type="submit">Ingresar</button>
+  </form>
+  <p><a href="{% url 'signup' %}">Registrar mi negocio</a></p>
+{% endblock %}

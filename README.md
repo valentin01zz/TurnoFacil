@@ -2,7 +2,7 @@
 
 Microapp de reservas de turnos para negocios de servicios (peluquerías, barberías, estética, kinesiólogos, talleres).
 
-Estado: definición de producto. Todavía no hay código.
+Estado: MVP en construcción (Django + PostgreSQL). Hecho: registro del negocio, ingreso y link público.
 
 - Reglas de trabajo: [AGENTS.md](AGENTS.md)
 - Documentación de producto: [docs/agentic/](docs/agentic/)

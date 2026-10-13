@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Turnos online para tu negocio</h1>
+  <p>Compartí un link, recibí reservas ordenadas y dejá de perder turnos.</p>
+  <p class="actions">
+    <a class="button" href="{% url 'signup' %}">Registrar mi negocio</a>
+    <a href="{% url 'login' %}">Ya tengo cuenta</a>
+  </p>
+{% endblock %}
