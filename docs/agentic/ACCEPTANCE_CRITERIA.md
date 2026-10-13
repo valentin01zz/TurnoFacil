@@ -1,10 +1,64 @@
-# Criterios de aceptación: [Proyecto]
+# Criterios de aceptación: TurnoFacil
 
-Cada criterio debe poder verificarse con sí/no.
+Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen de un supuesto del `PRD.md`.
 
-## HU-01
-- [ ] Dado [contexto], cuando [acción], entonces [resultado verificable].
-- [ ] Caso borde: [descripción] → [resultado esperado].
+## HU-01: Registro del negocio
+- [ ] Dado un visitante, cuando se registra con nombre del negocio, email y contraseña válidos, entonces queda creado el negocio y entra al panel.
+- [ ] Dado un negocio registrado, cuando entra al panel, entonces ve su link público de reservas y puede copiarlo.
+- [ ] Dado un negocio registrado, cuando cierra sesión y vuelve a ingresar con su email y contraseña, entonces accede a su panel.
+- [ ] Caso borde: email ya registrado → el registro se rechaza con un mensaje claro.
+- [ ] Caso borde: un negocio autenticado intenta ver datos de otro negocio → acceso denegado.
 
-## HU-02
-- [ ] ...
+## HU-02: Servicios
+- [ ] Dado el dueño en el panel, cuando crea un servicio con nombre y duración en minutos, entonces aparece en la página pública de reservas.
+- [ ] Dado un servicio existente, cuando el dueño lo edita o lo desactiva, entonces el cambio se refleja en la página pública y los turnos ya tomados no se modifican.
+- [ ] Caso borde: duración vacía, cero o negativa → no se guarda y se muestra el error.
+
+## HU-03: Profesionales y horarios
+- [ ] Dado el dueño en el panel, cuando crea un profesional con nombre y horarios de atención por día de la semana, entonces ese profesional tiene su propia agenda.
+- [ ] Dado un negocio con un solo profesional, cuando un cliente reserva, entonces no se le pide elegir profesional.
+- [ ] Dado un negocio con más de un profesional, cuando un cliente reserva, entonces debe elegir uno y solo ve los horarios de ese profesional.
+- [ ] Caso borde: hora de fin anterior o igual a la de inicio → no se guarda y se muestra el error.
+- [ ] Caso borde: negocio sin profesionales o sin servicios cargados → la página pública indica que todavía no se pueden tomar reservas.
+
+## HU-04: Reservar un turno
+- [ ] Dado un cliente en el link público, cuando elige servicio, profesional y día, entonces ve solo horarios libres, dentro del horario de atención y con lugar para la duración del servicio.
+- [ ] Dado un horario libre, cuando el cliente completa nombre, teléfono y email (S1) y confirma, entonces el turno queda creado y ve una pantalla de confirmación.
+- [ ] Dado un turno creado, cuando otro cliente consulta ese profesional y ese día, entonces ese horario ya no aparece disponible.
+- [ ] Caso borde: dos clientes confirman el mismo horario al mismo tiempo → solo uno obtiene el turno y el otro recibe un mensaje para elegir otro horario.
+- [ ] Caso borde: datos faltantes o email con formato inválido → el backend rechaza la reserva aunque el formulario no lo haya detectado.
+- [ ] Caso borde: fechas u horas pasadas → no se ofrecen ni se aceptan.
+- [ ] La reserva completa puede hacerse desde un celular sin crear una cuenta.
+
+## HU-05: Confirmación por email
+- [ ] Dado un turno creado, cuando se confirma la reserva, entonces el cliente recibe un email con negocio, servicio, profesional, día y hora.
+- [ ] El email incluye un link único de gestión que permite reprogramar o cancelar ese turno y ningún otro.
+- [ ] Caso borde: un link de gestión inexistente o alterado → se muestra "turno no encontrado" sin exponer datos.
+
+## HU-06: Reprogramar
+- [ ] Dado un cliente en su link de gestión, cuando elige un nuevo horario libre y confirma, entonces el turno se mueve, el horario anterior queda libre y recibe un email con los datos nuevos.
+- [ ] Dado un turno reprogramado, cuando llega el momento del recordatorio, entonces se envía según la nueva fecha y no según la anterior.
+- [ ] Caso borde: faltan menos de 2 horas para el turno (S3) → no se permite reprogramar y se indica contactar al negocio.
+- [ ] Caso borde: turno ya cancelado o pasado → no se permite reprogramar.
+
+## HU-07: Cancelar
+- [ ] Dado un cliente en su link de gestión, cuando cancela y confirma, entonces el turno queda cancelado y el horario vuelve a estar disponible.
+- [ ] Dado un turno cancelado, cuando llega el momento del recordatorio, entonces no se envía.
+- [ ] Caso borde: faltan menos de 2 horas para el turno (S3) → no se permite cancelar desde el link.
+- [ ] Caso borde: cancelar un turno ya cancelado → se informa que ya estaba cancelado, sin error.
+
+## HU-08: Recordatorio por email
+- [ ] Dado un turno confirmado, cuando faltan 24 horas (S2), entonces el cliente recibe un email con los datos del turno y el link de gestión.
+- [ ] Cada turno recibe como máximo un recordatorio, aunque el proceso de envío se ejecute más de una vez.
+- [ ] Caso borde: turno reservado con menos de 24 horas de anticipación → no se envía recordatorio (ya recibió la confirmación).
+
+## HU-09: Ver la agenda
+- [ ] Dado el dueño en el panel, cuando elige un día, entonces ve los turnos de ese día con hora, cliente, teléfono, servicio y profesional.
+- [ ] Dado un negocio con varios profesionales, cuando el dueño filtra por uno, entonces ve solo los turnos de ese profesional.
+- [ ] Los turnos cancelados no aparecen como activos en la agenda.
+- [ ] El panel se puede usar desde un celular.
+
+## HU-10: Gestionar turnos desde el panel
+- [ ] Dado el dueño en el panel, cuando carga un turno a mano con cliente, servicio, profesional, día y hora (S8), entonces el turno aparece en la agenda y ese horario deja de ofrecerse en la página pública.
+- [ ] Dado un turno existente, cuando el dueño lo reprograma o cancela, entonces la agenda y la disponibilidad pública se actualizan, y el cliente recibe un email si el turno tiene email cargado.
+- [ ] Caso borde: cargar a mano un turno que se superpone con otro del mismo profesional → se rechaza con un mensaje claro.
