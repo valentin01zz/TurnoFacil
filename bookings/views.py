@@ -4,12 +4,14 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from businesses.models import Business
 
 from .availability import available_slots
+from .emails import send_confirmation
 from .forms import BookingForm, SlotQueryForm
 from .models import Appointment
 
@@ -36,7 +38,9 @@ def book(request, slug):
     if booking.is_valid():
         appointment = create_appointment(business, professional, service, booking.cleaned_data)
         if appointment:
-            return redirect("appointment_detail", token=appointment.manage_token)
+            manage_path = reverse("appointment_detail", args=[appointment.manage_token])
+            send_confirmation(appointment, request.build_absolute_uri(manage_path))
+            return redirect(manage_path)
         booking.add_error("start_at", TAKEN_MESSAGE)
     return render_booking_page(request, business, selection, booking=booking)
 
@@ -92,8 +96,11 @@ def render_booking_page(request, business, selection, booking=None, status=200):
 
 
 def appointment_detail(request, token):
-    appointment = get_object_or_404(
-        Appointment.objects.select_related("business", "service", "professional"),
-        manage_token=token,
+    appointment = (
+        Appointment.objects.select_related("business", "service", "professional")
+        .filter(manage_token=token)
+        .first()
     )
+    if appointment is None:
+        return render(request, "bookings/appointment_not_found.html", status=404)
     return render(request, "bookings/appointment_detail.html", {"appointment": appointment})

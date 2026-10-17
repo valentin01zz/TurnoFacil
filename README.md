@@ -2,7 +2,7 @@
 
 Microapp de reservas de turnos para negocios de servicios (peluquerías, barberías, estética, kinesiólogos, talleres).
 
-Estado: MVP en construcción (Django + PostgreSQL). Hecho: registro del negocio, ingreso, recuperación de contraseña, link público, servicios, profesionales con horarios, reserva de turnos y agenda del día en el panel.
+Estado: MVP en construcción (Django + PostgreSQL). Hecho: registro del negocio, ingreso, recuperación de contraseña, link público, servicios, profesionales con horarios, reserva de turnos con email de confirmación y agenda del día en el panel.
 
 - Reglas de trabajo: [AGENTS.md](AGENTS.md)
 - Documentación de producto: [docs/agentic/](docs/agentic/)
