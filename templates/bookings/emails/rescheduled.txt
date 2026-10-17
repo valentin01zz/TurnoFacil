@@ -1,0 +1,15 @@
+{% autoescape off %}Hola {{ appointment.customer_name }},
+
+Tu turno cambió de horario. Estos son los datos nuevos:
+
+Negocio: {{ appointment.business.name }}
+Servicio: {{ appointment.service.name }}
+Profesional: {{ appointment.professional.name }}
+Día: {{ appointment.start_at|date:"l j \d\e F" }}
+Hora: {{ appointment.start_at|time:"H:i" }}
+
+Para ver, reprogramar o cancelar tu turno, entrá a este link:
+{{ manage_url }}
+
+Es personal: no lo compartas.
+{% endautoescape %}

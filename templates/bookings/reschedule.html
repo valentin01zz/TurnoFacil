@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Reprogramar turno · {{ appointment.business.name }}{% endblock %}
+{% block content %}
+  <h1>Reprogramar turno</h1>
+  <section class="card">
+    <h2>Tu turno actual</h2>
+    {% include "bookings/_appointment_summary.html" %}
+  </section>
+
+  <section class="card">
+    <h2>Elegí el nuevo horario</h2>
+    <form method="get" novalidate>
+      {{ query.as_div }}
+      <button class="button" type="submit">Ver horarios</button>
+    </form>
+
+    {% if slot_form %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in query %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}">{% endfor %}
+        <fieldset class="slots">
+          <legend>Horarios disponibles</legend>
+          {{ slot_form.start_at.errors }}
+          {% for choice in slot_form.start_at %}
+            <label class="slot">{{ choice.tag }} {{ choice.choice_label }}</label>
+          {% empty %}
+            <p>No hay otros horarios libres ese día. Probá con otro.</p>
+          {% endfor %}
+        </fieldset>
+        {% if slot_form.slots %}
+          <button class="button" type="submit">Confirmar cambio</button>
+        {% endif %}
+      </form>
+    {% endif %}
+  </section>
+  <p><a href="{% url 'appointment_detail' appointment.manage_token %}">Volver a mi turno</a></p>
+{% endblock %}

@@ -11,8 +11,8 @@ from django.views.decorators.http import require_POST
 from businesses.models import Business
 
 from .availability import available_slots
-from .emails import send_confirmation
-from .forms import BookingForm, SlotQueryForm
+from .emails import send_confirmation, send_rescheduled
+from .forms import BookingForm, RescheduleQueryForm, SlotForm, SlotQueryForm
 from .models import Appointment
 
 TAKEN_MESSAGE = "Ese horario se acaba de ocupar. Elegí otro."
@@ -137,3 +137,65 @@ def cancel_appointment(request, token):
             return render_appointment(request, appointment)
         appointment.cancel()
     return redirect("appointment_detail", token=token)
+
+
+def reschedule_slots(appointment, professional, date):
+    """Free times for the same service with `professional`, other than the current one."""
+    slots = available_slots(professional, appointment.service, date, ignore=appointment)
+    if professional != appointment.professional:
+        return slots
+    return [slot for slot in slots if slot != appointment.start_at]
+
+
+def render_reschedule(request, appointment, query, slot_form=None, status=200):
+    return render(
+        request,
+        "bookings/reschedule.html",
+        {
+            "appointment": appointment,
+            "query": query,
+            "slot_form": slot_form,
+            "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
+        },
+        status=status,
+    )
+
+
+def reschedule_appointment(request, token):
+    if request.method != "POST":
+        appointment = get_appointment(token)
+        if appointment is None or not appointment.customer_can_change():
+            return render_appointment(request, appointment)
+        query = RescheduleQueryForm(request.GET or None, appointment=appointment)
+        slot_form = None
+        if query.is_bound and query.is_valid():
+            slots = reschedule_slots(
+                appointment, query.cleaned_data["professional"], query.cleaned_data["date"]
+            )
+            slot_form = SlotForm(slots=slots)
+        return render_reschedule(request, appointment, query, slot_form)
+
+    with transaction.atomic():
+        appointment = get_appointment(token, for_update=True)
+        if appointment is None or not appointment.customer_can_change():
+            return render_appointment(request, appointment)
+        query = RescheduleQueryForm(request.POST, appointment=appointment)
+        if not query.is_valid():
+            return render_reschedule(request, appointment, query, status=400)
+
+        professional = query.cleaned_data["professional"]
+        slots = reschedule_slots(appointment, professional, query.cleaned_data["date"])
+        slot_form = SlotForm(request.POST, slots=slots)
+        if not slot_form.is_valid():
+            return render_reschedule(request, appointment, query, slot_form)
+        try:
+            with transaction.atomic():
+                appointment.move_to(slot_form.cleaned_data["start_at"], professional=professional)
+        except IntegrityError:
+            appointment.refresh_from_db()
+            slot_form.add_error("start_at", TAKEN_MESSAGE)
+            return render_reschedule(request, appointment, query, slot_form)
+
+    manage_path = reverse("appointment_detail", args=[token])
+    send_rescheduled(appointment, request.build_absolute_uri(manage_path))
+    return redirect(manage_path)

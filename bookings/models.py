@@ -81,6 +81,26 @@ class Appointment(models.Model):
         limit = timedelta(hours=settings.CUSTOMER_CHANGE_LIMIT_HOURS)
         return self.is_confirmed and self.start_at - now >= limit
 
+    def move_to(self, start_at, professional=None, now=None):
+        """Move to a new start time (and professional), resetting the reminder."""
+        now = now or timezone.now()
+        self.professional = professional or self.professional
+        reminder_due_at = start_at - timedelta(hours=settings.REMINDER_HOURS_BEFORE)
+        self.start_at = start_at
+        self.end_at = start_at + timedelta(minutes=self.service.duration_minutes)
+        self.reminder_due_at = reminder_due_at if reminder_due_at > now else None
+        self.reminder_sent_at = None
+        self.save(
+            update_fields=[
+                "professional",
+                "start_at",
+                "end_at",
+                "reminder_due_at",
+                "reminder_sent_at",
+                "updated_at",
+            ]
+        )
+
     def cancel(self, now=None):
         self.status = self.CANCELLED
         self.cancelled_at = now or timezone.now()

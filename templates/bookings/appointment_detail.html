@@ -14,9 +14,10 @@
 
   {% if can_change %}
     <p class="actions">
+      <a class="button" href="{% url 'reschedule_appointment' appointment.manage_token %}">Reprogramar</a>
       <a class="button secondary" href="{% url 'cancel_appointment' appointment.manage_token %}">Cancelar turno</a>
     </p>
-    <p class="helptext">Podés cancelar hasta {{ change_limit_hours }} horas antes del turno.</p>
+    <p class="helptext">Podés reprogramar o cancelar hasta {{ change_limit_hours }} horas antes del turno.</p>
   {% elif appointment.is_confirmed and appointment.is_past %}
     <p class="notice">Este turno ya pasó.</p>
   {% elif appointment.is_confirmed %}

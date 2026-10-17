@@ -12,8 +12,11 @@ def booking_window(today=None):
     return today, today + timedelta(days=settings.BOOKING_WINDOW_DAYS)
 
 
-def available_slots(professional, service, date, now=None):
-    """Start times on `date` where `service` fits in the professional's free working hours."""
+def available_slots(professional, service, date, now=None, ignore=None):
+    """Start times on `date` where `service` fits in the professional's free working hours.
+
+    `ignore` is an appointment being moved: its own time does not count as busy.
+    """
     now = now or timezone.now()
     first_day, last_day = booking_window(timezone.localdate(now))
     if not first_day <= date <= last_day:
@@ -24,14 +27,15 @@ def available_slots(professional, service, date, now=None):
     tz = timezone.get_current_timezone()
     day_start = timezone.make_aware(datetime.combine(date, datetime.min.time()), tz)
 
-    busy = list(
-        Appointment.objects.filter(
-            professional=professional,
-            status=Appointment.CONFIRMED,
-            start_at__lt=day_start + timedelta(days=1),
-            end_at__gt=day_start,
-        ).values_list("start_at", "end_at")
+    appointments = Appointment.objects.filter(
+        professional=professional,
+        status=Appointment.CONFIRMED,
+        start_at__lt=day_start + timedelta(days=1),
+        end_at__gt=day_start,
     )
+    if ignore is not None:
+        appointments = appointments.exclude(pk=ignore.pk)
+    busy = list(appointments.values_list("start_at", "end_at"))
 
     slots = []
     for hours in professional.working_hours.filter(weekday=date.weekday()):
