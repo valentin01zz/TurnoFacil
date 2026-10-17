@@ -2,6 +2,43 @@
 {% block title %}Panel · {{ business.name }}{% endblock %}
 {% block content %}
   <h1>{{ business.name }}</h1>
+
+  <section class="card">
+    <div class="agenda-head">
+      <h2>{% if date == today %}Hoy, {% endif %}{{ date|date:"l j \d\e F" }}</h2>
+      <nav class="day-nav">
+        <a href="?date={{ previous_day|date:'Y-m-d' }}{% if professional %}&amp;professional={{ professional.pk }}{% endif %}">&larr; Anterior</a>
+        {% if date != today %}<a href="?{% if professional %}professional={{ professional.pk }}{% endif %}">Hoy</a>{% endif %}
+        <a href="?date={{ next_day|date:'Y-m-d' }}{% if professional %}&amp;professional={{ professional.pk }}{% endif %}">Siguiente &rarr;</a>
+      </nav>
+    </div>
+
+    <form method="get" class="agenda-filters" novalidate>
+      <div>{{ form.date.errors }}{{ form.date.label_tag }} {{ form.date }}</div>
+      {% if show_professional %}
+        <div>{{ form.professional.errors }}{{ form.professional.label_tag }} {{ form.professional }}</div>
+      {% endif %}
+      <button class="button" type="submit">Ver</button>
+    </form>
+
+    {% if appointments %}
+      <ul class="list agenda">
+        {% for appointment in appointments %}
+          <li class="agenda-item">
+            <span class="agenda-time">{{ appointment.start_at|time:"H:i" }}–{{ appointment.end_at|time:"H:i" }}</span>
+            <div>
+              <strong>{{ appointment.customer_name }}</strong>
+              <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a><br>
+              {{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No hay turnos para este día.</p>
+    {% endif %}
+  </section>
+
   <section class="card">
     <h2>Tu link de reservas</h2>
     <p>Compartilo con tus clientes para que reserven su turno.</p>

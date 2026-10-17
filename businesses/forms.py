@@ -69,3 +69,16 @@ def working_hours_formset(extra):
         extra=extra,
         can_delete=True,
     )
+
+
+class AgendaForm(forms.Form):
+    date = forms.DateField(
+        label="Día", required=False, widget=forms.DateInput(attrs={"type": "date"})
+    )
+    professional = forms.ModelChoiceField(
+        label="Profesional", queryset=None, required=False, empty_label="Todos"
+    )
+
+    def __init__(self, *args, business, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["professional"].queryset = business.professionals.all()

@@ -1,9 +1,14 @@
+from datetime import datetime, timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 
-from .forms import ProfessionalForm, ServiceForm, working_hours_formset
+from bookings.models import Appointment
+
+from .forms import AgendaForm, ProfessionalForm, ServiceForm, working_hours_formset
 from .models import Professional, Service
 
 
@@ -16,8 +21,46 @@ def get_owned_or_404(request, model, pk):
 def panel(request):
     business = request.user.business
     booking_url = request.build_absolute_uri(reverse("booking_page", args=[business.slug]))
+
+    today = timezone.localdate()
+    data = request.GET.copy()
+    if not data.get("date"):
+        data["date"] = today.isoformat()
+    form = AgendaForm(data, business=business)
+    date, professional = today, None
+    if form.is_valid():
+        date = form.cleaned_data["date"] or today
+        professional = form.cleaned_data["professional"]
+
+    day_start = timezone.make_aware(datetime.combine(date, datetime.min.time()))
+    appointments = (
+        Appointment.objects.filter(
+            business=business,
+            status=Appointment.CONFIRMED,
+            start_at__gte=day_start,
+            start_at__lt=day_start + timedelta(days=1),
+        )
+        .select_related("service", "professional")
+        .order_by("start_at", "professional__name")
+    )
+    if professional:
+        appointments = appointments.filter(professional=professional)
+
     return render(
-        request, "businesses/panel.html", {"business": business, "booking_url": booking_url}
+        request,
+        "businesses/panel.html",
+        {
+            "business": business,
+            "booking_url": booking_url,
+            "form": form,
+            "date": date,
+            "today": today,
+            "previous_day": date - timedelta(days=1),
+            "next_day": date + timedelta(days=1),
+            "professional": professional,
+            "show_professional": business.professionals.count() > 1,
+            "appointments": appointments,
+        },
     )
 
 
