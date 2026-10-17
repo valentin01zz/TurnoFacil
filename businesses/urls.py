@@ -10,5 +10,4 @@ urlpatterns = [
     path("panel/professionals/", views.professional_list, name="professional_list"),
     path("panel/professionals/new/", views.professional_create, name="professional_create"),
     path("panel/professionals/<int:pk>/edit/", views.professional_edit, name="professional_edit"),
-    path("b/<slug:slug>/", views.booking_page, name="booking_page"),
 ]

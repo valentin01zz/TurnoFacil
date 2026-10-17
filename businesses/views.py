@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import ProfessionalForm, ServiceForm, working_hours_formset
-from .models import Business, Professional, Service
+from .models import Professional, Service
 
 
 def get_owned_or_404(request, model, pk):
@@ -80,20 +80,4 @@ def professional_form(request, professional, extra, is_new):
         request,
         "businesses/professional_form.html",
         {"form": form, "formset": formset, "is_new": is_new},
-    )
-
-
-def booking_page(request, slug):
-    business = get_object_or_404(Business, slug=slug)
-    services = business.services.filter(is_active=True)
-    professionals = business.professionals.filter(is_active=True)
-    return render(
-        request,
-        "businesses/booking_page.html",
-        {
-            "business": business,
-            "services": services,
-            "professionals": professionals,
-            "is_taking_bookings": services.exists() and professionals.exists(),
-        },
     )

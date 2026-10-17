@@ -28,8 +28,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     "accounts",
     "businesses",
+    "bookings",
 ]
 
 MIDDLEWARE = [
@@ -89,6 +91,11 @@ LANGUAGE_CODE = "es-ar"
 TIME_ZONE = "America/Argentina/Buenos_Aires"
 USE_I18N = True
 USE_TZ = True
+
+# Booking rules (see docs/agentic/ARCHITECTURE.md).
+SLOT_STEP_MINUTES = 30
+BOOKING_WINDOW_DAYS = 60
+REMINDER_HOURS_BEFORE = 24
 
 # The real provider is chosen in its own ADR; until then emails print to the console.
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")

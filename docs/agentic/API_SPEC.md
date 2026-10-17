@@ -6,12 +6,15 @@
 La app renderiza HTML en el servidor: no hay una API JSON separada. Este documento es el contrato de rutas.
 Cada ruta lleva tests. Todos los `POST` validan en el backend y exigen token CSRF.
 
+Cambio respecto de la versión aprobada (2026-10-16): la ruta `/b/<slug>/slots/` se reemplazó por parámetros
+de la misma página de reservas. Funciona sin JavaScript y es una ruta menos; el comportamiento para el cliente
+es el mismo salvo que la página se recarga al pedir horarios.
+
 ## Públicas (sin sesión)
 | Método | Ruta | Qué hace | Historia |
 |---|---|---|---|
 | GET | `/` | Presentación mínima con accesos a registro e ingreso | |
-| GET | `/b/<slug>/` | Página de reservas: servicio, profesional (si hay más de uno) y día | HU-04 |
-| GET | `/b/<slug>/slots/` | Fragmento HTML con horarios libres. Parámetros: `service`, `professional`, `date` | HU-04 |
+| GET | `/b/<slug>/` | Página de reservas: servicio, profesional (si hay más de uno) y día. Con los parámetros `service`, `professional` y `date` muestra además los horarios libres y el formulario de datos | HU-04 |
 | POST | `/b/<slug>/book/` | Crea el turno y envía la confirmación. Redirige a `/t/<token>/` | HU-04, HU-05 |
 | GET | `/t/<token>/` | Detalle del turno con acciones de reprogramar y cancelar | HU-05 |
 | GET, POST | `/t/<token>/reschedule/` | Elegir nuevo horario y confirmar | HU-06 |

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Reservar turno · {{ business.name }}{% endblock %}
+{% block content %}
+  <h1>{{ business.name }}</h1>
+  {% if not is_taking_bookings %}
+    <p>Este negocio todavía no está tomando reservas online.</p>
+  {% else %}
+    <section class="card">
+      <h2>Reservá tu turno</h2>
+      <form method="get" novalidate>
+        {{ selection.as_div }}
+        <button class="button" type="submit">Ver horarios</button>
+      </form>
+    </section>
+
+    {% if slots is not None %}
+      <section class="card">
+        {% if slots or booking.errors %}
+          <form method="post" action="{% url 'book' business.slug %}" novalidate>
+            {% csrf_token %}
+            {% for field in selection %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}">{% endfor %}
+            {{ booking.non_field_errors }}
+            <fieldset class="slots">
+              <legend>Horarios disponibles</legend>
+              {{ booking.start_at.errors }}
+              {% for choice in booking.start_at %}
+                <label class="slot">{{ choice.tag }} {{ choice.choice_label }}</label>
+              {% empty %}
+                <p>No quedan horarios libres ese día. Probá con otro.</p>
+              {% endfor %}
+            </fieldset>
+            {% if slots %}
+              <div>{{ booking.customer_name.errors }}{{ booking.customer_name.label_tag }} {{ booking.customer_name }}</div>
+              <div>{{ booking.customer_phone.errors }}{{ booking.customer_phone.label_tag }} {{ booking.customer_phone }}</div>
+              <div>{{ booking.customer_email.errors }}{{ booking.customer_email.label_tag }} {{ booking.customer_email }}</div>
+              {{ booking.website }}
+              <p class="helptext">Usamos tus datos solo para gestionar este turno y avisarte por email.</p>
+              <button class="button" type="submit">Confirmar turno</button>
+            {% endif %}
+          </form>
+        {% else %}
+          <p>No hay horarios libres ese día. Probá con otro.</p>
+        {% endif %}
+      </section>
+    {% endif %}
+  {% endif %}
+{% endblock %}

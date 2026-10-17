@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Tu turno · {{ appointment.business.name }}{% endblock %}
+{% block content %}
+  {% if appointment.status == "confirmed" %}
+    <h1>Turno confirmado</h1>
+  {% else %}
+    <h1>Turno cancelado</h1>
+  {% endif %}
+  <section class="card">
+    <p><strong>{{ appointment.business.name }}</strong></p>
+    <p>{{ appointment.service.name }} con {{ appointment.professional.name }}</p>
+    <p>{{ appointment.start_at|date:"l j \d\e F" }} a las {{ appointment.start_at|time:"H:i" }}</p>
+    <p class="helptext">A nombre de {{ appointment.customer_name }}.</p>
+  </section>
+  <p class="helptext">Guardá este link: desde acá vas a poder ver tu turno.</p>
+{% endblock %}
