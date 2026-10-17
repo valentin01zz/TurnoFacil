@@ -1,16 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Tu turno · {{ appointment.business.name }}{% endblock %}
 {% block content %}
-  {% if appointment.status == "confirmed" %}
+  {% if appointment.is_confirmed %}
     <h1>Turno confirmado</h1>
   {% else %}
     <h1>Turno cancelado</h1>
   {% endif %}
+  {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
+
   <section class="card">
-    <p><strong>{{ appointment.business.name }}</strong></p>
-    <p>{{ appointment.service.name }} con {{ appointment.professional.name }}</p>
-    <p>{{ appointment.start_at|date:"l j \d\e F" }} a las {{ appointment.start_at|time:"H:i" }}</p>
-    <p class="helptext">A nombre de {{ appointment.customer_name }}.</p>
+    {% include "bookings/_appointment_summary.html" %}
   </section>
-  <p class="helptext">Guardá este link: desde acá vas a poder ver tu turno.</p>
+
+  {% if can_change %}
+    <p class="actions">
+      <a class="button secondary" href="{% url 'cancel_appointment' appointment.manage_token %}">Cancelar turno</a>
+    </p>
+    <p class="helptext">Podés cancelar hasta {{ change_limit_hours }} horas antes del turno.</p>
+  {% elif appointment.is_confirmed and appointment.is_past %}
+    <p class="notice">Este turno ya pasó.</p>
+  {% elif appointment.is_confirmed %}
+    <p class="notice">Faltan menos de {{ change_limit_hours }} horas para el turno. Si necesitás cambiarlo, contactá a {{ appointment.business.name }}.</p>
+  {% endif %}
+
+  <p class="helptext">Guardá este link: desde acá podés ver tu turno.</p>
 {% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Cancelar turno · {{ appointment.business.name }}{% endblock %}
+{% block content %}
+  <h1>¿Cancelar este turno?</h1>
+  <section class="card">
+    {% include "bookings/_appointment_summary.html" %}
+  </section>
+  <form method="post" class="actions">
+    {% csrf_token %}
+    <button class="button danger" type="submit">Sí, cancelar turno</button>
+    <a href="{% url 'appointment_detail' appointment.manage_token %}">No, volver</a>
+  </form>
+{% endblock %}

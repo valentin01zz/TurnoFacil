@@ -1,0 +1,4 @@
+<p><strong>{{ appointment.business.name }}</strong></p>
+<p>{{ appointment.service.name }} con {{ appointment.professional.name }}</p>
+<p>{{ appointment.start_at|date:"l j \d\e F" }} a las {{ appointment.start_at|time:"H:i" }}</p>
+<p class="helptext">A nombre de {{ appointment.customer_name }}.</p>

@@ -1,6 +1,10 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import DateTimeRangeField, RangeOperators
 from django.db import models
+from django.utils import timezone
 
 from businesses.models import Business, Professional, Service
 
@@ -62,3 +66,23 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.customer_name} - {self.start_at:%Y-%m-%d %H:%M}"
+
+    @property
+    def is_confirmed(self):
+        return self.status == self.CONFIRMED
+
+    @property
+    def is_past(self):
+        return self.start_at <= timezone.now()
+
+    def customer_can_change(self, now=None):
+        """Customers may change a confirmed appointment until the configured limit before it."""
+        now = now or timezone.now()
+        limit = timedelta(hours=settings.CUSTOMER_CHANGE_LIMIT_HOURS)
+        return self.is_confirmed and self.start_at - now >= limit
+
+    def cancel(self, now=None):
+        self.status = self.CANCELLED
+        self.cancelled_at = now or timezone.now()
+        self.reminder_due_at = None
+        self.save(update_fields=["status", "cancelled_at", "reminder_due_at", "updated_at"])

@@ -96,6 +96,7 @@ USE_TZ = True
 SLOT_STEP_MINUTES = 30
 BOOKING_WINDOW_DAYS = 60
 REMINDER_HOURS_BEFORE = 24
+CUSTOMER_CHANGE_LIMIT_HOURS = 2
 
 # The real provider is chosen in its own ADR; until then emails print to the console.
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")

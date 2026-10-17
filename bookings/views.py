@@ -95,12 +95,45 @@ def render_booking_page(request, business, selection, booking=None, status=200):
     )
 
 
-def appointment_detail(request, token):
-    appointment = (
-        Appointment.objects.select_related("business", "service", "professional")
-        .filter(manage_token=token)
-        .first()
-    )
+def get_appointment(token, for_update=False):
+    queryset = Appointment.objects.select_related("business", "service", "professional")
+    if for_update:
+        queryset = queryset.select_for_update(of=("self",))
+    return queryset.filter(manage_token=token).first()
+
+
+def render_appointment(request, appointment, template="bookings/appointment_detail.html", **extra):
     if appointment is None:
         return render(request, "bookings/appointment_not_found.html", status=404)
-    return render(request, "bookings/appointment_detail.html", {"appointment": appointment})
+    context = {
+        "appointment": appointment,
+        "can_change": appointment.customer_can_change(),
+        "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
+        **extra,
+    }
+    return render(request, template, context)
+
+
+def appointment_detail(request, token):
+    return render_appointment(request, get_appointment(token))
+
+
+def cancel_appointment(request, token):
+    if request.method != "POST":
+        appointment = get_appointment(token)
+        if appointment and appointment.customer_can_change():
+            return render_appointment(request, appointment, "bookings/cancel_confirm.html")
+        return render_appointment(request, appointment)
+
+    with transaction.atomic():
+        appointment = get_appointment(token, for_update=True)
+        if appointment is None:
+            return render_appointment(request, None)
+        if not appointment.is_confirmed:
+            return render_appointment(
+                request, appointment, notice="Este turno ya estaba cancelado."
+            )
+        if not appointment.customer_can_change():
+            return render_appointment(request, appointment)
+        appointment.cancel()
+    return redirect("appointment_detail", token=token)

@@ -18,7 +18,7 @@ es el mismo salvo que la página se recarga al pedir horarios.
 | POST | `/b/<slug>/book/` | Crea el turno y envía la confirmación. Redirige a `/t/<token>/` | HU-04, HU-05 |
 | GET | `/t/<token>/` | Detalle del turno con acciones de reprogramar y cancelar | HU-05 |
 | GET, POST | `/t/<token>/reschedule/` | Elegir nuevo horario y confirmar | HU-06 |
-| POST | `/t/<token>/cancel/` | Cancela el turno | HU-07 |
+| GET, POST | `/t/<token>/cancel/` | GET pide confirmación; POST cancela el turno | HU-07 |
 
 Respuestas esperadas:
 - `slug` inexistente o token inválido: 404 con "no encontrado", sin datos.
