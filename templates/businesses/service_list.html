@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Servicios · TurnoFacil{% endblock %}
+{% block content %}
+  <h1>Servicios</h1>
+  <p><a class="button" href="{% url 'service_create' %}">Agregar servicio</a></p>
+  {% if services %}
+    <ul class="list">
+      {% for service in services %}
+        <li class="card list-item">
+          <div>
+            <strong>{{ service.name }}</strong>
+            <span class="muted">{{ service.duration_minutes }} min</span>
+            {% if not service.is_active %}<span class="badge">Inactivo</span>{% endif %}
+          </div>
+          <a href="{% url 'service_edit' service.pk %}">Editar</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Todavía no cargaste servicios. Agregá al menos uno para empezar a recibir reservas.</p>
+  {% endif %}
+{% endblock %}

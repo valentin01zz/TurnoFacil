@@ -7,5 +7,6 @@
     {{ form.as_div }}
     <button class="button" type="submit">Ingresar</button>
   </form>
+  <p><a href="{% url 'password_reset' %}">Olvidé mi contraseña</a></p>
   <p><a href="{% url 'signup' %}">Registrar mi negocio</a></p>
 {% endblock %}

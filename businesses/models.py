@@ -27,3 +27,22 @@ class Business(models.Model):
             slug = f"{base}-{suffix}"
             suffix += 1
         return slug
+
+
+class Service(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="services")
+    name = models.CharField("nombre", max_length=80)
+    duration_minutes = models.PositiveIntegerField("duración (minutos)")
+    is_active = models.BooleanField("activo", default=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(duration_minutes__gt=0),
+                name="service_duration_positive",
+            ),
+        ]
+
+    def __str__(self):
+        return self.name

@@ -11,10 +11,14 @@
   <header class="topbar">
     <a class="brand" href="{% url 'home' %}">TurnoFacil</a>
     {% if user.is_authenticated %}
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button class="link" type="submit">Salir</button>
-      </form>
+      <nav class="nav">
+        <a href="{% url 'panel' %}">Panel</a>
+        <a href="{% url 'service_list' %}">Servicios</a>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="link" type="submit">Salir</button>
+        </form>
+      </nav>
     {% endif %}
   </header>
   <main>

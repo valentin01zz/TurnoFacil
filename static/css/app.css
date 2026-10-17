@@ -17,3 +17,11 @@ label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
 input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 0.6rem; border: 1px solid #9fb3c8; border-radius: 0.4rem; font: inherit; }
 .errorlist { margin: 0 0 0.25rem; padding: 0; list-style: none; color: #b42318; }
 .helptext { display: block; font-size: 0.85rem; color: #52606d; }
+.nav { display: flex; gap: 1rem; align-items: center; }
+.nav form { margin: 0; }
+.list { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+.list-item { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.muted { color: #52606d; margin-left: 0.5rem; }
+.badge { margin-left: 0.5rem; padding: 0.1rem 0.5rem; border-radius: 1rem; background: #e4e7eb; font-size: 0.8rem; }
+input[type="number"] { width: 100%; padding: 0.6rem; border: 1px solid #9fb3c8; border-radius: 0.4rem; font: inherit; }
+input[type="checkbox"] { width: 1.1rem; height: 1.1rem; }
