@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{% if is_new %}Nuevo profesional{% else %}Editar profesional{% endif %} · TurnoFacil{% endblock %}
+{% block content %}
+  <h1>{% if is_new %}Nuevo profesional{% else %}Editar profesional{% endif %}</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_div }}
+
+    <h2>Horarios de atención</h2>
+    <p class="helptext">Una fila por tramo. Si un día tiene horario cortado, cargá dos filas para ese día.</p>
+    {{ formset.management_form }}
+    {{ formset.non_form_errors }}
+    {% for hours_form in formset %}
+      <fieldset class="hours-row">
+        {{ hours_form.id }}
+        {{ hours_form.non_field_errors }}
+        <div>{{ hours_form.weekday.errors }}{{ hours_form.weekday.label_tag }} {{ hours_form.weekday }}</div>
+        <div>{{ hours_form.start_time.errors }}{{ hours_form.start_time.label_tag }} {{ hours_form.start_time }}</div>
+        <div>{{ hours_form.end_time.errors }}{{ hours_form.end_time.label_tag }} {{ hours_form.end_time }}</div>
+        {% if hours_form.instance.pk %}
+          <div>{{ hours_form.DELETE.label_tag }} {{ hours_form.DELETE }}</div>
+        {% endif %}
+      </fieldset>
+    {% endfor %}
+
+    <button class="button" type="submit">Guardar</button>
+  </form>
+  <p><a href="{% url 'professional_list' %}">Volver a profesionales</a></p>
+{% endblock %}

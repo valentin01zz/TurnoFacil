@@ -2,7 +2,7 @@
 {% block title %}Reservar turno · {{ business.name }}{% endblock %}
 {% block content %}
   <h1>{{ business.name }}</h1>
-  {% if services %}
+  {% if is_taking_bookings %}
     <h2>Servicios</h2>
     <ul class="list">
       {% for service in services %}
@@ -12,6 +12,14 @@
         </li>
       {% endfor %}
     </ul>
+    {% if professionals|length > 1 %}
+      <h2>Profesionales</h2>
+      <ul class="list">
+        {% for professional in professionals %}
+          <li class="card list-item"><strong>{{ professional.name }}</strong></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   {% else %}
     <p>Este negocio todavía no está tomando reservas online.</p>
   {% endif %}

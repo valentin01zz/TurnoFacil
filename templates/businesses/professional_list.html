@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Profesionales · TurnoFacil{% endblock %}
+{% block content %}
+  <h1>Profesionales</h1>
+  <p><a class="button" href="{% url 'professional_create' %}">Agregar profesional</a></p>
+  {% if professionals %}
+    <ul class="list">
+      {% for professional in professionals %}
+        <li class="card list-item">
+          <div>
+            <strong>{{ professional.name }}</strong>
+            {% if not professional.is_active %}<span class="badge">Inactivo</span>{% endif %}
+            <ul class="hours">
+              {% for hours in professional.working_hours.all %}
+                <li>{{ hours.get_weekday_display }} {{ hours.start_time|time:"H:i" }} a {{ hours.end_time|time:"H:i" }}</li>
+              {% empty %}
+                <li>Sin horarios cargados</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <a href="{% url 'professional_edit' professional.pk %}">Editar</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Todavía no cargaste profesionales. Si atendés solo vos, cargate como único profesional.</p>
+  {% endif %}
+{% endblock %}

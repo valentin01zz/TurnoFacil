@@ -3,7 +3,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from businesses.models import Business, Service
+from businesses.models import Business, Professional, Service
 
 User = get_user_model()
 
@@ -17,6 +17,7 @@ class ServiceTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.business = create_business("a@example.com", "Estética Luna")
+        Professional.objects.create(business=cls.business, name="Ana")
         cls.other = create_business("b@example.com", "Taller Sur")
         cls.other_service = Service.objects.create(
             business=cls.other, name="Cambio de aceite", duration_minutes=40

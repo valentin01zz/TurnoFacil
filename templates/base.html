@@ -14,6 +14,7 @@
       <nav class="nav">
         <a href="{% url 'panel' %}">Panel</a>
         <a href="{% url 'service_list' %}">Servicios</a>
+        <a href="{% url 'professional_list' %}">Profesionales</a>
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
           <button class="link" type="submit">Salir</button>

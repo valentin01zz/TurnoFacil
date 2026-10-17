@@ -46,3 +46,46 @@ class Service(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Professional(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="professionals")
+    name = models.CharField("nombre", max_length=80)
+    is_active = models.BooleanField("activo", default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class WorkingHours(models.Model):
+    WEEKDAYS = [
+        (0, "Lunes"),
+        (1, "Martes"),
+        (2, "Miércoles"),
+        (3, "Jueves"),
+        (4, "Viernes"),
+        (5, "Sábado"),
+        (6, "Domingo"),
+    ]
+
+    professional = models.ForeignKey(
+        Professional, on_delete=models.CASCADE, related_name="working_hours"
+    )
+    weekday = models.PositiveSmallIntegerField("día", choices=WEEKDAYS)
+    start_time = models.TimeField("desde")
+    end_time = models.TimeField("hasta")
+
+    class Meta:
+        ordering = ["weekday", "start_time"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_time__gt=models.F("start_time")),
+                name="working_hours_end_after_start",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_weekday_display()} {self.start_time:%H:%M}-{self.end_time:%H:%M}"
