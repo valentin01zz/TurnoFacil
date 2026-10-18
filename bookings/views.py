@@ -45,9 +45,10 @@ def book(request, slug):
     return render_booking_page(request, business, selection, booking=booking)
 
 
-def create_appointment(business, professional, service, data):
+def create_appointment(business, professional, service, data, source=Appointment.ONLINE):
     """Create a confirmed appointment, or return None if the slot was taken meanwhile."""
     start_at = data["start_at"]
+    email = data.get("customer_email", "")
     reminder_due_at = start_at - timedelta(hours=settings.REMINDER_HOURS_BEFORE)
     try:
         with transaction.atomic():
@@ -57,12 +58,14 @@ def create_appointment(business, professional, service, data):
                 service=service,
                 customer_name=data["customer_name"],
                 customer_phone=data["customer_phone"],
-                customer_email=data["customer_email"],
+                customer_email=email,
                 start_at=start_at,
                 end_at=start_at + timedelta(minutes=service.duration_minutes),
-                source=Appointment.ONLINE,
+                source=source,
                 manage_token=secrets.token_urlsafe(32),
-                reminder_due_at=reminder_due_at if reminder_due_at > timezone.now() else None,
+                reminder_due_at=(
+                    reminder_due_at if email and reminder_due_at > timezone.now() else None
+                ),
             )
     except IntegrityError:
         return None

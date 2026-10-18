@@ -1,9 +1,17 @@
 import re
+from datetime import datetime
 
 from django import forms
 from django.utils import timezone
 
 from .availability import booking_window
+
+
+def clean_phone(value):
+    phone = value.strip()
+    if not re.fullmatch(r"[0-9 +()\-]+", phone) or len(re.sub(r"\D", "", phone)) < 6:
+        raise forms.ValidationError("Ingresá un teléfono válido.")
+    return phone
 
 
 class BookingDateForm(forms.Form):
@@ -95,12 +103,60 @@ class BookingForm(SlotForm):
     website = forms.CharField(required=False, widget=forms.HiddenInput)
 
     def clean_customer_phone(self):
-        phone = self.cleaned_data["customer_phone"].strip()
-        if not re.fullmatch(r"[0-9 +()\-]+", phone) or len(re.sub(r"\D", "", phone)) < 6:
-            raise forms.ValidationError("Ingresá un teléfono válido.")
-        return phone
+        return clean_phone(self.cleaned_data["customer_phone"])
 
     def clean_website(self):
         if self.cleaned_data["website"]:
             raise forms.ValidationError("No pudimos procesar la reserva.")
         return ""
+
+
+class PanelScheduleForm(forms.Form):
+    """Professional, day and time chosen by the business owner (any time, not only free slots)."""
+
+    professional = forms.ModelChoiceField(label="Profesional", queryset=None, empty_label=None)
+    date = forms.DateField(label="Día", widget=forms.DateInput(attrs={"type": "date"}))
+    time = forms.TimeField(
+        label="Hora", widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M")
+    )
+
+    def __init__(self, *args, business, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["professional"].queryset = business.professionals.filter(is_active=True)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date, time = cleaned_data.get("date"), cleaned_data.get("time")
+        if date and time:
+            start_at = timezone.make_aware(datetime.combine(date, time))
+            if start_at <= timezone.now():
+                raise forms.ValidationError("Elegí un día y hora a futuro.")
+            cleaned_data["start_at"] = start_at
+        return cleaned_data
+
+
+class PanelAppointmentForm(PanelScheduleForm):
+    service = forms.ModelChoiceField(label="Servicio", queryset=None, empty_label=None)
+    customer_name = forms.CharField(label="Nombre y apellido", max_length=100)
+    customer_phone = forms.CharField(label="Teléfono", max_length=30)
+    customer_email = forms.EmailField(
+        label="Email (opcional)",
+        required=False,
+        help_text="Si lo cargás, el cliente recibe la confirmación y el recordatorio.",
+    )
+    field_order = [
+        "customer_name",
+        "customer_phone",
+        "customer_email",
+        "service",
+        "professional",
+        "date",
+        "time",
+    ]
+
+    def __init__(self, *args, business, **kwargs):
+        super().__init__(*args, business=business, **kwargs)
+        self.fields["service"].queryset = business.services.filter(is_active=True)
+
+    def clean_customer_phone(self):
+        return clean_phone(self.cleaned_data["customer_phone"])

@@ -45,3 +45,4 @@ input[type="date"] { padding: 0.5rem; border: 1px solid #9fb3c8; border-radius: 
 .button.secondary { background: #fff; color: #0b6bcb; border: 1px solid #0b6bcb; }
 .button.danger { background: #b42318; }
 form.actions { margin-top: 1rem; }
+.item-actions { display: flex; gap: 1rem; margin-top: 0.25rem; font-size: 0.9rem; }

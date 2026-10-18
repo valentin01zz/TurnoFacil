@@ -21,6 +21,8 @@
       <button class="button" type="submit">Ver</button>
     </form>
 
+    <p><a class="button secondary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">Cargar turno</a></p>
+
     {% if appointments %}
       <ul class="list agenda">
         {% for appointment in appointments %}
@@ -30,6 +32,11 @@
               <strong>{{ appointment.customer_name }}</strong>
               <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a><br>
               {{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}
+              {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
+              <div class="item-actions">
+                <a href="{% url 'appointment_reschedule' appointment.pk %}">Reprogramar</a>
+                <a href="{% url 'appointment_cancel' appointment.pk %}">Cancelar</a>
+              </div>
             </div>
           </li>
         {% endfor %}

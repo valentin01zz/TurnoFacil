@@ -1,0 +1,11 @@
+{% autoescape off %}Hola {{ appointment.customer_name }},
+
+{{ appointment.business.name }} canceló tu turno:
+
+Servicio: {{ appointment.service.name }}
+Profesional: {{ appointment.professional.name }}
+Día: {{ appointment.start_at|date:"l j \d\e F" }}
+Hora: {{ appointment.start_at|time:"H:i" }}
+
+Si querés, podés reservar otro turno desde el link del negocio o contactarlo directamente.
+{% endautoescape %}

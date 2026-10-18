@@ -24,6 +24,15 @@ def send_rescheduled(appointment, manage_url):
     )
 
 
+def send_cancelled(appointment, manage_url):
+    send_customer_email(
+        appointment,
+        manage_url,
+        subject=f"Turno cancelado en {appointment.business.name}",
+        template="bookings/emails/cancelled.txt",
+    )
+
+
 def send_customer_email(appointment, manage_url, subject, template):
     """Email the customer about their appointment. A failure is logged, never raised."""
     if not appointment.customer_email:
