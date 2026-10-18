@@ -98,6 +98,9 @@ BOOKING_WINDOW_DAYS = 60
 REMINDER_HOURS_BEFORE = 24
 CUSTOMER_CHANGE_LIMIT_HOURS = 2
 
+# Base URL for links in emails sent outside a request (reminders).
+SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+
 # The real provider is chosen in its own ADR; until then emails print to the console.
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "TurnoFacil <no-reply@localhost>")

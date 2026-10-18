@@ -15,6 +15,7 @@ para lo específico del proyecto y NEXORA para las reglas generales.
   - Tests: `.venv\Scripts\python manage.py test` (necesita PostgreSQL y el archivo `.env`; ver `.env.example`).
   - Verificación: `.venv\Scripts\python manage.py check`. No hay paso de build.
   - Servidor local: `.venv\Scripts\python manage.py runserver`
+  - Recordatorios: `.venv\Scripts\python manage.py send_reminders` (en producción, cada 15 minutos con el programador del hosting).
 
 ## Idioma
 Documentación y comunicación con el Founder en español. Código, nombres técnicos y commits en inglés.

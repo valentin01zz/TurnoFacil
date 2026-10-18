@@ -33,10 +33,19 @@ def send_cancelled(appointment, manage_url):
     )
 
 
+def send_reminder(appointment, manage_url):
+    return send_customer_email(
+        appointment,
+        manage_url,
+        subject=f"Recordatorio: tu turno en {appointment.business.name}",
+        template="bookings/emails/reminder.txt",
+    )
+
+
 def send_customer_email(appointment, manage_url, subject, template):
-    """Email the customer about their appointment. A failure is logged, never raised."""
+    """Email the customer about their appointment. Returns whether it was sent; never raises."""
     if not appointment.customer_email:
-        return
+        return False
     context = {"appointment": appointment, "manage_url": manage_url}
     try:
         send_mail(
@@ -47,3 +56,5 @@ def send_customer_email(appointment, manage_url, subject, template):
         )
     except Exception:
         logger.exception("Could not send email for appointment %s", appointment.pk)
+        return False
+    return True

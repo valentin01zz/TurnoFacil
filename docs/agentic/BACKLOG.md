@@ -3,6 +3,8 @@
 Orden sugerido de construcción. El detalle de cada historia está en `USER_STORIES.md` y `ACCEPTANCE_CRITERIA.md`.
 
 ## MVP
+Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el QA gate y el primer deploy.
+
 | Orden | Historia | Depende de |
 |---|---|---|
 | 1 | HU-01 Registro del negocio | Arquitectura y stack aprobados |
