@@ -1,22 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Servicios · TurnoFacil{% endblock %}
 {% block content %}
-  <h1>Servicios</h1>
-  <p><a class="button" href="{% url 'service_create' %}">Agregar servicio</a></p>
+<div class="wrap">
+  <div class="agenda-head">
+    <div>
+      <div class="eyebrow">Tu negocio</div>
+      <h1>Servicios</h1>
+    </div>
+    <a class="btn btn-primary" href="{% url 'service_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar servicio</a>
+  </div>
   {% if services %}
-    <ul class="list">
+    <ul class="items">
       {% for service in services %}
-        <li class="card list-item">
+        <li class="item">
           <div>
             <strong>{{ service.name }}</strong>
-            <span class="muted">{{ service.duration_minutes }} min</span>
-            {% if not service.is_active %}<span class="badge">Inactivo</span>{% endif %}
+            <span class="dur" style="margin-left: 8px">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ service.duration_minutes }} min</span>
+            {% if not service.is_active %}<span class="badge off" style="margin-left: 6px">Inactivo</span>{% endif %}
           </div>
-          <a href="{% url 'service_edit' service.pk %}">Editar</a>
+          <a class="btn btn-small" href="{% url 'service_edit' service.pk %}">Editar</a>
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>Todavía no cargaste servicios. Agregá al menos uno para empezar a recibir reservas.</p>
+    <div class="empty-day">
+      <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">Todavía no cargaste servicios.</p>
+      <p style="margin: 0">Agregá al menos uno para empezar a recibir reservas.</p>
+    </div>
   {% endif %}
+</div>
 {% endblock %}

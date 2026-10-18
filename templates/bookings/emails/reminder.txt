@@ -7,7 +7,8 @@ Servicio: {{ appointment.service.name }}
 Profesional: {{ appointment.professional.name }}
 Día: {{ appointment.start_at|date:"l j \d\e F" }}
 Hora: {{ appointment.start_at|time:"H:i" }}
-
+{% if appointment.business.address %}Dirección: {{ appointment.business.address }}
+{% endif %}
 Si no podés ir, reprogramalo o cancelalo desde este link (hasta {{ change_limit_hours }} horas antes):
 {{ manage_url }}
 

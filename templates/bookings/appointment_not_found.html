@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Turno no encontrado · TurnoFacil{% endblock %}
+{% block header %}{% endblock %}
 {% block content %}
-  <h1>Turno no encontrado</h1>
-  <p>El link no es válido. Revisá que esté completo, tal como te llegó por email.</p>
+<div class="wrap narrow">
+  <section class="error-page">
+    <div class="code" aria-hidden="true">?</div>
+    <h1 class="page-title">Turno no encontrado</h1>
+    <p class="page-lead" style="margin: 0 auto">El link no es válido. Revisá que esté completo, tal como te llegó por email.</p>
+  </section>
+</div>
 {% endblock %}

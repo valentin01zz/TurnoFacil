@@ -208,7 +208,7 @@ class RescheduleProfessionalTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertContains(response, "Bruno")
-        self.assertContains(response, f'<option value="{self.ana.pk}" selected>Ana</option>')
+        self.assertContains(response, f'name="professional" value="{self.ana.pk}" checked')
 
     def test_same_time_with_another_professional_is_offered(self):
         response = self.client.get(

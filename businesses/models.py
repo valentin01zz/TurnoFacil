@@ -7,8 +7,9 @@ class Business(models.Model):
     owner = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="business"
     )
-    name = models.CharField(max_length=80)
+    name = models.CharField("nombre del negocio", max_length=80)
     slug = models.SlugField(max_length=90, unique=True)
+    address = models.CharField("dirección", max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

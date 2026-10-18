@@ -1,29 +1,37 @@
 {% extends "base.html" %}
 {% block title %}{% if is_new %}Nuevo profesional{% else %}Editar profesional{% endif %} · TurnoFacil{% endblock %}
 {% block content %}
-  <h1>{% if is_new %}Nuevo profesional{% else %}Editar profesional{% endif %}</h1>
+<div class="wrap" style="max-width: 820px">
+  <h1 class="page-title">{% if is_new %}Nuevo profesional{% else %}Editar profesional{% endif %}</h1>
+  <p class="page-lead">Cada profesional tiene su propia agenda, con los horarios que cargues acá.</p>
   <form method="post" novalidate>
     {% csrf_token %}
-    {{ form.as_div }}
-
-    <h2>Horarios de atención</h2>
-    <p class="helptext">Una fila por tramo. Si un día tiene horario cortado, cargá dos filas para ese día.</p>
-    {{ formset.management_form }}
-    {{ formset.non_form_errors }}
-    {% for hours_form in formset %}
-      <fieldset class="hours-row">
-        {{ hours_form.id }}
-        {{ hours_form.non_field_errors }}
-        <div>{{ hours_form.weekday.errors }}{{ hours_form.weekday.label_tag }} {{ hours_form.weekday }}</div>
-        <div>{{ hours_form.start_time.errors }}{{ hours_form.start_time.label_tag }} {{ hours_form.start_time }}</div>
-        <div>{{ hours_form.end_time.errors }}{{ hours_form.end_time.label_tag }} {{ hours_form.end_time }}</div>
-        {% if hours_form.instance.pk %}
-          <div>{{ hours_form.DELETE.label_tag }} {{ hours_form.DELETE }}</div>
-        {% endif %}
-      </fieldset>
-    {% endfor %}
-
-    <button class="button" type="submit">Guardar</button>
+    <div class="card">
+      {{ form.as_div }}
+    </div>
+    <div class="card">
+      <h2>Horarios de atención</h2>
+      <p>Una fila por tramo. Si un día tiene horario cortado, cargá dos filas para ese día.</p>
+      {{ formset.management_form }}
+      {{ formset.non_form_errors }}
+      {% for hours_form in formset %}
+        <fieldset class="hours-row">
+          <legend class="sr-only">Tramo {{ forloop.counter }}</legend>
+          {{ hours_form.id }}
+          {% if hours_form.non_field_errors %}<div class="full" style="grid-column: 1 / -1">{{ hours_form.non_field_errors }}</div>{% endif %}
+          <div>{{ hours_form.weekday.errors }}{{ hours_form.weekday.label_tag }} {{ hours_form.weekday }}</div>
+          <div>{{ hours_form.start_time.errors }}{{ hours_form.start_time.label_tag }} {{ hours_form.start_time }}</div>
+          <div>{{ hours_form.end_time.errors }}{{ hours_form.end_time.label_tag }} {{ hours_form.end_time }}</div>
+          {% if hours_form.instance.pk %}
+            <div style="flex-direction: row; align-items: center; gap: 8px; align-self: end; padding-bottom: 12px">{{ hours_form.DELETE }} {{ hours_form.DELETE.label_tag }}</div>
+          {% endif %}
+        </fieldset>
+      {% endfor %}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="link-button" href="{% url 'professional_list' %}">Volver a profesionales</a>
+      </div>
+    </div>
   </form>
-  <p><a href="{% url 'professional_list' %}">Volver a profesionales</a></p>
+</div>
 {% endblock %}

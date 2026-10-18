@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Página no encontrada · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <section class="error-page">
+    <div class="code" aria-hidden="true">404</div>
+    <h1 class="page-title">Página no encontrada</h1>
+    <p class="page-lead" style="margin: 0 auto 24px">La dirección no existe o cambió. Revisá que el link esté completo.</p>
+    <a class="btn btn-primary" href="{% url 'home' %}">Ir al inicio</a>
+  </section>
+</div>
+{% endblock %}

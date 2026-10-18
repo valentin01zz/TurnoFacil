@@ -1,28 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Tu turno · {{ appointment.business.name }}{% endblock %}
+{% block header %}{% with business=appointment.business %}{% include "bookings/_business_header.html" %}{% endwith %}{% endblock %}
 {% block content %}
-  {% if appointment.is_confirmed %}
-    <h1>Turno confirmado</h1>
-  {% else %}
-    <h1>Turno cancelado</h1>
-  {% endif %}
-  {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
+<div class="wrap">
+  <div class="ticket-page">
+    {% if notice %}<p class="notice" style="margin-bottom: 20px">{{ notice }}</p>{% endif %}
+    <div class="ticket{% if not appointment.is_confirmed %} cancelled{% endif %}">
+      <div class="t-top">
+        <span class="sparkle">{% include "_icon.html" with name="star" size=120 %}</span>
+        <div class="t-label">Tu turno</div>
+        <div class="t-name">{{ appointment.business.name }}</div>
+        <h1 class="t-label" style="margin: 0; font-size: 15px; letter-spacing: .08em">{% if appointment.is_confirmed %}Turno confirmado{% else %}Turno cancelado{% endif %}</h1>
+      </div>
+      {% include "bookings/_ticket_rows.html" %}
+      <div class="perf"></div>
+      <div class="ticket-msg">
+        {% if just_booked %}
+          <h2>¡Listo, {{ first_name }}!</h2>
+          {% if appointment.customer_email %}<p>Te mandamos la confirmación a {{ appointment.customer_email }}. Un día antes te recordamos el turno.</p>{% endif %}
+        {% else %}
+          <p>A nombre de {{ appointment.customer_name }}.</p>
+        {% endif %}
 
-  <section class="card">
-    {% include "bookings/_appointment_summary.html" %}
-  </section>
-
-  {% if can_change %}
-    <p class="actions">
-      <a class="button" href="{% url 'reschedule_appointment' appointment.manage_token %}">Reprogramar</a>
-      <a class="button secondary" href="{% url 'cancel_appointment' appointment.manage_token %}">Cancelar turno</a>
-    </p>
-    <p class="helptext">Podés reprogramar o cancelar hasta {{ change_limit_hours }} horas antes del turno.</p>
-  {% elif appointment.is_confirmed and appointment.is_past %}
-    <p class="notice">Este turno ya pasó.</p>
-  {% elif appointment.is_confirmed %}
-    <p class="notice">Faltan menos de {{ change_limit_hours }} horas para el turno. Si necesitás cambiarlo, contactá a {{ appointment.business.name }}.</p>
-  {% endif %}
-
-  <p class="helptext">Guardá este link: desde acá podés ver tu turno.</p>
+        {% if can_change %}
+          <div class="actions" style="justify-content: center; margin-top: 16px">
+            <a class="btn btn-primary" href="{% url 'reschedule_appointment' appointment.manage_token %}">{% include "_icon.html" with name="refresh" size=18 %}Reprogramar</a>
+            <a class="btn btn-quiet" href="{% url 'cancel_appointment' appointment.manage_token %}">Cancelar turno</a>
+          </div>
+          <p class="fine">Podés reprogramar o cancelar hasta {{ change_limit_hours }} horas antes del turno.</p>
+        {% elif appointment.is_confirmed and appointment.is_past %}
+          <p class="notice" style="margin-top: 14px">Este turno ya pasó.</p>
+        {% elif appointment.is_confirmed %}
+          <p class="notice" style="margin-top: 14px">Faltan menos de {{ change_limit_hours }} horas para el turno. Si necesitás cambiarlo, contactá a {{ appointment.business.name }}.</p>
+        {% endif %}
+      </div>
+      {% if just_booked %}
+        <span class="stamp" aria-hidden="true">CONFIRMADO</span>
+        <span class="burst" aria-hidden="true">{% for c in confetti %}<i style="background: {{ c.color }}; --angle: {{ c.angle }}deg; --distance: {{ c.distance }}px; animation-delay: {{ c.delay }}ms"></i>{% endfor %}</span>
+      {% endif %}
+    </div>
+    <p class="fine">Guardá este link: desde acá podés ver tu turno.</p>
+  </div>
+</div>
 {% endblock %}

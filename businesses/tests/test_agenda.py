@@ -92,7 +92,7 @@ class AgendaTests(TestCase):
         response = self.agenda()
 
         self.assertEqual(response.context["date"], timezone.localdate())
-        self.assertContains(response, "Hoy,")
+        self.assertContains(response, ">Hoy<")
         self.assertContains(response, f'value="{timezone.localdate().isoformat()}"')
 
     def test_invalid_date_falls_back_to_today(self):

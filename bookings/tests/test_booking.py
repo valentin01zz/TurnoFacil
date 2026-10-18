@@ -75,9 +75,8 @@ class BookingFlowTests(TestCase):
         response = self.client.post(self.book_url(), self.booking_data())
 
         appointment = Appointment.objects.get()
-        self.assertRedirects(
-            response, reverse("appointment_detail", args=[appointment.manage_token])
-        )
+        detail_url = reverse("appointment_detail", args=[appointment.manage_token])
+        self.assertRedirects(response, f"{detail_url}?nuevo=1")
         self.assertEqual(appointment.business, self.business)
         self.assertEqual(appointment.professional, self.ana)
         self.assertEqual(appointment.service, self.service)
@@ -90,7 +89,9 @@ class BookingFlowTests(TestCase):
 
         detail = self.client.get(response.url)
         self.assertContains(detail, "Turno confirmado")
-        self.assertContains(detail, "Limpieza facial con Ana")
+        self.assertContains(detail, "CONFIRMADO")
+        self.assertContains(detail, "Limpieza facial")
+        self.assertContains(detail, "<dd>Ana</dd>", html=False)
         self.assertContains(detail, "09:00")
 
     def test_booked_time_is_no_longer_offered(self):

@@ -1,15 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Profesionales · TurnoFacil{% endblock %}
 {% block content %}
-  <h1>Profesionales</h1>
-  <p><a class="button" href="{% url 'professional_create' %}">Agregar profesional</a></p>
+<div class="wrap">
+  <div class="agenda-head">
+    <div>
+      <div class="eyebrow">Tu equipo</div>
+      <h1>Profesionales</h1>
+    </div>
+    <a class="btn btn-primary" href="{% url 'professional_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar profesional</a>
+  </div>
   {% if professionals %}
-    <ul class="list">
+    <ul class="items">
       {% for professional in professionals %}
-        <li class="card list-item">
+        <li class="item">
           <div>
             <strong>{{ professional.name }}</strong>
-            {% if not professional.is_active %}<span class="badge">Inactivo</span>{% endif %}
+            {% if not professional.is_active %}<span class="badge off" style="margin-left: 6px">Inactivo</span>{% endif %}
             <ul class="hours">
               {% for hours in professional.working_hours.all %}
                 <li>{{ hours.get_weekday_display }} {{ hours.start_time|time:"H:i" }} a {{ hours.end_time|time:"H:i" }}</li>
@@ -18,11 +24,15 @@
               {% endfor %}
             </ul>
           </div>
-          <a href="{% url 'professional_edit' professional.pk %}">Editar</a>
+          <a class="btn btn-small" href="{% url 'professional_edit' professional.pk %}">Editar</a>
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>Todavía no cargaste profesionales. Si atendés solo vos, cargate como único profesional.</p>
+    <div class="empty-day">
+      <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">Todavía no cargaste profesionales.</p>
+      <p style="margin: 0">Si atendés solo vos, cargate como único profesional.</p>
+    </div>
   {% endif %}
+</div>
 {% endblock %}

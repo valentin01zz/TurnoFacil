@@ -1,9 +1,82 @@
 {% extends "base.html" %}
+{% block title %}TurnoFacil · Turnos online para tu negocio{% endblock %}
 {% block content %}
-  <h1>Turnos online para tu negocio</h1>
-  <p>Compartí un link, recibí reservas ordenadas y dejá de perder turnos.</p>
-  <p class="actions">
-    <a class="button" href="{% url 'signup' %}">Registrar mi negocio</a>
-    <a href="{% url 'login' %}">Ya tengo cuenta</a>
-  </p>
+<div class="wrap">
+  <section class="landing-hero">
+    <div class="copy">
+      <span class="kicker"><i></i>Para peluquerías, barberías, estéticas y más</span>
+      <h1>Chau <span class="strike">cuaderno</span>.<br><span class="violet">Hola turnos</span> que se cumplen.</h1>
+      <p class="lead">Compartí un link, tus clientes reservan solos y les llega un recordatorio por email. Si no pueden ir, lo cambian ellos, sin llamarte.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="{% url 'signup' %}">Registrar mi negocio {% include "_icon.html" with name="arrow" size=20 stroke=2.6 %}</a>
+        <a class="btn btn-quiet" href="{% url 'login' %}">Ya tengo cuenta</a>
+      </div>
+    </div>
+    <div class="phone-wrap" aria-hidden="true">
+      <span class="sticker a">{% include "_icon.html" with name="chat" size=18 stroke=2.4 %}Recordatorio enviado</span>
+      <div class="phone">
+        <div class="screen">
+          <div class="mini-title">Tu turno,<br>en un toque.</div>
+          <div class="mini-row"><span class="mini-pill on">Corte</span><span class="mini-pill">Color</span><span class="mini-pill">Barba</span></div>
+          <div class="mini-row"><span class="mini-pill">Lun 19</span><span class="mini-pill on">Mar 20</span><span class="mini-pill">Mié 21</span></div>
+          <div class="mini-row"><span class="mini-pill">10:00</span><span class="mini-pill on">10:30</span><span class="mini-pill">11:00</span></div>
+          <div class="mini-ticket"><span class="mini-stamp">LISTO</span><span style="font-size: 12px; font-weight: 700; color: var(--muted)">MARTES 20</span><b>10:30 · Corte</b></div>
+        </div>
+      </div>
+      <span class="sticker b">{% include "_icon.html" with name="refresh" size=18 stroke=2.4 %}Lo reprogramó solo</span>
+    </div>
+  </section>
+</div>
+
+<div class="marquee" style="margin-top: 0" aria-hidden="true">
+  <div class="track">
+    {% for copy in "ab" %}<span>Peluquerías{% include "_icon.html" with name="star" size=26 %}Barberías{% include "_icon.html" with name="star" size=26 %}Estéticas{% include "_icon.html" with name="star" size=26 %}Kinesiología{% include "_icon.html" with name="star" size=26 %}Talleres{% include "_icon.html" with name="star" size=26 %}</span>{% endfor %}
+  </div>
+</div>
+
+<div class="wrap" style="padding-top: 88px">
+  <section id="como">
+    <h2 class="section-title">Tres pasos y te olvidás del teléfono.</h2>
+    <div class="how">
+      <div class="card">
+        <span class="n" aria-hidden="true">01</span>
+        <span class="icon-box">{% include "_icon.html" with name="home" size=26 %}</span>
+        <h3>Cargás tu negocio</h3>
+        <p>Tus servicios con su duración y quién atiende cada día. Si sos vos solo, te cargás como único profesional.</p>
+      </div>
+      <div class="card">
+        <span class="n" aria-hidden="true">02</span>
+        <span class="icon-box">{% include "_icon.html" with name="link" size=26 %}</span>
+        <h3>Compartís tu link</h3>
+        <p>En tu Instagram, tu WhatsApp o donde quieras. Tus clientes reservan desde el celular, sin crear cuenta.</p>
+      </div>
+      <div class="card">
+        <span class="n" aria-hidden="true">03</span>
+        <span class="icon-box">{% include "_icon.html" with name="agenda" size=26 %}</span>
+        <h3>Mirás tu agenda</h3>
+        <p>Los turnos del día, ordenados por profesional. Los que te piden por teléfono los cargás a mano y no se pisan.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-top: 96px">
+    <h2 class="section-title">Lo que hace por vos mientras atendés.</h2>
+    <div class="feats">
+      <div class="feat"><span class="icon-box">{% include "_icon.html" with name="mail" %}</span><div><h3>Recordatorio por email</h3><p>Un día antes del turno, para que nadie se olvide.</p></div></div>
+      <div class="feat"><span class="icon-box">{% include "_icon.html" with name="refresh" %}</span><div><h3>Cambios sin llamadas</h3><p>El cliente reprograma o cancela desde su link, hasta 2 horas antes.</p></div></div>
+      <div class="feat"><span class="icon-box">{% include "_icon.html" with name="users" %}</span><div><h3>Una agenda por profesional</h3><p>Cada uno con sus horarios, y nunca dos turnos a la misma hora.</p></div></div>
+      <div class="feat"><span class="icon-box">{% include "_icon.html" with name="phone" %}</span><div><h3>Hecho para el celular</h3><p>Tus clientes reservan y vos mirás la agenda desde el teléfono.</p></div></div>
+    </div>
+  </section>
+
+  <section class="final">
+    <span class="spin">{% include "_icon.html" with name="star" size=220 %}</span>
+    <h2>Probalo con tu negocio.</h2>
+    <a class="btn btn-primary" href="{% url 'signup' %}">Registrar mi negocio</a>
+  </section>
+
+  <footer class="site-foot">
+    <span>TurnoFacil · turnos online para negocios de servicios</span>
+  </footer>
+</div>
 {% endblock %}

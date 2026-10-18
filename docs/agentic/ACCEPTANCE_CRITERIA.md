@@ -62,3 +62,31 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] Dado el dueño en el panel, cuando carga un turno a mano con cliente, servicio, profesional, día y hora (S8), entonces el turno aparece en la agenda y ese horario deja de ofrecerse en la página pública.
 - [ ] Dado un turno existente, cuando el dueño lo reprograma o cancela, entonces la agenda y la disponibilidad pública se actualizan, y el cliente recibe un email si el turno tiene email cargado.
 - [ ] Caso borde: cargar a mano un turno que se superpone con otro del mismo profesional → se rechaza con un mensaje claro.
+
+## HU-17: Dirección del negocio
+- [ ] Dado el dueño en el panel, cuando carga o cambia la dirección del negocio, entonces queda guardada y la ve al volver.
+- [ ] Dado un negocio con dirección, cuando un cliente abre la página de reservas, entonces ve la dirección.
+- [ ] Dado un negocio con dirección, cuando se envía la confirmación o el recordatorio, entonces el email incluye la dirección.
+- [ ] Caso borde: negocio sin dirección → la página y los emails no muestran un espacio vacío.
+- [ ] Caso borde: un dueño no puede ver ni cambiar los datos de otro negocio.
+
+## HU-18: Tira de días del mes
+- [ ] Dado un cliente en la página de reservas, cuando elige servicio y profesional, entonces ve los días del mes en una tira y puede pasar al mes siguiente o volver al anterior.
+- [ ] Solo se pueden elegir días dentro de la ventana de reserva (de hoy a 60 días) en los que el profesional elegido atiende; el resto aparece deshabilitado.
+- [ ] Dado un día elegido, cuando el cliente lo toca, entonces ve los horarios libres de ese día.
+- [ ] Caso borde: no se puede navegar a meses fuera de la ventana de reserva.
+- [ ] La reprogramación usa la misma tira de días.
+
+## HU-19: Gráfico semanal en la agenda
+- [ ] Dado el dueño en la agenda, cuando mira un día, entonces ve un gráfico con la cantidad de turnos confirmados de cada día de esa semana (lunes a domingo).
+- [ ] El día que se está viendo aparece destacado y cada barra lleva a la agenda de ese día.
+- [ ] Si hay un filtro por profesional, el gráfico cuenta solo los turnos de ese profesional.
+- [ ] No cuenta turnos cancelados ni turnos de otros negocios.
+
+## HU-20: Diseño visual
+- [ ] Todas las pantallas (portada, reservas, turno, panel, formularios, errores) usan el mismo sistema visual.
+- [ ] Al confirmar una reserva, la página del turno muestra el sello de confirmación.
+- [ ] Las pantallas se usan bien en un celular de 375 px de ancho.
+- [ ] Las animaciones se desactivan si el dispositivo pide reducir movimiento.
+- [ ] El contraste de textos cumple 4.5:1 (3:1 en textos grandes).
+- [ ] Todos los tests existentes siguen pasando.

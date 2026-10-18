@@ -57,3 +57,25 @@
 - HU-14: Aviso al negocio ante cada reserva o cambio.
 - HU-15: Reservar con "cualquier profesional disponible".
 - HU-16: Suscripción y cobro a los negocios.
+
+## Ampliación aprobada (2026-10-18)
+
+## HU-17: Dirección del negocio
+**Como** dueño, **quiero** cargar la dirección de mi negocio, **para** que mis clientes sepan adónde ir.
+- Prioridad: MVP
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-17)
+
+## HU-18: Tira de días del mes
+**Como** cliente, **quiero** elegir el día tocando una tira con los días del mes, **para** ver de un vistazo qué días atiende el negocio.
+- Prioridad: MVP
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-18)
+
+## HU-19: Gráfico semanal en la agenda
+**Como** dueño, **quiero** ver cuántos turnos tengo cada día de la semana, **para** anticipar los días cargados.
+- Prioridad: MVP
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-19)
+
+## HU-20: Diseño visual
+**Como** Founder, **quiero** que TurnoFacil tenga una identidad visual propia, **para** que los negocios y sus clientes lo recuerden.
+- Prioridad: MVP
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-20)

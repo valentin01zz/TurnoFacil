@@ -1,5 +1,6 @@
 import secrets
 from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -11,11 +12,15 @@ from django.views.decorators.http import require_POST
 from businesses.models import Business
 
 from .availability import available_slots
+from .booking_calendar import long_date, month_strip, parse_month, slot_groups
 from .emails import send_confirmation, send_rescheduled
 from .forms import BookingForm, RescheduleQueryForm, SlotForm, SlotQueryForm
 from .models import Appointment
 
 TAKEN_MESSAGE = "Ese horario se acaba de ocupar. Elegí otro."
+SERVICE_ICONS = ["leaf", "sparkle", "hands", "drop", "scissors", "heart"]
+PROFESSIONAL_TINTS = ["#FFB59E", "#B9A8FF", "#8EE3D8", "#FFD98A", "#FF9EC4", "#A8D8FF"]
+CONFETTI_COLORS = ["#2EC4B6", "#6E4BFF", "#FFC53D", "#FF8FB1", "#1C1530", "#8EE3D8"]
 
 
 def booking_page(request, slug):
@@ -40,7 +45,7 @@ def book(request, slug):
         if appointment:
             manage_path = reverse("appointment_detail", args=[appointment.manage_token])
             send_confirmation(appointment, request.build_absolute_uri(manage_path))
-            return redirect(manage_path)
+            return redirect(f"{manage_path}?nuevo=1")
         booking.add_error("start_at", TAKEN_MESSAGE)
     return render_booking_page(request, business, selection, booking=booking)
 
@@ -71,19 +76,59 @@ def create_appointment(business, professional, service, data, source=Appointment
         return None
 
 
+def selected_values(form):
+    """Valid choices from a selection form even when other fields are still missing."""
+    if not form.is_bound:
+        return {}
+    form.is_valid()
+    return form.cleaned_data
+
+
+def month_links(base_url, strip, params):
+    def link(month):
+        return f"{base_url}?{urlencode({**params, 'month': month.strftime('%Y-%m')})}"
+
+    return {
+        "previous_url": link(strip["previous"]) if strip["previous"] else None,
+        "next_url": link(strip["next"]) if strip["next"] else None,
+    }
+
+
 def render_booking_page(request, business, selection, booking=None, status=200):
-    is_taking_bookings = (
-        business.services.filter(is_active=True).exists()
-        and business.professionals.filter(is_active=True).exists()
-    )
-    slots = None
-    if is_taking_bookings and selection.is_bound and selection.is_valid():
-        slots = available_slots(
-            selection.cleaned_data["professional"],
-            selection.cleaned_data["service"],
-            selection.cleaned_data["date"],
+    services = list(business.services.filter(is_active=True))
+    professionals = list(business.professionals.filter(is_active=True))
+    is_taking_bookings = bool(services and professionals)
+
+    chosen = selected_values(selection)
+    service = chosen.get("service")
+    professional = chosen.get("professional") or selection.single_professional
+    date = chosen.get("date")
+    date_given = bool(selection.data.get("date")) if selection.is_bound else False
+
+    strip = None
+    if is_taking_bookings and service and professional:
+        month = parse_month(request.GET.get("month")) or (date.replace(day=1) if date else None)
+        strip = month_strip(month, [professional], selected=date)
+        strip.update(
+            month_links(
+                reverse("booking_page", args=[business.slug]),
+                strip,
+                {"service": service.pk, "professional": professional.pk},
+            )
         )
+
+    slots = None
+    if strip is not None and date:
+        slots = available_slots(professional, service, date)
         booking = booking or BookingForm(slots=slots)
+    checked = booking.data.get("start_at", "") if booking is not None and booking.is_bound else ""
+    groups = slot_groups(slots or [], checked)
+    checked_label = next(
+        (slot["label"] for group in groups for slot in group["slots"] if slot["checked"]), ""
+    )
+    ticket_done = sum(bool(x) for x in (service, professional, date))
+    shown_done = ticket_done + (1 if checked_label else 0)
+
     return render(
         request,
         "bookings/booking_page.html",
@@ -91,8 +136,40 @@ def render_booking_page(request, business, selection, booking=None, status=200):
             "business": business,
             "is_taking_bookings": is_taking_bookings,
             "selection": selection,
+            "services": [
+                {
+                    "pk": s.pk,
+                    "name": s.name,
+                    "minutes": s.duration_minutes,
+                    "icon": SERVICE_ICONS[i % len(SERVICE_ICONS)],
+                    "checked": service is not None and s.pk == service.pk,
+                }
+                for i, s in enumerate(services)
+            ],
+            "professionals": [
+                {
+                    "pk": p.pk,
+                    "name": p.name,
+                    "initial": p.name[:1].upper(),
+                    "tint": PROFESSIONAL_TINTS[i % len(PROFESSIONAL_TINTS)],
+                    "checked": professional is not None and p.pk == professional.pk,
+                }
+                for i, p in enumerate(professionals)
+            ],
+            "choose_professional": len(professionals) > 1,
+            "service": service,
+            "professional": professional,
+            "date": date,
+            "date_label": long_date(date) if date else "",
+            "date_error": selection.errors.get("date") if date_given else None,
+            "strip": strip,
             "slots": slots,
+            "slot_groups": groups,
+            "checked_label": checked_label,
             "booking": booking,
+            "ticket_done": ticket_done,
+            "ticket_progress": shown_done * 20,
+            "ticket_step": min(shown_done + 1, 5),
         },
         status=status,
     )
@@ -105,13 +182,34 @@ def get_appointment(token, for_update=False):
     return queryset.filter(manage_token=token).first()
 
 
+def confetti():
+    pieces = []
+    for i in range(18):
+        angle = i * 20
+        distance = 130 + (i % 4) * 30
+        pieces.append(
+            {
+                "color": CONFETTI_COLORS[i % len(CONFETTI_COLORS)],
+                "angle": angle,
+                "distance": distance,
+                "delay": (i % 5) * 30,
+            }
+        )
+    return pieces
+
+
 def render_appointment(request, appointment, template="bookings/appointment_detail.html", **extra):
     if appointment is None:
         return render(request, "bookings/appointment_not_found.html", status=404)
+    just_booked = request.GET.get("nuevo") == "1" and appointment.is_confirmed
     context = {
         "appointment": appointment,
+        "date_label": long_date(timezone.localdate(appointment.start_at)),
         "can_change": appointment.customer_can_change(),
         "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
+        "just_booked": just_booked,
+        "first_name": (appointment.customer_name.split() or [""])[0],
+        "confetti": confetti() if just_booked else [],
         **extra,
     }
     return render(request, template, context)
@@ -151,13 +249,48 @@ def reschedule_slots(appointment, professional, date):
 
 
 def render_reschedule(request, appointment, query, slot_form=None, status=200):
+    chosen = selected_values(query)
+    professional = chosen.get("professional") or appointment.professional
+    date = chosen.get("date")
+    date_given = bool(query.data.get("date")) if query.is_bound else False
+    month = parse_month(request.GET.get("month")) or (date.replace(day=1) if date else None)
+    strip = month_strip(month, [professional], selected=date)
+    strip.update(
+        month_links(
+            reverse("reschedule_appointment", args=[appointment.manage_token]),
+            strip,
+            {"professional": professional.pk},
+        )
+    )
+    professionals = list(appointment.business.professionals.filter(is_active=True))
+    checked = (
+        slot_form.data.get("start_at", "") if slot_form is not None and slot_form.is_bound else ""
+    )
     return render(
         request,
         "bookings/reschedule.html",
         {
             "appointment": appointment,
+            "date_label_current": long_date(timezone.localdate(appointment.start_at)),
             "query": query,
+            "professionals": [
+                {
+                    "pk": p.pk,
+                    "name": p.name,
+                    "initial": p.name[:1].upper(),
+                    "tint": PROFESSIONAL_TINTS[i % len(PROFESSIONAL_TINTS)],
+                    "checked": p.pk == professional.pk,
+                }
+                for i, p in enumerate(professionals)
+            ],
+            "choose_professional": len(professionals) > 1,
+            "professional": professional,
+            "date": date,
+            "date_label": long_date(date) if date else "",
+            "date_error": query.errors.get("date") if date_given else None,
+            "strip": strip,
             "slot_form": slot_form,
+            "slot_groups": slot_groups(slot_form.slots.values() if slot_form else [], checked),
             "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
         },
         status=status,

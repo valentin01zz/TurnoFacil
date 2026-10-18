@@ -1,0 +1,8 @@
+{% for group in slot_groups %}
+  <div class="period">{% if group.key == "morning" %}{% include "_icon.html" with name="sun" size=18 %}{% else %}{% include "_icon.html" with name="moon" size=18 %}{% endif %}{{ group.label }}</div>
+  <div class="slots">
+    {% for slot in group.slots %}
+      <label class="slot"><input class="sr-only" type="radio" name="start_at" value="{{ slot.value }}" data-label="{{ slot.label }}" aria-label="{{ slot.label }}"{% if slot.checked %} checked{% endif %}><span>{{ slot.label }}</span></label>
+    {% endfor %}
+  </div>
+{% endfor %}

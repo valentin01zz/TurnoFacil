@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Cancelar turno · TurnoFacil{% endblock %}
 {% block content %}
-  <h1>¿Cancelar este turno?</h1>
-  <section class="card">
-    <p><strong>{{ appointment.customer_name }}</strong> · {{ appointment.customer_phone }}</p>
-    <p>{{ appointment.service.name }} con {{ appointment.professional.name }}</p>
-    <p>{{ appointment.start_at|date:"l j \d\e F" }} a las {{ appointment.start_at|time:"H:i" }}</p>
-  </section>
-  {% if appointment.customer_email %}
-    <p class="helptext">Le vamos a avisar por email a {{ appointment.customer_email }}.</p>
-  {% else %}
-    <p class="helptext">Este turno no tiene email: avisale al cliente por otro medio.</p>
-  {% endif %}
-  <form method="post" class="actions">
-    {% csrf_token %}
-    <button class="button danger" type="submit">Sí, cancelar turno</button>
-    <a href="{% url 'panel' %}?date={{ appointment.start_at|date:'Y-m-d' }}">No, volver</a>
-  </form>
+<div class="wrap narrow">
+  <h1 class="page-title">¿Cancelar este turno?</h1>
+  <div class="card">
+    <p style="margin: 0 0 4px"><strong>{{ appointment.customer_name }}</strong> · {{ appointment.customer_phone }}</p>
+    <p style="margin: 0 0 4px">{{ appointment.service.name }} con {{ appointment.professional.name }}</p>
+    <p style="margin: 0 0 16px">{{ appointment.start_at|date:"l j \d\e F" }} a las {{ appointment.start_at|time:"H:i" }}</p>
+    {% if appointment.customer_email %}
+      <p class="notice ok">Le vamos a avisar por email a {{ appointment.customer_email }}.</p>
+    {% else %}
+      <p class="notice">Este turno no tiene email: avisale al cliente por otro medio.</p>
+    {% endif %}
+    <form method="post" class="actions" style="margin-top: 18px">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Sí, cancelar turno</button>
+      <a class="link-button" href="{% url 'panel' %}?date={{ appointment.start_at|date:'Y-m-d' }}">No, volver</a>
+    </form>
+  </div>
+</div>
 {% endblock %}

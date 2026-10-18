@@ -1,47 +1,155 @@
 {% extends "base.html" %}
-{% block title %}Reservar turno · {{ business.name }}{% endblock %}
+{% block title %}Reservá tu turno · {{ business.name }}{% endblock %}
+{% block header %}{% include "bookings/_business_header.html" %}{% endblock %}
 {% block content %}
-  <h1>{{ business.name }}</h1>
-  {% if not is_taking_bookings %}
-    <p>Este negocio todavía no está tomando reservas online.</p>
-  {% else %}
-    <section class="card">
-      <h2>Reservá tu turno</h2>
-      <form method="get" novalidate>
-        {{ selection.as_div }}
-        <button class="button" type="submit">Ver horarios</button>
-      </form>
-    </section>
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Tu turno,<br>en <span class="hl">un toque<svg viewBox="0 0 400 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 22 C 80 6, 150 28, 220 14 S 340 4, 396 18"/></svg></span>.</h1>
+      <p class="lead">Elegí qué te querés hacer, con quién y cuándo. Sin crear cuenta: te llega todo por email.</p>
+    </div>
+    <div class="spin-badge" aria-hidden="true">
+      <svg class="ring" viewBox="0 0 150 150">
+        <defs><path id="circ" d="M75,75 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0"/></defs>
+        <text><textPath href="#circ">SIN CUENTA • EN UN MINUTO • SIN VUELTAS •</textPath></text>
+      </svg>
+      <span class="core">{% include "_icon.html" with name="star" size=34 %}</span>
+    </div>
+  </section>
 
-    {% if slots is not None %}
-      <section class="card">
-        {% if slots or booking.errors %}
-          <form method="post" action="{% url 'book' business.slug %}" novalidate>
-            {% csrf_token %}
-            {% for field in selection %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}">{% endfor %}
-            {{ booking.non_field_errors }}
-            <fieldset class="slots">
-              <legend>Horarios disponibles</legend>
-              {{ booking.start_at.errors }}
-              {% for choice in booking.start_at %}
-                <label class="slot">{{ choice.tag }} {{ choice.choice_label }}</label>
-              {% empty %}
-                <p>No quedan horarios libres ese día. Probá con otro.</p>
+  {% if not is_taking_bookings %}
+    <div class="card">
+      <h2>Todavía no hay turnos online</h2>
+      <p>Este negocio todavía no está tomando reservas online. Probá de nuevo en unos días.</p>
+    </div>
+  {% else %}
+  <div class="booking">
+    <div class="steps">
+      <form method="get" action="#paso-dia" data-autosubmit>
+        <section class="step{% if service %} done{% endif %}" id="paso-servicio" aria-labelledby="t-servicio">
+          <div class="step-head"><span class="num" aria-hidden="true">01</span><h2 id="t-servicio">¿Qué te hacés?</h2></div>
+          <div class="choice-grid" role="radiogroup" aria-labelledby="t-servicio">
+            {% for s in services %}
+              <label class="svc">
+                <input class="sr-only" type="radio" name="service" value="{{ s.pk }}"{% if s.checked %} checked{% endif %}>
+                <span class="svc-body">
+                  <span class="ic">{% include "_icon.html" with name=s.icon %}</span>
+                  <span class="nm">{{ s.name }}</span>
+                  <span class="dur">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ s.minutes }} min</span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </section>
+
+        {% if choose_professional %}
+          <section class="step{% if professional %} done{% endif %}" id="paso-con" aria-labelledby="t-con" style="margin-top: 22px">
+            <div class="step-head"><span class="num" aria-hidden="true">02</span><h2 id="t-con">¿Con quién?</h2></div>
+            <div class="pros" role="radiogroup" aria-labelledby="t-con">
+              {% for p in professionals %}
+                <label class="pro">
+                  <input class="sr-only" type="radio" name="professional" value="{{ p.pk }}"{% if p.checked %} checked{% endif %}>
+                  <span class="pro-body"><span class="av" style="background: {{ p.tint }}">{{ p.initial }}</span><span class="pn">{{ p.name }}</span></span>
+                </label>
               {% endfor %}
-            </fieldset>
-            {% if slots %}
-              <div>{{ booking.customer_name.errors }}{{ booking.customer_name.label_tag }} {{ booking.customer_name }}</div>
-              <div>{{ booking.customer_phone.errors }}{{ booking.customer_phone.label_tag }} {{ booking.customer_phone }}</div>
-              <div>{{ booking.customer_email.errors }}{{ booking.customer_email.label_tag }} {{ booking.customer_email }}</div>
-              {{ booking.website }}
-              <p class="helptext">Usamos tus datos solo para gestionar este turno y avisarte por email.</p>
-              <button class="button" type="submit">Confirmar turno</button>
-            {% endif %}
-          </form>
-        {% else %}
-          <p>No hay horarios libres ese día. Probá con otro.</p>
+            </div>
+          </section>
+        {% elif professional %}
+          <input type="hidden" name="professional" value="{{ professional.pk }}">
         {% endif %}
-      </section>
-    {% endif %}
+
+        <p class="js-hide" style="margin: 16px 0 0"><button class="btn btn-dark" type="submit">Ver días disponibles</button></p>
+
+        <section class="step{% if date %} done{% endif %}" id="paso-dia" aria-labelledby="t-dia" style="margin-top: 22px">
+          <div class="step-head"><span class="num" aria-hidden="true">{% if choose_professional %}03{% else %}02{% endif %}</span><h2 id="t-dia">¿Qué día?</h2></div>
+          {% if strip %}
+            {% if date %}<input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">{% endif %}
+            {% include "bookings/_day_strip.html" %}
+            {% if date_error %}<ul class="errorlist">{% for e in date_error %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          {% else %}
+            <div class="step-empty">Elegí {% if choose_professional %}un servicio y con quién{% else %}un servicio{% endif %}, y te mostramos los días en que atiende.</div>
+          {% endif %}
+        </section>
+      </form>
+
+      <form method="post" action="{% url 'book' business.slug %}" id="book-form" novalidate>
+        {% csrf_token %}
+        {% if service %}<input type="hidden" name="service" value="{{ service.pk }}">{% endif %}
+        {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
+        {% if date %}<input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">{% endif %}
+
+        <section class="step{% if booking.start_at.value and not booking.start_at.errors %} done{% endif %}" id="paso-hora" aria-labelledby="t-hora">
+          <div class="step-head"><span class="num" aria-hidden="true">{% if choose_professional %}04{% else %}03{% endif %}</span><h2 id="t-hora">¿A qué hora?</h2>{% if date %}<span class="muted" style="margin-left: auto; font-weight: 700">{{ date_label }}</span>{% endif %}</div>
+          {% if slots is None %}
+            <div class="step-empty">Elegí el día y te mostramos los horarios libres.</div>
+          {% else %}
+            {{ booking.non_field_errors }}
+            {{ booking.start_at.errors }}
+            {% if slot_groups %}
+              <fieldset class="sr-fieldset" style="border: 0; margin: 0; padding: 0">
+                <legend class="sr-only">Horarios disponibles</legend>
+                {% include "bookings/_slots.html" %}
+              </fieldset>
+            {% else %}
+              <div class="step-empty">No quedan horarios libres ese día. Probá con otro.</div>
+            {% endif %}
+          {% endif %}
+        </section>
+
+        <section class="step" id="paso-datos" aria-labelledby="t-datos" style="margin-top: 22px">
+          <div class="step-head"><span class="num" aria-hidden="true">{% if choose_professional %}05{% else %}04{% endif %}</span><h2 id="t-datos">¿Cómo te avisamos?</h2></div>
+          {% if booking %}
+            <div class="form-grid">
+              <div>{{ booking.customer_name.errors }}<label for="{{ booking.customer_name.id_for_label }}">Nombre y apellido</label>{{ booking.customer_name }}</div>
+              <div>{{ booking.customer_phone.errors }}<label for="{{ booking.customer_phone.id_for_label }}">Teléfono</label>{{ booking.customer_phone }}</div>
+              <div class="full">{{ booking.customer_email.errors }}<label for="{{ booking.customer_email.id_for_label }}">Email, para la confirmación y el recordatorio</label>{{ booking.customer_email }}</div>
+            </div>
+            {{ booking.website }}
+            <p class="helptext" style="margin: 0">Usamos tus datos solo para gestionar este turno y avisarte por email.</p>
+          {% else %}
+            <div class="step-empty">Cuando elijas el horario te pedimos nombre, teléfono y email.</div>
+          {% endif %}
+        </section>
+      </form>
+    </div>
+
+    <aside class="side">
+      <div class="ticket" data-ticket data-done="{{ ticket_done }}">
+        <div class="t-top">
+          <span class="sparkle">{% include "_icon.html" with name="star" size=120 %}</span>
+          <div class="t-label">Tu turno</div>
+          <div class="t-name">{{ business.name }}</div>
+          <div class="t-bar" role="presentation"><span data-ticket-bar style="width: {{ ticket_progress }}%"></span></div>
+          <div class="t-progress" data-ticket-progress>Paso {{ ticket_step }} de 5</div>
+        </div>
+        <dl class="rows">
+          <div class="row"><dt>Servicio</dt><dd>{% if service %}{{ service.name }} · {{ service.duration_minutes }} min{% else %}<span class="ph"></span>{% endif %}</dd></div>
+          <div class="row"><dt>Con</dt><dd>{% if professional and choose_professional %}{{ professional.name }}{% elif professional %}{{ professional.name }}{% else %}<span class="ph"></span>{% endif %}</dd></div>
+          <div class="row"><dt>Día</dt><dd>{% if date %}{{ date_label }}{% else %}<span class="ph"></span>{% endif %}</dd></div>
+          <div class="row"><dt>Hora</dt><dd class="big"><span data-ticket-slot{% if not checked_label %} hidden{% endif %}>{{ checked_label }}</span><span class="ph" data-ticket-slot-empty{% if checked_label %} hidden{% endif %}></span></dd></div>
+        </dl>
+        <div class="perf"></div>
+        <div class="t-foot">
+          <button type="submit" form="book-form" class="btn btn-primary btn-block" data-ticket-confirm{% if not slot_groups %} disabled{% endif %}>Confirmar turno {% include "_icon.html" with name="arrow" size=20 stroke=2.6 %}</button>
+          <p class="fine">Podés reprogramar o cancelar hasta 2 horas antes, desde el link del email.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
   {% endif %}
+</div>
+
+{% if services %}
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    {% for copy in "ab" %}<span>{% for s in services %}{{ s.name }}{% include "_icon.html" with name="star" size=26 %}{% endfor %}</span>{% endfor %}
+  </div>
+</div>
+{% endif %}
+<div class="wrap">
+  <footer class="site-foot">
+    <span>Usamos tus datos solo para gestionar tu turno.</span>
+    <span style="font-weight: 700">Reservas con TurnoFacil</span>
+  </footer>
+</div>
 {% endblock %}

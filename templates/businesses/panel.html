@@ -1,65 +1,104 @@
 {% extends "base.html" %}
-{% block title %}Panel · {{ business.name }}{% endblock %}
+{% block title %}Agenda · {{ business.name }}{% endblock %}
 {% block content %}
-  <h1>{{ business.name }}</h1>
-
-  <section class="card">
-    <div class="agenda-head">
-      <h2>{% if date == today %}Hoy, {% endif %}{{ date|date:"l j \d\e F" }}</h2>
-      <nav class="day-nav">
-        <a href="?date={{ previous_day|date:'Y-m-d' }}{% if professional %}&amp;professional={{ professional.pk }}{% endif %}">&larr; Anterior</a>
-        {% if date != today %}<a href="?{% if professional %}professional={{ professional.pk }}{% endif %}">Hoy</a>{% endif %}
-        <a href="?date={{ next_day|date:'Y-m-d' }}{% if professional %}&amp;professional={{ professional.pk }}{% endif %}">Siguiente &rarr;</a>
-      </nav>
+<div class="wrap">
+  <section class="agenda-head">
+    <div>
+      <div class="eyebrow">{% if date == today %}Hoy{% else %}Agenda{% endif %}</div>
+      <h1>{{ date|date:"l j" }}<br>de {{ date|date:"F" }}</h1>
     </div>
+    <div class="day-nav">
+      <a class="round" href="{{ previous_url }}" aria-label="Día anterior">{% include "_icon.html" with name="left" size=22 stroke=2.6 %}</a>
+      <a class="round" href="{{ next_url }}" aria-label="Día siguiente">{% include "_icon.html" with name="right" size=22 stroke=2.6 %}</a>
+      {% if date != today %}<a class="btn btn-quiet" href="{{ today_url }}">Hoy</a>{% endif %}
+      <a class="btn btn-primary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Cargar turno</a>
+    </div>
+  </section>
 
-    <form method="get" class="agenda-filters" novalidate>
-      <div>{{ form.date.errors }}{{ form.date.label_tag }} {{ form.date }}</div>
+  <div class="panel-layout">
+    <div class="panel-main">
+      <div class="stats">
+        <div class="stat"><b>{{ appointments|length }}</b><span>turno{{ appointments|length|pluralize }} {% if date == today %}hoy{% else %}este día{% endif %}</span></div>
+        {% if next_appointment %}
+          <div class="stat"><b>{{ next_appointment.start_at|time:"H:i" }}</b><span>próximo turno</span></div>
+        {% elif first_appointment and date != today %}
+          <div class="stat"><b>{{ first_appointment.start_at|time:"H:i" }}</b><span>primer turno</span></div>
+        {% endif %}
+        <div class="stat"><b>{{ manual_count }}</b><span>cargado{{ manual_count|pluralize }} a mano</span></div>
+      </div>
+
+      <form method="get" class="date-jump" style="margin-bottom: 16px">
+        <label class="sr-only" for="{{ form.date.id_for_label }}">Ir a un día</label>
+        {{ form.date }}
+        {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
+        <button class="btn btn-small" type="submit">Ir</button>
+      </form>
+
       {% if show_professional %}
-        <div>{{ form.professional.errors }}{{ form.professional.label_tag }} {{ form.professional }}</div>
+        <nav class="filters" aria-label="Filtrar por profesional">
+          {% for f in filters %}
+            <a class="filter" href="{{ f.url }}"{% if f.selected %} aria-current="true"{% endif %}>{% if f.tint %}<span class="dot" style="background: {{ f.tint }}"></span>{% endif %}{{ f.label }}</a>
+          {% endfor %}
+        </nav>
       {% endif %}
-      <button class="button" type="submit">Ver</button>
-    </form>
 
-    <p><a class="button secondary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">Cargar turno</a></p>
-
-    {% if appointments %}
-      <ul class="list agenda">
-        {% for appointment in appointments %}
-          <li class="agenda-item">
-            <span class="agenda-time">{{ appointment.start_at|time:"H:i" }}–{{ appointment.end_at|time:"H:i" }}</span>
-            <div>
-              <strong>{{ appointment.customer_name }}</strong>
-              <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a><br>
-              {{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}
-              {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
-              <div class="item-actions">
-                <a href="{% url 'appointment_reschedule' appointment.pk %}">Reprogramar</a>
-                <a href="{% url 'appointment_cancel' appointment.pk %}">Cancelar</a>
+      {% if appointments %}
+        <ul class="appts">
+          {% for appointment in appointments %}
+            <li class="appt{% if appointment.is_next %} next{% elif appointment.ended %} past{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms">
+              <div class="time"><b>{{ appointment.start_at|time:"H:i" }}–{{ appointment.end_at|time:"H:i" }}</b></div>
+              <div class="who">
+                <strong>{{ appointment.customer_name }}</strong>
+                <div class="meta">
+                  {% if show_professional %}<span class="av" style="background: {{ appointment.tint }}">{{ appointment.professional.name|slice:":1"|upper }}</span>{% endif %}
+                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}</span>
+                  <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a>
+                  {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
+                  {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
+                </div>
               </div>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No hay turnos para este día.</p>
-    {% endif %}
-  </section>
-
-  <section class="card">
-    <h2>Tu link de reservas</h2>
-    <p>Compartilo con tus clientes para que reserven su turno.</p>
-    <div class="copy-row">
-      <input id="booking-url" type="text" value="{{ booking_url }}" readonly>
-      <button class="button" type="button" id="copy-booking-url">Copiar</button>
+              <div class="appt-actions">
+                <a class="btn btn-small" href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=16 stroke=2.4 %}Reprogramar</a>
+                <a class="btn btn-small danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=16 stroke=2.4 %}Cancelar</a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-day">
+          <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">No hay turnos para este día.</p>
+          <p style="margin: 0">Compartí tu link de reservas o cargá un turno a mano.</p>
+        </div>
+      {% endif %}
     </div>
-  </section>
-  <script>
-    document.getElementById("copy-booking-url").addEventListener("click", function () {
-      var input = document.getElementById("booking-url");
-      input.select();
-      navigator.clipboard.writeText(input.value);
-      this.textContent = "Copiado";
-    });
-  </script>
+
+    <aside class="panel-side">
+      <section class="card">
+        <h2>Esta semana</h2>
+        <p>Turnos por día. Tocá un día para verlo.</p>
+        <ol class="week" aria-label="Turnos por día de la semana">
+          {% for day in week %}
+            <li>
+              <a href="{{ day.url }}"{% if day.selected %} aria-current="date"{% endif %} aria-label="{{ day.date|date:'l j' }}: {{ day.count }} turno{{ day.count|pluralize }}">
+                <span class="count">{{ day.count }}</span>
+                <span class="bar-wrap"><i style="height: {{ day.height }}%"></i></span>
+                {{ day.initial }}
+              </a>
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+      <section class="card">
+        <h2>Tu link de reservas</h2>
+        <p>Pegalo en tu Instagram o mandalo por WhatsApp.</p>
+        <div class="copy-row">
+          <label class="sr-only" for="booking-url">Link de reservas</label>
+          <input id="booking-url" type="text" value="{{ booking_url }}" readonly>
+          <button class="btn btn-dark btn-small" type="button" data-copy="booking-url" style="border-color: var(--ink); background: var(--ink)">Copiar</button>
+        </div>
+        {% if not business.address %}<p class="helptext" style="margin: 12px 0 0">Tip: cargá tu dirección en <a href="{% url 'business_edit' %}">Mi negocio</a> para que tus clientes la vean.</p>{% endif %}
+      </section>
+    </aside>
+  </div>
+</div>
 {% endblock %}

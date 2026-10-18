@@ -1,0 +1,8 @@
+<div class="wrap">
+  <header class="site-top">
+    <span class="logo"><span class="blob" aria-hidden="true">{{ business.name|slice:":1"|upper }}</span>{{ business.name }}</span>
+    {% if business.address %}
+      <span class="chip">{% include "_icon.html" with name="pin" size=16 %}{{ business.address }}</span>
+    {% endif %}
+  </header>
+</div>

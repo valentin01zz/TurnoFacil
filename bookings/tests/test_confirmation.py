@@ -55,7 +55,7 @@ class ConfirmationEmailTests(TestCase):
         self.assertIn(weekday_and_day, message.body)
         path = f"/t/{appointment.manage_token}/"
         self.assertIn(f"http://testserver{path}", message.body)
-        self.assertRedirects(response, path)
+        self.assertRedirects(response, f"{path}?nuevo=1")
 
     def test_management_link_opens_only_that_appointment(self):
         self.book(hour=10, email="laura@example.com")

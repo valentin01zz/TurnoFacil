@@ -68,3 +68,12 @@ quedaron dentro del alcance aprobado sin confirmación explícita.
 ## 9. Restricciones (plazo, presupuesto, tecnología obligatoria)
 - Plazo y presupuesto: sin definir por el Founder.
 - Tecnología: sin stack obligatorio; lo propone el Architect con ADR. Se empieza de cero.
+
+## 10. Cambio de alcance aprobado (2026-10-18)
+Tras ver el MVP construido, el Founder aprobó sumar al MVP, antes del piloto:
+- Diseño visual propio (propuesta "el turno es un ticket", acento turquesa #2EC4B6 y violeta #6E4BFF), aplicado a
+  todas las pantallas sin cambiar la lógica.
+- Dirección del negocio, cargada por el dueño y visible para el cliente.
+- Elección de día con una tira de los días del mes, en lugar del campo de fecha.
+- Gráfico semanal de turnos en la agenda del panel.
+Historias HU-17 a HU-20.

@@ -1,37 +1,78 @@
 {% extends "base.html" %}
 {% block title %}Reprogramar turno · {{ appointment.business.name }}{% endblock %}
+{% block header %}{% with business=appointment.business %}{% include "bookings/_business_header.html" %}{% endwith %}{% endblock %}
 {% block content %}
-  <h1>Reprogramar turno</h1>
-  <section class="card">
-    <h2>Tu turno actual</h2>
-    {% include "bookings/_appointment_summary.html" %}
-  </section>
+<div class="wrap">
+  <h1 class="page-title" style="margin-top: 8px">Reprogramar turno</h1>
+  <p class="page-lead">Hoy tenés {{ appointment.service.name|lower }} con {{ appointment.professional.name }}, el {{ date_label_current|lower }} a las {{ appointment.start_at|time:"H:i" }}. Elegí el nuevo horario.</p>
 
-  <section class="card">
-    <h2>Elegí el nuevo horario</h2>
-    <form method="get" novalidate>
-      {{ query.as_div }}
-      <button class="button" type="submit">Ver horarios</button>
-    </form>
-
-    {% if slot_form %}
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% for field in query %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}">{% endfor %}
-        <fieldset class="slots">
-          <legend>Horarios disponibles</legend>
-          {{ slot_form.start_at.errors }}
-          {% for choice in slot_form.start_at %}
-            <label class="slot">{{ choice.tag }} {{ choice.choice_label }}</label>
-          {% empty %}
-            <p>No hay otros horarios libres ese día. Probá con otro.</p>
-          {% endfor %}
-        </fieldset>
-        {% if slot_form.slots %}
-          <button class="button" type="submit">Confirmar cambio</button>
+  <div class="booking">
+    <div class="steps">
+      <form method="get" action="#paso-dia" data-autosubmit>
+        {% if choose_professional %}
+          <section class="step done" aria-labelledby="t-con">
+            <div class="step-head"><span class="num" aria-hidden="true">01</span><h2 id="t-con">¿Con quién?</h2></div>
+            <div class="pros" role="radiogroup" aria-labelledby="t-con">
+              {% for p in professionals %}
+                <label class="pro">
+                  <input class="sr-only" type="radio" name="professional" value="{{ p.pk }}"{% if p.checked %} checked{% endif %}>
+                  <span class="pro-body"><span class="av" style="background: {{ p.tint }}">{{ p.initial }}</span><span class="pn">{{ p.name }}</span></span>
+                </label>
+              {% endfor %}
+            </div>
+            <p class="js-hide" style="margin: 16px 0 0"><button class="btn btn-dark" type="submit">Ver días</button></p>
+          </section>
+        {% else %}
+          <input type="hidden" name="professional" value="{{ professional.pk }}">
         {% endif %}
+
+        <section class="step{% if date %} done{% endif %}" id="paso-dia" aria-labelledby="t-dia"{% if choose_professional %} style="margin-top: 22px"{% endif %}>
+          <div class="step-head"><span class="num" aria-hidden="true">{% if choose_professional %}02{% else %}01{% endif %}</span><h2 id="t-dia">¿Qué día?</h2></div>
+          {% if date %}<input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">{% endif %}
+          {% include "bookings/_day_strip.html" %}
+          {% if date_error %}<ul class="errorlist">{% for e in date_error %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </section>
       </form>
-    {% endif %}
-  </section>
-  <p><a href="{% url 'appointment_detail' appointment.manage_token %}">Volver a mi turno</a></p>
+
+      <form method="post" id="reschedule-form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="professional" value="{{ professional.pk }}">
+        {% if date %}<input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">{% endif %}
+        <section class="step" id="paso-hora" aria-labelledby="t-hora">
+          <div class="step-head"><span class="num" aria-hidden="true">{% if choose_professional %}03{% else %}02{% endif %}</span><h2 id="t-hora">¿A qué hora?</h2>{% if date %}<span class="muted" style="margin-left: auto; font-weight: 700">{{ date_label }}</span>{% endif %}</div>
+          {% if slot_form %}
+            {{ slot_form.start_at.errors }}
+            {% if slot_groups %}
+              <fieldset style="border: 0; margin: 0; padding: 0">
+                <legend class="sr-only">Horarios disponibles</legend>
+                {% include "bookings/_slots.html" %}
+              </fieldset>
+              <button class="btn btn-primary" type="submit">Confirmar cambio {% include "_icon.html" with name="arrow" size=20 stroke=2.6 %}</button>
+            {% else %}
+              <div class="step-empty">No hay otros horarios libres ese día. Probá con otro.</div>
+            {% endif %}
+          {% else %}
+            <div class="step-empty">Elegí el día y te mostramos los horarios libres.</div>
+          {% endif %}
+        </section>
+      </form>
+    </div>
+
+    <aside class="side">
+      <div class="ticket">
+        <div class="t-top">
+          <span class="sparkle">{% include "_icon.html" with name="star" size=120 %}</span>
+          <div class="t-label">Tu turno actual</div>
+          <div class="t-name">{{ appointment.business.name }}</div>
+        </div>
+        {% with date_label=date_label_current %}{% include "bookings/_ticket_rows.html" %}{% endwith %}
+        <div class="perf"></div>
+        <div class="t-foot">
+          <a class="btn btn-quiet btn-block" href="{% url 'appointment_detail' appointment.manage_token %}">Volver a mi turno</a>
+          <p class="fine">Te mandamos un email con los datos nuevos.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
 {% endblock %}

@@ -1,0 +1,7 @@
+<dl class="rows">
+  <div class="row"><dt>Servicio</dt><dd>{{ appointment.service.name }}</dd></div>
+  <div class="row"><dt>Con</dt><dd>{{ appointment.professional.name }}</dd></div>
+  <div class="row"><dt>Día</dt><dd>{{ date_label }}</dd></div>
+  <div class="row"><dt>Hora</dt><dd class="big">{{ appointment.start_at|time:"H:i" }}</dd></div>
+  {% if appointment.business.address %}<div class="row"><dt>Dónde</dt><dd>{{ appointment.business.address }}</dd></div>{% endif %}
+</dl>

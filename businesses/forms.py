@@ -1,6 +1,27 @@
 from django import forms
 
-from .models import Professional, Service, WorkingHours
+from .models import Business, Professional, Service, WorkingHours
+
+
+def single_line(value):
+    """Collapse line breaks, tabs and repeated spaces: these values end up in emails."""
+    return " ".join(value.split())
+
+
+class BusinessForm(forms.ModelForm):
+    class Meta:
+        model = Business
+        fields = ["name", "address"]
+        help_texts = {"address": "Calle, número y barrio. La ven tus clientes al reservar."}
+
+    def clean_name(self):
+        name = single_line(self.cleaned_data["name"])
+        if not name:
+            raise forms.ValidationError("Este campo es obligatorio.")
+        return name
+
+    def clean_address(self):
+        return single_line(self.cleaned_data["address"])
 
 
 class ServiceForm(forms.ModelForm):

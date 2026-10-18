@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Mi negocio · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Mi negocio</h1>
+  <p class="page-lead">Así te ven tus clientes en la página de reservas y en los emails.</p>
+  {% if saved %}<p class="notice ok" role="status">Listo, guardamos los cambios.</p>{% endif %}
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

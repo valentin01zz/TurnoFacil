@@ -1,0 +1,20 @@
+<div class="strip-head">
+  <strong>{{ strip.label }}</strong>
+  <div class="strip-nav">
+    {% if strip.previous_url %}
+      <a class="round" href="{{ strip.previous_url }}#paso-dia" aria-label="Mes anterior">{% include "_icon.html" with name="left" size=20 stroke=2.6 %}</a>
+    {% else %}
+      <span class="round" aria-disabled="true" aria-hidden="true">{% include "_icon.html" with name="left" size=20 stroke=2.6 %}</span>
+    {% endif %}
+    {% if strip.next_url %}
+      <a class="round" href="{{ strip.next_url }}#paso-dia" aria-label="Mes siguiente">{% include "_icon.html" with name="right" size=20 stroke=2.6 %}</a>
+    {% else %}
+      <span class="round" aria-disabled="true" aria-hidden="true">{% include "_icon.html" with name="right" size=20 stroke=2.6 %}</span>
+    {% endif %}
+  </div>
+</div>
+<div class="days" role="group" aria-label="Días de {{ strip.label }}">
+  {% for day in strip.days %}
+    <button type="submit" name="date" value="{{ day.iso }}" formaction="#paso-hora" class="day{% if day.selected %} selected{% endif %}{% if day.is_today %} today{% endif %}" aria-label="{{ day.long }}{% if not day.enabled %}, sin turnos{% endif %}" aria-pressed="{% if day.selected %}true{% else %}false{% endif %}"{% if not day.enabled %} disabled{% endif %}><small>{% if day.is_today %}Hoy{% else %}{{ day.weekday }}{% endif %}</small><strong>{{ day.number }}</strong></button>
+  {% endfor %}
+</div>

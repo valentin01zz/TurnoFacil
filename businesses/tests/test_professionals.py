@@ -250,8 +250,8 @@ class BookingPageProfessionalsTests(TestCase):
         response = self.booking_page()
 
         self.assertContains(response, "Manicura")
-        self.assertNotContains(response, "Profesionales")
-        self.assertNotContains(response, "Ana")
+        self.assertNotContains(response, "¿Con quién?")
+        self.assertNotContains(response, 'type="radio" name="professional"')
 
     def test_several_professionals_are_offered_as_choices(self):
         Service.objects.create(business=self.business, name="Manicura", duration_minutes=40)

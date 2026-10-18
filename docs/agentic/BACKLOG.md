@@ -18,6 +18,14 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | 9 | HU-10 Gestionar turnos desde el panel | HU-09 |
 | 10 | HU-08 Recordatorio por email | HU-05 |
 
+## Ampliación aprobada (2026-10-18)
+| Orden | Historia | Depende de |
+|---|---|---|
+| 11 | HU-20 Diseño visual | MVP construido |
+| 12 | HU-17 Dirección del negocio | HU-01 |
+| 13 | HU-18 Tira de días del mes | HU-04 |
+| 14 | HU-19 Gráfico semanal en la agenda | HU-09 |
+
 ## Futuro
 - HU-11 Recordatorio automático por WhatsApp
 - HU-12 Pago o seña al reservar

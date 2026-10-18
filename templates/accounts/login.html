@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Ingresar · TurnoFacil{% endblock %}
 {% block content %}
-  <h1>Ingresar</h1>
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {{ form.as_div }}
-    <button class="button" type="submit">Ingresar</button>
-  </form>
-  <p><a href="{% url 'password_reset' %}">Olvidé mi contraseña</a></p>
-  <p><a href="{% url 'signup' %}">Registrar mi negocio</a></p>
+<div class="wrap">
+  <div class="auth">
+    <div class="card">
+      <h1>Hola de nuevo</h1>
+      <p class="sub">Entrá a la agenda de tu negocio.</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_div }}
+        <button class="btn btn-primary btn-block" type="submit">Ingresar</button>
+      </form>
+      <p class="alt"><a href="{% url 'password_reset' %}">Olvidé mi contraseña</a></p>
+    </div>
+    <p class="alt">¿Todavía no tenés cuenta? <a href="{% url 'signup' %}">Registrar mi negocio</a></p>
+  </div>
+</div>
 {% endblock %}

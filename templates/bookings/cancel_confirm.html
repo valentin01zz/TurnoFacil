@@ -1,13 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Cancelar turno · {{ appointment.business.name }}{% endblock %}
+{% block header %}{% with business=appointment.business %}{% include "bookings/_business_header.html" %}{% endwith %}{% endblock %}
 {% block content %}
-  <h1>¿Cancelar este turno?</h1>
-  <section class="card">
-    {% include "bookings/_appointment_summary.html" %}
-  </section>
-  <form method="post" class="actions">
-    {% csrf_token %}
-    <button class="button danger" type="submit">Sí, cancelar turno</button>
-    <a href="{% url 'appointment_detail' appointment.manage_token %}">No, volver</a>
-  </form>
+<div class="wrap">
+  <div class="ticket-page">
+    <h1 class="page-title" style="margin-top: 8px">¿Cancelar este turno?</h1>
+    <p class="page-lead">El horario queda libre para otra persona. Si querés, podés reprogramarlo en lugar de cancelarlo.</p>
+    <div class="ticket">
+      <div class="t-top">
+        <span class="sparkle">{% include "_icon.html" with name="star" size=120 %}</span>
+        <div class="t-label">Tu turno</div>
+        <div class="t-name">{{ appointment.business.name }}</div>
+      </div>
+      {% include "bookings/_ticket_rows.html" %}
+      <div class="perf"></div>
+      <div class="t-foot">
+        <form method="post" class="stack" style="gap: 12px">
+          {% csrf_token %}
+          <button class="btn btn-danger btn-block" type="submit">Sí, cancelar turno</button>
+          <a class="btn btn-quiet btn-block" href="{% url 'reschedule_appointment' appointment.manage_token %}">Mejor lo reprogramo</a>
+          <a class="link-button" style="text-align: center" href="{% url 'appointment_detail' appointment.manage_token %}">No, volver</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

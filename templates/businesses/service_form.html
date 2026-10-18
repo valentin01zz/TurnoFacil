@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% block title %}{% if is_new %}Nuevo servicio{% else %}Editar servicio{% endif %} · TurnoFacil{% endblock %}
 {% block content %}
-  <h1>{% if is_new %}Nuevo servicio{% else %}Editar servicio{% endif %}</h1>
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {{ form.as_div }}
-    <button class="button" type="submit">Guardar</button>
-  </form>
-  <p><a href="{% url 'service_list' %}">Volver a servicios</a></p>
+<div class="wrap narrow">
+  <h1 class="page-title">{% if is_new %}Nuevo servicio{% else %}Editar servicio{% endif %}</h1>
+  <p class="page-lead">La duración define cuánto lugar ocupa cada turno en la agenda.</p>
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a class="link-button" href="{% url 'service_list' %}">Volver a servicios</a>
+      </div>
+    </form>
+  </div>
   {% if not is_new %}
-    <p class="muted">Para dejar de ofrecer este servicio, desmarcá "Activo". Los turnos ya tomados no cambian.</p>
+    <p class="helptext" style="margin-top: 18px">Para dejar de ofrecer este servicio, desmarcá "Activo". Los turnos ya tomados no cambian.</p>
   {% endif %}
+</div>
 {% endblock %}
