@@ -8,7 +8,7 @@ para lo específico del proyecto y NEXORA para las reglas generales.
 - Cliente: producto propio de NEXORA (microapp para comercializar). Cliente ideal: peluquerías, barberías, centros de estética, kinesiólogos y talleres.
 - Objetivo: estos negocios pierden turnos y no logran organizar sus reservas; TurnoFacil les da una forma simple de tomarlas y gestionarlas.
 - Alcance inicial indicado por el Founder (a refinar en el PRD): página de reservas, recordatorios, reprogramación y panel simple.
-- Stack: Django 5.2 LTS (Python 3.11) + PostgreSQL, páginas renderizadas en el servidor. Ver `docs/agentic/ADR/ADR-0001-stack-de-la-aplicacion.md`. Hosting y proveedor de email: pendientes, con ADR propio antes del primer deploy.
+- Stack: Django 5.2 LTS (Python 3.11) + PostgreSQL, páginas renderizadas en el servidor (ADR-0001). Hosting: Render (ADR-0002). Email: Resend por SMTP (ADR-0003). Dominio: pendiente de decisión del Founder.
 - Cómo correr (desde la raíz, con el entorno virtual `.venv` creado e instaladas las dependencias de `requirements-dev.txt`):
   - Lint: `.venv\Scripts\python -m ruff check .` y `.venv\Scripts\python -m ruff format --check .`
   - Typecheck: no hay en el MVP.
