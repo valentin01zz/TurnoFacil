@@ -119,3 +119,11 @@ class ReminderTests(TestCase):
 
         self.assertIn("Reminders sent: 2", out.getvalue())
         self.assertEqual(len(mail.outbox), 2)
+
+    @override_settings(CUSTOMER_CHANGE_LIMIT_HOURS=3)
+    def test_reminder_states_the_configured_change_limit(self):
+        self.appointment_in(hours=23)
+
+        send_due_reminders()
+
+        self.assertIn("hasta 3 horas antes", mail.outbox[0].body)

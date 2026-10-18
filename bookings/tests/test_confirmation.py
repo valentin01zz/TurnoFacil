@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from bookings.emails import send_confirmation
 from bookings.models import Appointment
+from businesses.models import Business
 
 from .helpers import (
     create_appointment,
@@ -96,3 +97,18 @@ class ConfirmationEmailTests(TestCase):
             self.assertContains(response, "Turno no encontrado", status_code=404)
             self.assertNotContains(response, "Laura", status_code=404)
             self.assertNotContains(response, "Limpieza facial", status_code=404)
+
+
+class EmailSubjectTests(TestCase):
+    def test_subject_with_a_line_break_is_still_sent_on_one_line(self):
+        business = create_business(name="Estética Luna")
+        Business.objects.filter(pk=business.pk).update(name="Estética\nLuna")
+        business.refresh_from_db()
+        ana = create_professional(business, name="Ana")
+        service = create_service(business)
+        appointment = create_appointment(ana, service, local_dt(future_date(), 9, 0))
+
+        send_confirmation(appointment, "http://testserver/t/x/")
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Turno confirmado en Estética Luna")

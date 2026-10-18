@@ -13,6 +13,13 @@ class SignupForm(forms.Form):
     email = forms.EmailField(label="Email")
     password = forms.CharField(label="Contraseña", widget=forms.PasswordInput, strip=False)
 
+    def clean_business_name(self):
+        # Collapse line breaks, tabs and repeated spaces: the name goes into email subjects.
+        name = " ".join(self.cleaned_data["business_name"].split())
+        if not name:
+            raise forms.ValidationError("Este campo es obligatorio.")
+        return name
+
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
         if User.objects.filter(email=email).exists():

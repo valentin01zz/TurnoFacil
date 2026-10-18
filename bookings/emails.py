@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
@@ -46,10 +47,15 @@ def send_customer_email(appointment, manage_url, subject, template):
     """Email the customer about their appointment. Returns whether it was sent; never raises."""
     if not appointment.customer_email:
         return False
-    context = {"appointment": appointment, "manage_url": manage_url}
+    context = {
+        "appointment": appointment,
+        "manage_url": manage_url,
+        "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
+    }
     try:
         send_mail(
-            subject=subject,
+            # A line break in a header makes the send fail, so subjects are kept on one line.
+            subject=" ".join(subject.split()),
             message=render_to_string(template, context),
             from_email=None,
             recipient_list=[appointment.customer_email],

@@ -66,3 +66,11 @@ class SignupTests(TestCase):
         response = self.client.get(reverse("signup"))
 
         self.assertRedirects(response, reverse("panel"))
+
+    def test_line_breaks_in_business_name_are_collapsed(self):
+        data = {**VALID_DATA, "business_name": "Estética\r\nLuna \t Centro"}
+
+        self.client.post(reverse("signup"), data)
+
+        business = Business.objects.get()
+        self.assertEqual(business.name, "Estética Luna Centro")
