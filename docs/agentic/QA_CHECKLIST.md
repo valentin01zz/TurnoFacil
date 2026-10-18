@@ -82,6 +82,16 @@ negocios); resolver R3, R4 y R5 en el deploy; aceptar R2 y R6. R7 se resuelve co
 
 Resultado final: **aprobado con riesgos conocidos** (R1 a R7), cero problemas críticos ni hallazgos abiertos.
 
+### Ajustes de producción (2026-10-18, verificados por QA)
+- R3 resuelto: `LOGGING` manda advertencias y errores 500 a la consola (probado: un 500 forzado quedó en el log).
+- R4 resuelto: páginas 404 y 500 propias en español (con tests).
+- R5 resuelto: el botón "Copiar" usa un método alternativo cuando no hay HTTPS (con test).
+- `check --deploy` con `DEBUG=false`: quedan solo `SECURE_HSTS_INCLUDE_SUBDOMAINS` y `SECURE_HSTS_PRELOAD`,
+  apagados a propósito (difíciles de revertir; se revisan con el dominio estable).
+- Modo producción probado en local: archivos estáticos versionados y comprimidos por whitenoise, cookies
+  `Secure`, cabeceras de seguridad, dominios ajenos rechazados con 400 y conexión por `DATABASE_URL`.
+- No probado en local: `gunicorn` (no corre en Windows); se verifica en el primer deploy.
+
 ### Requisitos antes del deploy (no bloquean este gate, sí el workflow 05)
 - Activar HTTPS y las opciones que marca `check --deploy`: `SECURE_SSL_REDIRECT` (o el equivalente del hosting),
   `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE` y `SECURE_HSTS_SECONDS` (empezar con un valor bajo).
