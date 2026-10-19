@@ -7,11 +7,19 @@
 
 ## Antes
 - [x] Informe de QA aprobado (`QA_CHECKLIST.md`, aprobado con riesgos conocidos aceptados por el Founder).
-- [ ] Dominio comprado (decisión pendiente del Founder).
-- [ ] Variables de entorno definidas (fuera del repo; ver tabla abajo).
+- [x] Dominio comprado: `turnofacil.online` en DonWeb (vence el 2027-10-19), con la zona DNS en DonWeb.
+- [x] Variables de entorno definidas en Render (fuera del repo; ver tabla abajo).
 - [x] Migraciones revisadas: se aplican solas antes de cada deploy (`preDeployCommand`). La base arranca vacía.
 - [x] Rollback documentado (ver abajo).
-- [ ] OK del Founder.
+- [x] OK del Founder: primer deploy hecho por el Founder el 2026-10-19.
+
+## Estado actual (2026-10-19)
+- En producción: https://turnofacil.online (también `www` y `turnofacil-web.onrender.com`), HTTPS emitido por Render.
+- DNS en DonWeb: `A` de `turnofacil.online` a `216.24.57.1` (Render); `www` como CNAME; para Resend,
+  `resend._domainkey` (TXT), `send` y `rsend` (CNAME) y `_dmarc` (TXT). DonWeb pide el nombre completo
+  (por ejemplo `send.turnofacil.online`) y precarga `www.` en los CNAME: hay que borrarlo.
+- Resend: dominio verificado (región São Paulo); la API key tiene solo permiso de envío.
+- Costo real informado por Render: USD 17,50 por mes, más la tarea programada (se cobra por segundo).
 
 ## Lo que hace el Founder (requiere sus cuentas y medios de pago)
 1. **Dominio:** comprarlo en el registrador elegido.
@@ -34,14 +42,17 @@
 
    `SECRET_KEY` y `DATABASE_URL` las genera Render. El resto ya viene definido en `render.yaml`.
 3. Aplicar el Blueprint. El primer build instala dependencias, junta los archivos estáticos y aplica las
-   migraciones.
+   migraciones. En el primer deploy la base puede no estar lista todavía y las migraciones fallan con
+   `Connection refused`: esperar a que la base figure **Available** y, en el servicio web, **Manual Deploy >
+   Deploy latest commit**.
 4. En el servicio web: **Settings > Custom Domains**, agregar el dominio y cargar en el DNS el registro que indica
    Render. Render emite el certificado HTTPS solo.
 5. Mientras el dominio propaga, la app responde en la dirección `*.onrender.com` del servicio (se acepta sola).
 
 ## Verificación después del deploy
-- [ ] La portada abre por HTTPS y `http://` redirige a `https://`.
-- [ ] Registro de un negocio de prueba, alta de un servicio y un profesional con horarios.
+- [x] La portada abre por HTTPS y `http://` redirige a `https://` (2026-10-19).
+- [x] Registro de un negocio de prueba con verificación de email recibida desde el dominio (2026-10-19).
+- [ ] Alta de un servicio y un profesional con horarios.
 - [ ] Reserva desde un celular con un email real: llega la confirmación desde el dominio propio, no a spam.
 - [ ] Reprogramar y cancelar desde el link del email.
 - [ ] En **Logs** de la tarea `turnofacil-reminders`: corridas cada 15 minutos con `Reminders sent: N`.
