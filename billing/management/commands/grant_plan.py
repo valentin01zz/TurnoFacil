@@ -1,18 +1,16 @@
-import calendar
-
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from billing.models import Plan
-from billing.services import InvalidTransition, activate, active_professionals, start_trial
+from billing.services import (
+    InvalidTransition,
+    activate,
+    active_professionals,
+    add_months,
+    set_provider_reference,
+    start_trial,
+)
 from businesses.models import Business
-
-
-def add_months(moment, months):
-    index = moment.month - 1 + months
-    year, month = moment.year + index // 12, index % 12 + 1
-    day = min(moment.day, calendar.monthrange(year, month)[1])
-    return moment.replace(year=year, month=month, day=day)
 
 
 class Command(BaseCommand):
@@ -44,8 +42,18 @@ class Command(BaseCommand):
                 f"{business.name} tiene {count} profesionales activos y {plan_obj.name} permite "
                 f"{plan_obj.max_professionals}. Desactivá los que sobren antes de otorgarlo."
             )
-        period_end = add_months(timezone.now(), months) if months else None
         subscription = start_trial(business)
+        if subscription.renews_automatically:
+            raise CommandError(
+                f"{business.name} paga con {subscription.provider}: cancelá ese cobro antes de "
+                "otorgar un plan a mano, para no cobrarle dos veces."
+            )
+        # A transfer for the next month extends the paid period instead of overlapping it.
+        start = timezone.now()
+        if subscription.current_period_end and subscription.current_period_end > start:
+            start = subscription.current_period_end
+        period_end = add_months(start, months) if months else None
+        subscription = set_provider_reference(subscription, "", "")
         try:
             activate(
                 subscription, plan_obj, period_end, f"Plan {plan_obj.name} otorgado por un operador"

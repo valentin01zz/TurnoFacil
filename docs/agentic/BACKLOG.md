@@ -36,6 +36,10 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | 19 | HU-25 Pantalla de planes | HU-23 |
 | 20 | HU-26 Avisos de vencimiento | HU-22 |
 | 21 | HU-27 Interfaz de pagos | HU-25 |
+| 22 | HU-28 Verificación de email | HU-22 |
+| 23 | HU-29 Suscribirse con Mercado Pago | HU-27, ADR-0005 |
+| 24 | HU-30 Dar de baja o cambiar de plan pagando | HU-29 |
+| 25 | HU-31 Pago por transferencia | HU-27 |
 
 ## Futuro
 - HU-11 Recordatorio automático por WhatsApp
@@ -43,7 +47,7 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 - HU-13 Bloquear días u horarios puntuales
 - HU-14 Aviso al negocio ante cada reserva o cambio
 - HU-15 Reservar con "cualquier profesional disponible"
-- HU-16 Suscripción y cobro a los negocios
+- HU-16 Suscripción y cobro a los negocios (resuelta por HU-21 a HU-31)
 
 ## Pendiente del Founder
 - Nada pendiente: P1, P2 y P3 del `PRD.md` están resueltas.

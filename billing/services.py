@@ -1,5 +1,6 @@
 """The only place where subscriptions are created or change state."""
 
+import calendar
 from datetime import timedelta
 
 from django.conf import settings
@@ -23,6 +24,7 @@ ALLOWED_TRANSITIONS = {
         Subscription.TRIAL_EXPIRED,
     },
     Subscription.ACTIVE: {
+        Subscription.ACTIVE,  # renewal, plan change or scheduled cancellation
         Subscription.PAST_DUE,
         Subscription.CANCELED,
         Subscription.PENDING_PAYMENT,
@@ -90,13 +92,18 @@ def active_professionals(business):
     return business.professionals.filter(is_active=True).count()
 
 
-def choose_plan(subscription, plan):
-    """Record the owner's choice. It never activates anything: payment must be confirmed first."""
+def ensure_plan_fits(subscription, plan):
+    """An owner may only pick a public plan that holds their active professionals."""
     if not plan.is_public:
         raise InvalidTransition("Ese plan no se puede elegir")
     count = active_professionals(subscription.business)
     if count > plan.max_professionals:
         raise PlanLimitExceeded(plan, count)
+
+
+def choose_plan(subscription, plan):
+    """Record the owner's choice. It never activates anything: payment must be confirmed first."""
+    ensure_plan_fits(subscription, plan)
     return transition(
         subscription,
         Subscription.PENDING_PAYMENT,
@@ -123,3 +130,76 @@ def activate(subscription, plan, period_end, reason):
         current_period_end=period_end,
         canceled_at=None,
     )
+
+
+def add_months(moment, months):
+    index = moment.month - 1 + months
+    year, month = moment.year + index // 12, index % 12 + 1
+    day = min(moment.day, calendar.monthrange(year, month)[1])
+    return moment.replace(year=year, month=month, day=day)
+
+
+def first_charge_at(subscription, now=None):
+    """When a new recurring payment should first charge: never before the time already granted."""
+    now = now or timezone.now()
+    candidates = [now]
+    if subscription.status in (Subscription.TRIALING, Subscription.PENDING_PAYMENT):
+        candidates.append(subscription.trial_ends_at)
+    if subscription.current_period_end:
+        candidates.append(subscription.current_period_end)
+    return max(candidates)
+
+
+def set_provider_reference(subscription, provider, reference):
+    """Remember the provider's id for the checkout just started. It grants nothing by itself."""
+    Subscription.objects.filter(pk=subscription.pk).update(
+        provider=provider, provider_subscription_id=reference, updated_at=timezone.now()
+    )
+    subscription.refresh_from_db()
+    return subscription
+
+
+def change_active_plan(subscription, plan):
+    """Switch a renewing subscription to `plan` now; the provider charges the new price next."""
+    if subscription.status != Subscription.ACTIVE:
+        raise InvalidTransition("Solo se cambia de plan con la suscripción al día")
+    ensure_plan_fits(subscription, plan)
+    return transition(subscription, Subscription.ACTIVE, f"Cambió al plan {plan.name}", plan=plan)
+
+
+def schedule_cancel(subscription, reason, now=None):
+    """Stop renewing. Access lasts until the paid period ends (see finish_due_cancellations)."""
+    now = now or timezone.now()
+    if subscription.status == Subscription.PAST_DUE:
+        return transition(subscription, Subscription.CANCELED, reason, canceled_at=now)
+    return transition(subscription, Subscription.ACTIVE, reason, canceled_at=now)
+
+
+def mark_past_due(subscription, reason):
+    return transition(subscription, Subscription.PAST_DUE, reason)
+
+
+def finish_due_cancellations(now=None):
+    """Close subscriptions whose owners canceled, once the period they paid for is over."""
+    now = now or timezone.now()
+    closed = 0
+    for subscription in Subscription.objects.filter(
+        status=Subscription.ACTIVE, canceled_at__isnull=False, current_period_end__lte=now
+    ):
+        transition(subscription, Subscription.CANCELED, "Terminó el período pago tras la baja")
+        closed += 1
+    return closed
+
+
+def flag_unconfirmed_renewals(now=None):
+    """Renewing subscriptions whose charge was not confirmed a day after the period ended."""
+    now = now or timezone.now()
+    flagged = 0
+    for subscription in Subscription.objects.filter(
+        status=Subscription.ACTIVE,
+        canceled_at__isnull=True,
+        current_period_end__lte=now - timedelta(days=1),
+    ).exclude(provider_subscription_id=""):
+        mark_past_due(subscription, "No recibimos la confirmación del cobro mensual")
+        flagged += 1
+    return flagged

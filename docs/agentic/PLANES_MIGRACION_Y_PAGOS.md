@@ -8,7 +8,7 @@
 ### Inventario al 2026-10-18
 | Entorno | Negocios | Estado operativo | Plan y estado asignados |
 |---|---|---|---|
-| Producción (Render) | Ninguno: TurnoFacil todavía no se desplegó | No aplica | No aplica |
+| Producción (Render) | Desplegado el 2026-10-19; negocios de prueba del Founder | Operativo | Prueba de 14 días al confirmar el email |
 | Desarrollo local | ValenBarber (creado el 2026-10-13) | Con datos de prueba del Founder | Prueba de 14 días desde la migración (`trialing`, plan Profesional) |
 | Producción, después del deploy | Estética piloto (a crear) | Piloto comercial | Plan `piloto`, sin costo y sin vencimiento, activado con `grant_plan` |
 
@@ -53,6 +53,11 @@
   `grant_plan <slug> <plan> --months N` (queda registrado y vence al terminar los meses pagos).
 - La base guarda solo la referencia de la suscripción en el proveedor (`provider`, `provider_subscription_id`).
   No hay campos para números de tarjeta, CVV, credenciales ni otros datos de medios de pago.
+
+### Estado al 2026-10-19
+Los componentes 1 a 6 y 8 de la lista siguiente están implementados (`billing/mercadopago.py`, HU-29 a HU-31).
+Faltan: comprobantes y facturación (7) y la prueba en el entorno de pruebas de Mercado Pago antes de cobrar de
+verdad (parte de 8 y 9, ver `DEPLOYMENT.md`).
 
 ### Componentes necesarios para cobrar de verdad (fase posterior, con su propio ADR)
 1. **Elección del proveedor** compatible con Argentina y con cobro recurrente. Propuesta: suscripciones de

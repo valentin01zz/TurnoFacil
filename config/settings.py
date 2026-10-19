@@ -107,6 +107,15 @@ PAST_DUE_GRACE_DAYS = 3
 EMAIL_VERIFICATION_DAYS = 3
 EMAIL_VERIFICATION_RESEND_SECONDS = 60
 PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "billing.payments.ManualProvider")
+# Mercado Pago subscriptions (ADR-0005). Credentials only from the environment, never in the repo.
+MERCADOPAGO_ACCESS_TOKEN = os.environ.get("MERCADOPAGO_ACCESS_TOKEN", "")
+MERCADOPAGO_WEBHOOK_SECRET = os.environ.get("MERCADOPAGO_WEBHOOK_SECRET", "")
+MERCADOPAGO_API_URL = os.environ.get("MERCADOPAGO_API_URL", "https://api.mercadopago.com")
+# Manual bank transfer, shown on the plans page only when an alias is set.
+TRANSFER_ALIAS = os.environ.get("TRANSFER_ALIAS", "")
+TRANSFER_HOLDER = os.environ.get("TRANSFER_HOLDER", "")
+TRANSFER_CUIT = os.environ.get("TRANSFER_CUIT", "")
+BILLING_CONTACT_EMAIL = os.environ.get("BILLING_CONTACT_EMAIL", "")
 
 # Base URL for links in emails sent outside a request (reminders).
 SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000").rstrip("/")

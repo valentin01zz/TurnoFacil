@@ -55,7 +55,22 @@ Respuestas esperadas:
 - Turno manual superpuesto con otro del mismo profesional: se rechaza con un mensaje claro.
 - El panel puede reprogramar y cancelar sin el límite de 2 horas (ese límite aplica al cliente).
 
+## Planes y pagos (requiere sesión, salvo el webhook)
+| Método | Ruta | Qué hace | Historia |
+|---|---|---|---|
+| GET | `/panel/planes/` | Planes, estado de la suscripción y datos de transferencia | HU-25, HU-31 |
+| POST | `/panel/planes/<plan>/elegir/` | Elige un plan. Con Mercado Pago: lleva a la página de pago, o cambia de plan si ya paga | HU-25, HU-30 |
+| GET, POST | `/panel/planes/<plan>/pagar/` | Confirma el pago (email de Mercado Pago) y redirige al checkout de Mercado Pago | HU-29 |
+| GET | `/panel/planes/pago/` | Vuelta desde Mercado Pago: consulta el estado y lo informa | HU-29 |
+| GET, POST | `/panel/planes/baja/` | Confirma y da de baja el cobro automático | HU-30 |
+| POST | `/webhooks/mercadopago/` | Avisos de Mercado Pago. Público, sin sesión ni CSRF; exige firma `x-signature` válida | HU-29 |
+
+Respuestas del webhook: `200` aviso procesado o ignorado (recurso desconocido u otro tópico); `401` firma
+inválida; `404` sin Mercado Pago configurado; `502` Mercado Pago no respondió (lo reintenta); `503` falta
+`MERCADOPAGO_WEBHOOK_SECRET`. El contenido del aviso nunca se usa como estado: se consulta la API.
+
 ## Tarea programada
 | Comando | Frecuencia | Qué hace | Historia |
 |---|---|---|---|
 | `python manage.py send_reminders` | cada 15 minutos | Envía los recordatorios vencidos y los marca como enviados | HU-08 |
+| `python manage.py run_billing_tasks` | cada 15 minutos | Vence pruebas, manda avisos, cierra bajas cumplidas, marca cobros no confirmados y consulta a Mercado Pago lo pendiente | HU-26, HU-29, HU-30 |

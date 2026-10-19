@@ -140,3 +140,32 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] Un link alterado, falsificado o vencido se rechaza sin verificar la cuenta.
 - [ ] No se puede abrir otra cuenta con un alias del mismo buzón (mayúsculas, "+etiqueta", puntos en Gmail).
 - [ ] Las cuentas que ya existían quedan verificadas por la migración.
+
+## HU-29: Suscribirse con Mercado Pago
+- [ ] Elegir un plan lleva a una página que muestra el precio, la fecha del primer cobro y pide el email de la
+      cuenta de Mercado Pago; el pago se hace en el checkout oficial de Mercado Pago.
+- [ ] Durante la prueba, el primer cobro es el día que termina la prueba; sin prueba vigente, es en el momento.
+- [ ] Empezar el checkout no activa nada. La suscripción se activa solo cuando Mercado Pago la autoriza, y cada
+      cobro aprobado paga un mes desde la fecha del cobro.
+- [ ] Cada aviso de Mercado Pago se acepta solo con firma válida, y el estado se lee siempre de la API de Mercado
+      Pago con las credenciales propias; repetir un aviso no cambia nada.
+- [ ] Un cobro rechazado o no confirmado un día después del vencimiento pasa a "pago con problemas", con 3 días
+      de gracia; un cobro aprobado posterior lo reactiva.
+- [ ] Si Mercado Pago no responde, no se cambia nada y se informa al dueño; si se pierde un aviso, la tarea
+      programada lo detecta.
+- [ ] TurnoFacil no guarda datos de tarjetas ni credenciales; las credenciales están solo en variables de entorno.
+
+## HU-30: Dar de baja o cambiar de plan pagando
+- [ ] La baja pide confirmación, cancela el cobro en Mercado Pago y mantiene el plan hasta el fin del mes pago;
+      después la cuenta queda en solo lectura, sin borrar nada.
+- [ ] Una baja hecha desde Mercado Pago se refleja igual.
+- [ ] Después de una baja se puede volver a suscribir; el primer cobro nuevo es al terminar el tiempo ya pago.
+- [ ] Cambiar de plan pagando es inmediato y actualiza el precio en Mercado Pago desde el próximo cobro; no se
+      puede pasar a un plan más chico que los profesionales activos.
+
+## HU-31: Pago por transferencia
+- [ ] Si está configurado el alias, la página de planes muestra alias, titular, CUIT y a dónde mandar el
+      comprobante; si no, no muestra nada.
+- [ ] El operador activa el mes con `grant_plan <slug> <plan> --months 1`; si el negocio ya tenía tiempo pago,
+      el mes nuevo se suma al final.
+- [ ] `grant_plan` se niega a otorgar un plan a quien ya paga con cobro automático, para no cobrarle dos veces.

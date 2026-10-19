@@ -44,6 +44,25 @@ Brutos)**, más la **transferencia bancaria como alternativa manual sin comisió
   credenciales en Render. Las credenciales nunca entran al repo.
 - Facturación: Mercado Pago no emite la factura fiscal del Founder; hay que resolverla aparte.
 
+## Implementación (2026-10-19)
+Decisiones del Founder: el primer cobro es al terminar la prueba; la transferencia se muestra en Planes con alias,
+titular y CUIT; la baja mantiene el plan hasta el fin del mes pago.
+
+- **Suscripción sin plan asociado** (`POST /preapproval` con `status: pending`): una por negocio, con el monto del
+  plan, `external_reference` propio y `start_date` en la fecha del primer cobro. El dueño paga en el `init_point`
+  de Mercado Pago. Se pide el email de su cuenta de Mercado Pago porque puede no ser el de TurnoFacil.
+- **Activación:** "autorizada" activa el plan hasta la fecha del primer cobro; cada cobro aprobado
+  (`authorized_payments`) paga un mes desde su fecha. Con eso, el negocio que se suscribe en la prueba no pierde
+  días y nadie queda activo más allá de lo que Mercado Pago confirmó.
+- **Avisos:** se valida `x-signature` (HMAC-SHA256 con la clave secreta) y después se lee el recurso de la API
+  con las credenciales propias; el contenido del aviso nunca cambia el estado. Aplicar el mismo estado dos veces
+  no hace nada, así que no hace falta guardar los ids de avisos procesados.
+- **Red de seguridad:** `run_billing_tasks` consulta las suscripciones pendientes (7 días) y con problemas, pasa
+  a `past_due` lo que no se confirmó un día después del vencimiento y cierra las bajas cumplidas.
+- **Sin dependencias nuevas:** el cliente HTTP usa la librería estándar (`urllib`).
+- **Cambio de plan pagando:** inmediato, con el precio nuevo desde el próximo cobro (se actualiza el monto de
+  la suscripción en Mercado Pago).
+
 ## ¿Es reversible?
 Sí. La interfaz de proveedor permite cambiar o sumar otro (por ejemplo, débito por CBU) sin tocar la lógica de
 planes.

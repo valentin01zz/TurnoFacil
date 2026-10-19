@@ -121,3 +121,20 @@
 **Como** Founder, **quiero** que cada dueño confirme su email antes de empezar la prueba, **para** reducir las pruebas repetidas con cuentas falsas o alias.
 - Prioridad: MVP comercial
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-28)
+
+## HU-29: Suscribirse con Mercado Pago (aprobado 2026-10-19)
+**Como** dueño, **quiero** pagar mi plan con Mercado Pago y que se renueve solo cada mes, **para** no tener que
+acordarme de pagar.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-29)
+
+## HU-30: Dar de baja o cambiar de plan pagando (aprobado 2026-10-19)
+**Como** dueño que paga con Mercado Pago, **quiero** darme de baja o cambiar de plan desde el panel, **para**
+manejar mi suscripción sin pedírselo a nadie.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-30)
+
+## HU-31: Pago por transferencia (aprobado 2026-10-19)
+**Como** dueño, **quiero** ver los datos para pagar por transferencia, **para** pagar sin tarjeta ni comisión.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-31)

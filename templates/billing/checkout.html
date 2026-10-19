@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Pagar plan {{ plan.name }} · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="eyebrow">Planes</div>
+  <h1 class="page-title" style="margin-top: 6px">Plan {{ plan.name }}</h1>
+  <p class="page-lead">$ {{ plan.monthly_price|floatformat:"0g" }} {{ plan.currency }} por mes, hasta {{ plan.max_professionals }} profesional{{ plan.max_professionals|pluralize:"es" }} activo{{ plan.max_professionals|pluralize }}.</p>
+  <div class="card">
+    {% if charges_now %}
+      <p style="margin: 0 0 12px">Mercado Pago te cobra el primer mes ahora y después lo renueva solo, todos los meses.</p>
+    {% else %}
+      <p style="margin: 0 0 12px">No te cobramos nada hoy. Mercado Pago hace el primer cobro el <strong>{{ first_charge|date:"l j \d\e F" }}</strong>, cuando termina el tiempo que ya tenés, y después lo renueva solo, todos los meses.</p>
+    {% endif %}
+    <p class="helptext" style="margin: 0 0 18px">Pagás en la página de Mercado Pago, con tarjeta o dinero en cuenta. TurnoFacil no ve ni guarda los datos de tu tarjeta. Podés darte de baja cuando quieras desde Planes.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Ir a pagar con Mercado Pago</button>
+        <a class="link-button" href="{% url 'plans' %}">Volver a los planes</a>
+      </div>
+    </form>
+  </div>
+  {% if transfer %}{% include "billing/_transfer.html" %}{% endif %}
+</div>
+{% endblock %}

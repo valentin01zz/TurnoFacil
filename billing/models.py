@@ -79,6 +79,15 @@ class Subscription(models.Model):
     def __str__(self):
         return f"{self.business} · {self.get_status_display()}"
 
+    @property
+    def renews_automatically(self):
+        """A provider charges it every month and the owner has not canceled."""
+        return (
+            self.status in (self.ACTIVE, self.PAST_DUE)
+            and bool(self.provider_subscription_id)
+            and self.canceled_at is None
+        )
+
 
 class SubscriptionEvent(models.Model):
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name="events")

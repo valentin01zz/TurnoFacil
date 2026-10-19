@@ -62,6 +62,34 @@
       `python manage.py grant_plan <slug-de-la-estetica> piloto` (ADR-0004).
 - [ ] En **Logs** de la tarea: también aparece `Trial notices sent: N` (avisos de prueba).
 
+## Activar Mercado Pago (HU-29 a HU-31)
+Hasta hacer esto, la app sigue con el proveedor manual: se elige el plan y el pago se coordina por fuera.
+
+1. **Founder:** en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers/panel/app), crear una
+   aplicación (producto: Suscripciones) con la cuenta vendedora y configurar la acreditación a 35 días.
+2. **Founder:** crear dos usuarios de prueba (vendedor y comprador) en **Cuentas de prueba**. Las credenciales de
+   prueba salen del vendedor de prueba.
+3. **Founder:** en la aplicación, **Webhooks > Configurar notificaciones**: URL
+   `https://turnofacil.online/webhooks/mercadopago/`, eventos de **Planes y suscripciones** (suscripciones y
+   pagos recurrentes). Copiar la clave secreta.
+4. **Founder:** en Render, en `turnofacil-web` **y** en `turnofacil-reminders`, **Environment**, agregar:
+
+   | Variable | Valor |
+   |---|---|
+   | `PAYMENT_PROVIDER` | `billing.mercadopago.MercadoPagoProvider` |
+   | `MERCADOPAGO_ACCESS_TOKEN` | primero el de prueba (`TEST-...` o el del vendedor de prueba), después el de producción |
+   | `MERCADOPAGO_WEBHOOK_SECRET` | la clave secreta del paso 3 |
+   | `TRANSFER_ALIAS`, `TRANSFER_HOLDER`, `TRANSFER_CUIT`, `BILLING_CONTACT_EMAIL` | datos de la transferencia (opcional) |
+
+   Las credenciales nunca van al repo ni al chat.
+5. **Prueba con credenciales de prueba** (Founder y QA juntos), con un negocio de prueba y el comprador de prueba:
+   - [ ] Suscribirse en prueba: el checkout muestra el primer cobro al terminar la prueba; al volver, el plan
+         queda activo y Planes muestra "Próximo cobro".
+   - [ ] En **Logs** de `turnofacil-web`, los avisos de Mercado Pago responden 200 (no 401).
+   - [ ] Suscribirse con la prueba vencida: cobra en el momento y el período pasa a un mes.
+   - [ ] Cambiar de plan y dar de baja desde Planes; verificar el monto y el estado en Mercado Pago.
+6. Con todo verificado, cambiar `MERCADOPAGO_ACCESS_TOKEN` por el de producción (y la clave secreta si es otra).
+
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy
   (unos minutos). La tarea de recordatorios se revierte igual, desde su propio servicio.
@@ -71,6 +99,8 @@
 - **Pérdida o corrupción de datos:** Render guarda copias continuas de la base paga; en el plan Hobby se puede
   restaurar a cualquier momento de los últimos 3 días (**Recovery** en la base). La restauración crea una base
   nueva; después se apunta `DATABASE_URL` a ella.
+- **Desactivar Mercado Pago:** borrar `PAYMENT_PROVIDER` en Render (vuelve el proveedor manual). Las
+  suscripciones ya autorizadas siguen cobrándose en Mercado Pago: darlas de baja allá si hace falta.
 - **Volver a no estar publicado:** suspender el servicio web desde **Settings > Suspend**. Los datos quedan.
 
 ## Operación

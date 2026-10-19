@@ -67,16 +67,21 @@ def get_access(business, now=None):
     )
     plan = None
     status = subscription.status
+    period_end = subscription.current_period_end
+    grace_end = (period_end or now) + timedelta(days=settings.PAST_DUE_GRACE_DAYS)
     if subscription.status == Subscription.ACTIVE:
-        if subscription.current_period_end is None or subscription.current_period_end > now:
+        if period_end is None or period_end > now:
+            plan = subscription.plan
+        elif subscription.renews_automatically and grace_end > now:
+            # The provider charges on the last day; its confirmation may arrive a little later.
             plan = subscription.plan
     elif subscription.status == Subscription.PAST_DUE:
-        grace_end = (subscription.current_period_end or now) + timedelta(
-            days=settings.PAST_DUE_GRACE_DAYS
-        )
         if grace_end > now:
             plan = subscription.plan
     elif in_trial:
+        plan = subscription.plan
+    elif subscription.status == Subscription.PENDING_PAYMENT and period_end and period_end > now:
+        # Changing plan after a paid period does not take away the time already paid for.
         plan = subscription.plan
     elif subscription.status == Subscription.TRIALING:
         # The trial ended but the scheduled task has not updated the status yet.

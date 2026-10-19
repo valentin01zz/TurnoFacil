@@ -15,14 +15,26 @@
       {% if access.in_trial %}
         <p class="days-left"><b>{{ access.trial_days_left }}</b> día{{ access.trial_days_left|pluralize }} de prueba</p>
         <p>Tu prueba gratis termina el <strong>{{ access.trial_ends_at|date:"l j \d\e F" }}</strong> a las {{ access.trial_ends_at|time:"H:i" }}. Hasta entonces tenés todo lo del plan Profesional.</p>
+      {% elif access.status == "active" and access.subscription.renews_automatically %}
+        <p>Tu plan <strong>{{ access.subscription.plan.name }}</strong> está activo y se paga solo con Mercado Pago. Próximo cobro: <strong>{{ access.subscription.current_period_end|date:"j \d\e F" }}</strong>.</p>
+        <p style="margin-top: 10px"><a class="link-button" href="{% url 'cancel_subscription' %}">Dar de baja</a></p>
+      {% elif access.status == "active" and access.subscription.canceled_at %}
+        <p>Diste de baja tu suscripción. Seguís con el plan <strong>{{ access.subscription.plan.name }}</strong> hasta el <strong>{{ access.subscription.current_period_end|date:"j \d\e F" }}</strong> y no se te cobra más.</p>
       {% elif access.status == "active" %}
         <p>Tu plan <strong>{{ access.subscription.plan.name }}</strong> está activo{% if access.subscription.current_period_end %} hasta el {{ access.subscription.current_period_end|date:"j \d\e F" }}{% endif %}.</p>
+      {% elif access.status == "past_due" %}
+        <p>Mercado Pago no pudo cobrar tu cuota del plan <strong>{{ access.subscription.plan.name }}</strong>. Revisá tu medio de pago en Mercado Pago: va a volver a intentar el cobro.</p>
+        {% if access.read_only %}<p>Mientras tanto, tu panel queda en modo lectura y tu página no toma reservas nuevas.</p>{% endif %}
       {% elif access.read_only %}
         {% if access.trial_ends_at %}<p>Tu prueba gratis terminó el <strong>{{ access.trial_ends_at|date:"j \d\e F" }}</strong>.</p>{% endif %}
         <p>Tus datos y tus turnos siguen guardados. Mientras no tengas un plan activo, tu panel queda en modo lectura y tu página de reservas no toma turnos nuevos.</p>
       {% endif %}
       {% if access.subscription.selected_plan %}
-        <p class="notice" style="margin-top: 12px">Elegiste el plan <strong>{{ access.subscription.selected_plan.name }}</strong>. Falta activar el pago: te vamos a contactar.</p>
+        {% if pays_online %}
+          <p class="notice" style="margin-top: 12px">Elegiste el plan <strong>{{ access.subscription.selected_plan.name }}</strong>. Si no terminaste el pago en Mercado Pago, <a href="{% url 'checkout' access.subscription.selected_plan.code %}">completalo acá</a>.</p>
+        {% else %}
+          <p class="notice" style="margin-top: 12px">Elegiste el plan <strong>{{ access.subscription.selected_plan.name }}</strong>. Falta activar el pago: te vamos a contactar.</p>
+        {% endif %}
       {% endif %}
       {% if access.over_limit %}
         <p class="notice" style="margin-top: 12px">Tenés {{ access.active_professionals }} profesionales activos y tu plan permite {{ access.max_professionals }}. No borramos nada: desactivá los que sobren para poder agregar o reactivar profesionales.</p>
@@ -45,7 +57,12 @@
         <ul class="plan-features">
           {% for feature in card.features %}<li>{% include "_icon.html" with name="check" size=18 stroke=2.8 %}{{ feature }}</li>{% endfor %}
         </ul>
-        {% if card.is_current %}
+        {% if card.is_current and pays_online and access.subscription.canceled_at %}
+          <form method="post" action="{% url 'choose_plan' card.plan.code %}">
+            {% csrf_token %}
+            <button class="btn btn-block btn-primary" type="submit">Volver a suscribirme</button>
+          </form>
+        {% elif card.is_current %}
           <p class="plan-note">Es tu plan actual.</p>
         {% elif not card.fits %}
           <button class="btn btn-block" type="button" disabled>Elegir {{ card.plan.name }}</button>
@@ -60,6 +77,8 @@
     {% endfor %}
   </div>
 
-  <p class="helptext plans-foot">Precios en pesos argentinos, por mes. Los tres planes incluyen todas las funciones de TurnoFacil; cambia la cantidad de profesionales activos. Todavía no cobramos online: al elegir un plan te contactamos para activar el pago.</p>
+  <p class="helptext plans-foot">Precios en pesos argentinos, por mes. Los tres planes incluyen todas las funciones de TurnoFacil; cambia la cantidad de profesionales activos. {% if pays_online %}Pagás con Mercado Pago y se renueva solo cada mes; podés darte de baja cuando quieras. Si ya pagás y cambiás de plan, el cambio es inmediato y el precio nuevo se cobra desde el próximo mes.{% else %}Todavía no cobramos online: al elegir un plan te contactamos para activar el pago.{% endif %}</p>
+
+  {% if transfer %}<div class="narrow" style="margin: 0 auto">{% include "billing/_transfer.html" %}</div>{% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Dar de baja · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">¿Dar de baja tu suscripción?</h1>
+  <div class="card">
+    <p style="margin: 0 0 12px">Mercado Pago deja de cobrarte. Seguís con tu plan <strong>{{ access.subscription.plan.name }}</strong>{% if access.subscription.current_period_end %} hasta el <strong>{{ access.subscription.current_period_end|date:"j \d\e F" }}</strong>, el final del mes que ya pagaste{% endif %}.</p>
+    <p style="margin: 0">Después tu panel queda en modo lectura y tu página no toma reservas nuevas. No borramos nada: podés volver a elegir un plan cuando quieras.</p>
+    <form method="post" class="actions" style="margin-top: 18px">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Sí, dar de baja</button>
+      <a class="link-button" href="{% url 'plans' %}">No, volver</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

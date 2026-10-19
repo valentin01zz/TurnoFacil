@@ -1,0 +1,10 @@
+<section class="card" style="margin-top: 18px" aria-labelledby="t-transferencia">
+  <h2 id="t-transferencia" style="margin-top: 0">¿Preferís pagar por transferencia?</h2>
+  <p style="margin: 0 0 10px">Transferí el valor del mes a:</p>
+  <ul class="plan-features" style="margin: 0 0 12px">
+    <li>Alias: <strong>{{ transfer.alias }}</strong></li>
+    {% if transfer.holder %}<li>Titular: <strong>{{ transfer.holder }}</strong></li>{% endif %}
+    {% if transfer.cuit %}<li>CUIT: <strong>{{ transfer.cuit }}</strong></li>{% endif %}
+  </ul>
+  <p class="helptext" style="margin: 0">{% if transfer.contact %}Mandá el comprobante a <a href="mailto:{{ transfer.contact }}">{{ transfer.contact }}</a>, con el nombre de tu negocio y el plan.{% else %}Avisanos con el comprobante, el nombre de tu negocio y el plan.{% endif %} Activamos tu mes apenas lo recibimos. La transferencia no se renueva sola: se paga mes a mes.</p>
+</section>

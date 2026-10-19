@@ -1,8 +1,8 @@
-"""Payment provider interface. No provider is connected yet (see ADR-0004).
+"""Payment provider interface (ADR-0004, ADR-0005).
 
-A real provider (for example Mercado Pago subscriptions) will implement `PaymentProvider`,
-keep card data on its side, and call `confirm_payment` only from a verified notification.
-TurnoFacil never stores card or payment-method data.
+A provider keeps card data on its side and only activates a subscription after it verifies, with the
+provider itself, that the payment or authorization is real. TurnoFacil never stores card or
+payment-method data. `ManualProvider` is the default when no provider is configured.
 """
 
 from dataclasses import dataclass
@@ -19,8 +19,14 @@ class CheckoutResult:
     message: str
 
 
+class PaymentError(Exception):
+    """The provider could not complete a request. Nothing was changed on our side."""
+
+
 class PaymentProvider:
     name = ""
+    # Whether the checkout page asks for the payer's account email at the provider.
+    collects_payer_email = False
 
     def start_checkout(self, subscription, plan):
         """Begin paying for `plan`. Must not mark anything as paid."""
@@ -29,6 +35,22 @@ class PaymentProvider:
     def verify_confirmation(self, payload):
         """Verify a provider notification; return (provider_subscription_id, period_end)."""
         raise NotImplementedError
+
+    def change_plan(self, subscription, plan):
+        """Charge `plan`'s price from the next payment of a renewing subscription."""
+        raise NotImplementedError
+
+    def cancel(self, subscription):
+        """Stop the recurring charge at the provider."""
+        raise NotImplementedError
+
+    def sync(self, subscription):
+        """Bring the subscription up to date with the provider (missed notifications)."""
+        return subscription
+
+    def reconcile(self, now=None):
+        """Periodic catch-up with the provider; returns how many subscriptions it checked."""
+        return 0
 
 
 class ManualProvider(PaymentProvider):
@@ -51,6 +73,15 @@ class ManualProvider(PaymentProvider):
 
 def get_provider():
     return import_string(settings.PAYMENT_PROVIDER)()
+
+
+def reconcile_subscriptions(now=None):
+    """Scheduled upkeep: close ended cancellations, flag unconfirmed charges, sync the provider."""
+    return {
+        "closed": services.finish_due_cancellations(now),
+        "past_due": services.flag_unconfirmed_renewals(now),
+        "synced": get_provider().reconcile(now),
+    }
 
 
 def confirm_payment(provider, payload):
