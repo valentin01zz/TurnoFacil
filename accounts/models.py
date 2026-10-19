@@ -37,3 +37,17 @@ class User(AbstractBaseUser):
     @property
     def is_email_verified(self):
         return self.email_verified_at is not None
+
+
+class Attempt(models.Model):
+    """One counted action (failed login, reset request, signup, booking), for rate limits."""
+
+    scope = models.CharField(max_length=20)
+    key = models.CharField(max_length=254)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["scope", "key", "created_at"], name="attempt_lookup"),
+            models.Index(fields=["created_at"], name="attempt_cleanup"),
+        ]

@@ -1,13 +1,22 @@
+import logging
+
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.db import transaction
 
 from businesses.models import Business
 
+from . import throttle
 from .identity import canonical_email
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+LOGIN_LOCKED_MESSAGE = (
+    "Hubo demasiados intentos fallidos. Por seguridad, esperá 15 minutos y probá de nuevo, "
+    "o recuperá tu contraseña."
+)
 
 
 class SignupForm(forms.Form):
@@ -45,3 +54,31 @@ class SignupForm(forms.Form):
 class LoginForm(AuthenticationForm):
     def clean_username(self):
         return self.cleaned_data["username"].lower()
+
+    def clean(self):
+        account = canonical_email(self.data.get("username", ""))
+        ip = throttle.client_ip(self.request) if self.request else ""
+        # Checked before the password, so a locked account answers the same either way.
+        if throttle.is_limited("login", account) or throttle.is_limited("login_ip", ip):
+            raise forms.ValidationError(LOGIN_LOCKED_MESSAGE, code="throttled")
+        try:
+            cleaned = super().clean()
+        except forms.ValidationError:
+            throttle.record("login", account)
+            throttle.record("login_ip", ip)
+            raise
+        throttle.clear("login", account)
+        return cleaned
+
+
+class ThrottledPasswordResetForm(PasswordResetForm):
+    """Same answer for everyone, but at most a few reset emails per account and per IP."""
+
+    def save(self, *args, request=None, **kwargs):
+        account = canonical_email(self.cleaned_data["email"])
+        ip = throttle.client_ip(request) if request else ""
+        if throttle.is_limited("reset", account) or throttle.is_limited("reset_ip", ip):
+            return
+        throttle.record("reset", account)
+        throttle.record("reset_ip", ip)
+        return super().save(*args, request=request, **kwargs)

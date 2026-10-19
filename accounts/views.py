@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from . import throttle
 from .forms import SignupForm
 from .verification import can_resend, read_token, send_verification, verify
 
@@ -20,11 +21,18 @@ def signup(request):
     if request.user.is_authenticated:
         return redirect("panel")
     form = SignupForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        user = form.save()
-        login(request, user)
-        send_verification(request, user)
-        return redirect("verify_email_pending")
+    if request.method == "POST":
+        ip = throttle.client_ip(request)
+        if throttle.is_limited("signup_ip", ip):
+            form.is_valid()
+            form.add_error(None, "Se crearon muchas cuentas desde tu conexión. Probá en una hora.")
+            return render(request, "accounts/signup.html", {"form": form}, status=429)
+        if form.is_valid():
+            user = form.save()
+            throttle.record("signup_ip", ip)
+            login(request, user)
+            send_verification(request, user)
+            return redirect("verify_email_pending")
     return render(request, "accounts/signup.html", {"form": form})
 
 

@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from accounts.throttle import client_ip, is_limited, record
 from billing.access import get_access
 from billing.catalog import BOOKING_ONLINE
 from businesses.models import Business
@@ -20,6 +21,10 @@ from .forms import BookingForm, RescheduleQueryForm, SlotForm, SlotQueryForm
 from .models import Appointment
 
 TAKEN_MESSAGE = "Ese horario se acaba de ocupar. Elegí otro."
+TOO_MANY_BOOKINGS_MESSAGE = (
+    "Se hicieron muchas reservas desde tu conexión en la última hora. "
+    "Probá más tarde o comunicate con el negocio."
+)
 SERVICE_ICONS = ["leaf", "sparkle", "hands", "drop", "scissors", "heart"]
 PROFESSIONAL_TINTS = ["#FFB59E", "#B9A8FF", "#8EE3D8", "#FFD98A", "#FF9EC4", "#A8D8FF"]
 CONFETTI_COLORS = ["#2EC4B6", "#6E4BFF", "#FFC53D", "#FF8FB1", "#1C1530", "#8EE3D8"]
@@ -44,9 +49,15 @@ def book(request, slug):
     professional = selection.cleaned_data["professional"]
     slots = available_slots(professional, service, selection.cleaned_data["date"])
     booking = BookingForm(request.POST, slots=slots)
+    ip = client_ip(request)
+    if is_limited("booking_ip", ip):
+        booking.is_valid()
+        booking.add_error(None, TOO_MANY_BOOKINGS_MESSAGE)
+        return render_booking_page(request, business, selection, booking=booking, status=429)
     if booking.is_valid():
         appointment = create_appointment(business, professional, service, booking.cleaned_data)
         if appointment:
+            record("booking_ip", ip)
             manage_path = reverse("appointment_detail", args=[appointment.manage_token])
             send_confirmation(appointment, request.build_absolute_uri(manage_path))
             return redirect(f"{manage_path}?nuevo=1")

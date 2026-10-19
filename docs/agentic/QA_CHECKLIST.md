@@ -98,3 +98,20 @@ Resultado final: **aprobado con riesgos conocidos** (R1 a R7), cero problemas cr
 - Configurar `ALLOWED_HOSTS`, `SITE_URL`, `SECRET_KEY` propio y `DEBUG=false` en el entorno de producción.
 - Programar `manage.py send_reminders` cada 15 minutos.
 - Configurar `LOGGING` (R3) y el servido de archivos estáticos.
+
+### R1 resuelto (2026-10-19)
+Límites guardados en la base (`accounts/throttle.py`, tabla `Attempt`), compartidos por todos los procesos y sin
+dependencias nuevas:
+
+| Acción | Límite | Respuesta al superarlo |
+|---|---|---|
+| Ingreso fallido | 10 por cuenta (email canónico) y 30 por IP en 15 minutos | Mensaje de bloqueo; ni la contraseña correcta entra hasta que pase la ventana |
+| Recuperar contraseña | 3 por cuenta y 10 por IP por hora | La misma pantalla de "te enviamos un email", sin enviarlo (no revela nada) |
+| Registro | 5 cuentas por IP por hora | 429 con mensaje |
+| Reserva online | 20 por IP por hora | 429 con mensaje; las reservas rechazadas no cuentan |
+
+Un ingreso correcto borra los fallos de esa cuenta. Límites conocidos: la IP sale de `X-Forwarded-For` y se puede
+falsear, por eso el límite principal del ingreso es por cuenta; quien conozca un email puede bloquear esa cuenta
+15 minutos (aceptado: el dueño puede recuperar la contraseña o esperar). 15 tests en
+`accounts/tests/test_throttle.py`.
+

@@ -120,8 +120,8 @@ Hasta hacer esto, la app sigue con el proveedor manual: se elige el plan y el pa
 - Costo esperado: unos USD 15 por mes (servicio web, base y tarea), más el dominio. Emails: USD 0 hasta 100 por día.
 - HSTS arranca en 1 hora (`SECURE_HSTS_SECONDS=3600`). Cuando el dominio funcione estable por HTTPS durante unas
   semanas, subirlo a un año. No activar `includeSubDomains` ni `preload` sin revisarlo: son difíciles de revertir.
-- Antes de abrir el registro a otros negocios: resolver R1 del QA gate (límite de intentos) y revisar el tope de
-  100 emails por día de Resend.
+- Antes de abrir el registro a otros negocios: R1 (límite de intentos) está resuelto desde el 2026-10-19; falta
+  revisar el tope de 100 emails por día de Resend (plan pago cuando el volumen lo pida).
 
 ## Después
 - [ ] Documentación de uso entregada a la estética piloto.
