@@ -3,7 +3,9 @@ import hmac
 import json
 from datetime import timedelta
 from datetime import timezone as dt_timezone
-from io import StringIO
+from io import BytesIO, StringIO
+from unittest import mock
+from urllib.error import HTTPError
 
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
@@ -12,13 +14,14 @@ from django.utils import timezone
 
 from billing.access import get_access
 from billing.mercadopago import (
+    MercadoPagoClient,
     MercadoPagoProvider,
     apply_payment,
     external_reference,
     valid_signature,
 )
 from billing.models import Plan, Subscription
-from billing.payments import PaymentError, reconcile_subscriptions
+from billing.payments import PaymentError, PaymentNotFound, reconcile_subscriptions
 from billing.services import add_months, choose_plan, set_provider_reference
 from bookings.tests.helpers import create_business, create_professional
 
@@ -61,7 +64,7 @@ class FakeClient:
     def get_preapproval(self, preapproval_id):
         self._call("get", preapproval_id)
         if preapproval_id not in self.preapprovals:
-            raise PaymentError("404")
+            raise PaymentNotFound("404")
         return dict(self.preapprovals[preapproval_id])
 
     def update_preapproval(self, preapproval_id, body):
@@ -72,7 +75,7 @@ class FakeClient:
     def get_authorized_payment(self, payment_id):
         self._call("get_payment", payment_id)
         if payment_id not in self.payments:
-            raise PaymentError("404")
+            raise PaymentNotFound("404")
         return dict(self.payments[payment_id])
 
 
@@ -344,6 +347,11 @@ class WebhookTests(MercadoPagoTestCase):
             response = self.notify("subscription_preapproval", "pre_1")
 
         self.assertEqual(response.status_code, 502)
+
+    def test_simulated_notifications_for_missing_resources_are_acknowledged(self):
+        self.assertEqual(self.notify("subscription_preapproval", "123456").status_code, 200)
+        self.assertEqual(self.notify("subscription_authorized_payment", "999").status_code, 200)
+        self.assertEqual(self.refresh().status, Subscription.TRIALING)
 
     def test_other_topics_are_acknowledged(self):
         self.assertEqual(self.notify("payment", "123").status_code, 200)
@@ -641,3 +649,27 @@ class TransferTests(TestCase):
         self.assertNotContains(
             self.client.get(reverse("plans")), "Preferís pagar por transferencia"
         )
+
+
+class ClientTests(TestCase):
+    def http_error(self, code):
+        return HTTPError("https://api.example/x", code, "error", {}, BytesIO(b'{"message":"x"}'))
+
+    def test_not_found_is_told_apart_from_other_errors(self):
+        client = MercadoPagoClient(access_token="token", base_url="https://api.example")
+
+        with mock.patch("billing.mercadopago.urlrequest.urlopen", side_effect=self.http_error(404)):
+            with self.assertRaises(PaymentNotFound):
+                client.get_preapproval("x")
+        with mock.patch("billing.mercadopago.urlrequest.urlopen", side_effect=self.http_error(500)):
+            with self.assertRaises(PaymentError) as caught:
+                client.get_preapproval("x")
+        self.assertNotIsInstance(caught.exception, PaymentNotFound)
+
+    def test_without_a_token_nothing_is_sent(self):
+        with mock.patch("billing.mercadopago.urlrequest.urlopen") as urlopen:
+            with self.assertRaises(PaymentError):
+                MercadoPagoClient(access_token="", base_url="https://api.example").get_preapproval(
+                    "x"
+                )
+        urlopen.assert_not_called()

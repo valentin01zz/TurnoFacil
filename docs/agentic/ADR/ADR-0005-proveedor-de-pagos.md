@@ -1,6 +1,8 @@
 # ADR-0005: Proveedor de pagos para las suscripciones
 
-- Estado: aceptado (Founder, 2026-10-18: Mercado Pago Suscripciones a 35 días + transferencia manual)
+- Estado: aceptado (Founder, 2026-10-18: Mercado Pago Suscripciones a 35 días + transferencia manual).
+  Modificado por el Founder el 2026-10-19: acreditación a **10 días** (4,32% + IVA según su cuenta, el 2026-10-19) en lugar de 35, para
+  recibir el dinero antes. Es una configuración de la cuenta de Mercado Pago; el código no cambia.
 - Fecha: 2026-10-18
 - Decide: Founder
 
@@ -40,8 +42,10 @@ Brutos)**, más la **transferencia bancaria como alternativa manual sin comisió
 - Implementar `MercadoPagoProvider` sobre la interfaz existente (`billing/payments.py`): crear la suscripción y
   redirigir a su checkout, webhook verificado e idempotente, y el mapeo de eventos a estados (detalle en
   `PLANES_MIGRACION_Y_PAGOS.md`).
-- El Founder necesita una cuenta de Mercado Pago como vendedor, configurar la acreditación a 35 días y cargar las
-  credenciales en Render. Las credenciales nunca entran al repo.
+- El Founder necesita una cuenta de Mercado Pago como vendedor, configurar el plazo de acreditación (10 días
+  desde el 2026-10-19) y cargar las credenciales en Render. Las credenciales nunca entran al repo.
+- Con 10 días, un plan de ARS 24.900 deja alrededor de ARS 1.300 por mes de comisión, contra unos ARS 450 a
+  35 días.
 - Facturación: Mercado Pago no emite la factura fiscal del Founder; hay que resolverla aparte.
 
 ## Implementación (2026-10-19)

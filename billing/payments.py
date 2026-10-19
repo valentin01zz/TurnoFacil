@@ -23,6 +23,10 @@ class PaymentError(Exception):
     """The provider could not complete a request. Nothing was changed on our side."""
 
 
+class PaymentNotFound(PaymentError):
+    """The provider says the resource does not exist (for our credentials)."""
+
+
 class PaymentProvider:
     name = ""
     # Whether the checkout page asks for the payer's account email at the provider.

@@ -25,7 +25,7 @@ from django.utils.dateparse import parse_datetime
 
 from . import services
 from .models import Subscription
-from .payments import CheckoutResult, PaymentError, PaymentProvider
+from .payments import CheckoutResult, PaymentError, PaymentNotFound, PaymentProvider
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,8 @@ class MercadoPagoClient:
                 return json.loads(response.read() or b"{}")
         except urlerror.HTTPError as exc:
             detail = exc.read()[:300].decode(errors="replace")
-            raise PaymentError(f"Mercado Pago respondió {exc.code}: {detail}") from exc
+            error_class = PaymentNotFound if exc.code == 404 else PaymentError
+            raise error_class(f"Mercado Pago respondió {exc.code}: {detail}") from exc
         except (urlerror.URLError, TimeoutError, ValueError) as exc:
             raise PaymentError(f"No pudimos comunicarnos con Mercado Pago: {exc}") from exc
 
@@ -259,14 +260,18 @@ class MercadoPagoProvider(PaymentProvider):
         """Read the notified resource from the API and apply it. Unknown resources are ignored."""
         if not resource_id:
             return None
-        if topic in PREAPPROVAL_TOPICS:
-            data = self.client.get_preapproval(resource_id)
-            subscription = find_subscription(data.get("id"))
-            return apply_preapproval(subscription, data) if subscription else None
-        if topic in PAYMENT_TOPICS:
-            data = self.client.get_authorized_payment(resource_id)
-            subscription = find_subscription(data.get("preapproval_id"))
-            return apply_payment(subscription, data) if subscription else None
+        try:
+            if topic in PREAPPROVAL_TOPICS:
+                data = self.client.get_preapproval(resource_id)
+                subscription = find_subscription(data.get("id"))
+                return apply_preapproval(subscription, data) if subscription else None
+            if topic in PAYMENT_TOPICS:
+                data = self.client.get_authorized_payment(resource_id)
+                subscription = find_subscription(data.get("preapproval_id"))
+                return apply_payment(subscription, data) if subscription else None
+        except PaymentNotFound:
+            # Not ours (or a simulated notification): acknowledge it so it is not retried.
+            logger.info("Ignored Mercado Pago %s %s: not found", topic, resource_id)
         return None
 
     def reconcile(self, now=None):

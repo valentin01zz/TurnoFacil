@@ -90,6 +90,19 @@ Hasta hacer esto, la app sigue con el proveedor manual: se elige el plan y el pa
    - [ ] Cambiar de plan y dar de baja desde Planes; verificar el monto y el estado en Mercado Pago.
 6. Con todo verificado, cambiar `MERCADOPAGO_ACCESS_TOKEN` por el de producción (y la clave secreta si es otra).
 
+### Lo aprendido en la prueba del 2026-10-19
+- Las pruebas de suscripciones funcionan con las **credenciales de producción de una app creada dentro del
+  vendedor de prueba** (entrar a Mercado Pago con ese usuario, en incógnito). Su webhook se configura en esa app.
+- El email del comprador de prueba **no** sale del User ID: se ve en su perfil de Mercado Pago
+  (`test_user_<número>@testuser.com`). Con otro email, Mercado Pago responde `400 User bad request`.
+- Para pagar, entrar al checkout con el comprador de prueba y usar la Mastercard de prueba con titular `APRO`.
+- Para probar un cobro en el momento, la prueba gratis del negocio tiene que estar vencida.
+- Antes de pasar a producción, dar de baja las suscripciones de prueba: quedan en el vendedor de prueba.
+- Verificación final con la app real: en Developers, **Webhooks > Simular notificación**; tiene que responder
+  200 (un 401 indica que `MERCADOPAGO_WEBHOOK_SECRET` no es la clave de esa app).
+- Paso a producción el 2026-10-19: credenciales de **TurnoFacil-Online** en los dos servicios, acreditación a
+  10 días (ADR-0005).
+
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy
   (unos minutos). La tarea de recordatorios se revierte igual, desde su propio servicio.
