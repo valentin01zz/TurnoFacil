@@ -92,3 +92,5 @@ sin cobros reales todavía. Decisiones:
 - Cobros: solo una interfaz preparada para un proveedor de pagos compatible con Argentina. Ninguna suscripción
   queda activa sin confirmación confiable de pago. TurnoFacil no guarda datos de tarjetas ni de medios de pago.
 Historias HU-21 a HU-27. Diseño técnico en `ADR/ADR-0004-planes-y-suscripciones.md`.
+Ampliación (2026-10-18): la prueba empieza cuando el dueño confirma su email, y un mismo buzón no puede abrir
+más de una cuenta (HU-28). Proveedor de pagos propuesto en `ADR/ADR-0005-proveedor-de-pagos.md`.

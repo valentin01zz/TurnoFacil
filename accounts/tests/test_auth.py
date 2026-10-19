@@ -12,7 +12,7 @@ PASSWORD = "correct-horse-battery"
 class AuthTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user("owner@example.com", PASSWORD)
+        cls.user = User.objects.create_user("owner@example.com", PASSWORD, verified=True)
         Business.objects.create(owner=cls.user, name="Estética Luna")
 
     def test_login_with_valid_credentials_opens_panel(self):

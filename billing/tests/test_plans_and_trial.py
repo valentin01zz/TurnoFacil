@@ -60,8 +60,11 @@ class CatalogTests(TestCase):
 
 
 class TrialTests(TestCase):
-    def test_signup_starts_a_14_day_trial_on_the_professional_plan(self):
-        before = timezone.now()
+    def test_trial_starts_on_email_confirmation_and_lasts_14_days(self):
+        import re
+
+        from django.core import mail
+
         self.client.post(
             reverse("signup"),
             {
@@ -70,6 +73,13 @@ class TrialTests(TestCase):
                 "password": "correct-horse-battery",
             },
         )
+
+        self.assertFalse(
+            Subscription.objects.filter(business__owner__email="a@example.com").exists()
+        )
+        link = re.search(r"https?://\S+", mail.outbox[0].body).group(0)
+        before = timezone.now()
+        self.client.get(link)
 
         subscription = Subscription.objects.get(business__owner__email="a@example.com")
         self.assertEqual(subscription.status, Subscription.TRIALING)

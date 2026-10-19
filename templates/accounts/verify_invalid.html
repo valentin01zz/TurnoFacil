@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Link no válido · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="auth">
+    <div class="card">
+      <h1>Link vencido o inválido</h1>
+      <p class="sub">Este link de confirmación no es válido o ya venció. Ingresá a tu cuenta y pedí uno nuevo.</p>
+      <a class="btn btn-primary btn-block" href="{% url 'verify_email_pending' %}">Pedir un link nuevo</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% autoescape off %}Hola,
+
+Gracias por registrarte en TurnoFacil. Para activar tu negocio y empezar tu prueba gratis, confirmá tu email con este link:
+
+{{ link }}
+
+El link vence en {{ days }} días. Si no creaste esta cuenta, ignorá este email.
+
+El equipo de TurnoFacil
+{% endautoescape %}

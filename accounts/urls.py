@@ -7,6 +7,9 @@ from .forms import LoginForm
 urlpatterns = [
     path("", views.home, name="home"),
     path("signup/", views.signup, name="signup"),
+    path("verificar-email/", views.verify_email_pending, name="verify_email_pending"),
+    path("verificar-email/reenviar/", views.resend_verification, name="resend_verification"),
+    path("verificar-email/<str:token>/", views.verify_email, name="verify_email"),
     path(
         "login/",
         auth_views.LoginView.as_view(

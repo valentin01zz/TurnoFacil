@@ -116,3 +116,8 @@
 **Como** Founder, **quiero** la lógica de planes separada del cobro, con una interfaz lista para conectar un proveedor, **para** sumar cobros recurrentes después sin rehacer nada.
 - Prioridad: MVP comercial
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-27)
+
+## HU-28: Verificación de email (aprobado 2026-10-18)
+**Como** Founder, **quiero** que cada dueño confirme su email antes de empezar la prueba, **para** reducir las pruebas repetidas con cuentas falsas o alias.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-28)

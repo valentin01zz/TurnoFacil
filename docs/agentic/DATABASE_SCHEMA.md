@@ -97,3 +97,10 @@ Los tramos de un mismo profesional y día no pueden solaparse (validación en la
 | Subscription | business (único), plan, selected_plan, status, trial_started_at, trial_ends_at, current_period_end, canceled_at, provider, provider_subscription_id | una por negocio; fin de prueba posterior al inicio; referencia del proveedor única; sin datos de tarjetas |
 | SubscriptionEvent | subscription, from_status, to_status, reason, created_at | registro de cada cambio de estado |
 | TrialNotice | subscription, kind, sent_at | único por suscripción y tipo (avisos sin duplicados) |
+
+### Ampliación de `User` (HU-28)
+| Campo | Tipo | Reglas |
+|---|---|---|
+| email_canonical | texto | único; minúsculas, sin "+etiqueta" y sin puntos en Gmail |
+| email_verified_at | fecha y hora, opcional | vacío hasta confirmar el email |
+| verification_sent_at | fecha y hora, opcional | último envío del link (limita reenvíos) |

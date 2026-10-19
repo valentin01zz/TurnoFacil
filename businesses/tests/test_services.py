@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 def create_business(email, name):
-    user = User.objects.create_user(email, "correct-horse-battery")
+    user = User.objects.create_user(email, "correct-horse-battery", verified=True)
     return Business.objects.create(owner=user, name=name)
 
 

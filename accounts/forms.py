@@ -5,6 +5,8 @@ from django.db import transaction
 
 from businesses.models import Business
 
+from .identity import canonical_email
+
 User = get_user_model()
 
 
@@ -22,7 +24,8 @@ class SignupForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
-        if User.objects.filter(email=email).exists():
+        # Aliases of the same mailbox (dots in Gmail, "+tags") count as the same account.
+        if User.objects.filter(email_canonical=canonical_email(email)).exists():
             raise forms.ValidationError("Ya existe una cuenta con ese email.")
         return email
 
@@ -33,6 +36,7 @@ class SignupForm(forms.Form):
 
     @transaction.atomic
     def save(self):
+        # The account starts unverified; the trial starts when the owner confirms the email.
         user = User.objects.create_user(self.cleaned_data["email"], self.cleaned_data["password"])
         Business.objects.create(owner=user, name=self.cleaned_data["business_name"])
         return user

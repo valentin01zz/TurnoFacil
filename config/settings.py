@@ -35,6 +35,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.EmailVerificationRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -102,6 +103,9 @@ CUSTOMER_CHANGE_LIMIT_HOURS = 2
 # Plans and subscriptions (see docs/agentic/ADR/ADR-0004-planes-y-suscripciones.md).
 TRIAL_DAYS = int(os.environ.get("TRIAL_DAYS", "14"))
 PAST_DUE_GRACE_DAYS = 3
+# Email verification: the trial starts when the owner confirms the address.
+EMAIL_VERIFICATION_DAYS = 3
+EMAIL_VERIFICATION_RESEND_SECONDS = 60
 PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "billing.payments.ManualProvider")
 
 # Base URL for links in emails sent outside a request (reminders).

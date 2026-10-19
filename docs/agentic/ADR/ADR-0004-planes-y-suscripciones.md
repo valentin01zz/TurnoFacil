@@ -72,6 +72,13 @@ defecto no cobra: deja la suscripción en `pending_payment` y muestra el siguien
 compatible con Argentina (por ejemplo, suscripciones de Mercado Pago) será un ADR aparte. TurnoFacil no guarda
 datos de tarjetas: el cobro y los datos de pago quedan en el proveedor.
 
+### Ampliación (2026-10-18): verificación de email
+La prueba empieza cuando el dueño confirma su email (link firmado que vence a los 3 días), no al registrarse:
+es el momento en que el negocio queda activo. Hasta entonces el panel muestra solo la pantalla de
+confirmación y la página pública no toma reservas. Cada cuenta guarda además su email canónico (minúsculas,
+sin "+etiqueta" y sin puntos en Gmail), que es único: un mismo buzón no puede abrir otra cuenta ni otra prueba.
+Las cuentas existentes quedan verificadas por la migración `accounts.0002_email_verification`.
+
 ## Opciones descartadas
 - Catálogo en el código: cambiar un precio exige un deploy. Se prefirió la base con un comando de edición.
 - Habilitar el panel de administración de Django para editar planes: suma superficie de ataque para un uso
@@ -80,8 +87,8 @@ datos de tarjetas: el cobro y los datos de pago quedan en el proveedor.
 
 ## Consecuencias
 - Cada negocio nuevo empieza en prueba; los existentes reciben una prueba de 14 días desde la migración.
-- Sin verificación de email, alguien puede abrir otra cuenta con otro email para otra prueba. Se propone una
-  historia futura de verificación de email.
+- La verificación de email y el email canónico frenan alias y emails inventados, pero una persona con varios
+  buzones reales todavía puede abrir varias cuentas. Frenarlo del todo exigiría verificar teléfono o CUIT.
 - Hasta conectar un proveedor, ningún negocio pasa a `active` salvo concesión manual.
 
 ## ¿Es reversible?

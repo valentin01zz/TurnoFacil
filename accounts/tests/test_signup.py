@@ -14,14 +14,15 @@ VALID_DATA = {
 
 
 class SignupTests(TestCase):
-    def test_valid_signup_creates_business_and_opens_panel(self):
+    def test_valid_signup_creates_business_and_asks_to_confirm_the_email(self):
         response = self.client.post(reverse("signup"), VALID_DATA, follow=True)
 
-        self.assertRedirects(response, reverse("panel"))
+        self.assertRedirects(response, reverse("verify_email_pending"))
         user = User.objects.get(email="owner@example.com")
         self.assertEqual(user.business.name, "Estética Luna")
         self.assertEqual(user.business.slug, "estetica-luna")
         self.assertEqual(response.context["user"], user)
+        self.assertFalse(user.is_email_verified)
 
     def test_password_is_stored_hashed(self):
         self.client.post(reverse("signup"), VALID_DATA)
@@ -65,7 +66,7 @@ class SignupTests(TestCase):
 
         response = self.client.get(reverse("signup"))
 
-        self.assertRedirects(response, reverse("panel"))
+        self.assertRedirects(response, reverse("panel"), fetch_redirect_response=False)
 
     def test_line_breaks_in_business_name_are_collapsed(self):
         data = {**VALID_DATA, "business_name": "Estética\r\nLuna \t Centro"}

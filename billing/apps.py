@@ -12,8 +12,9 @@ class BillingConfig(AppConfig):
         from .services import start_trial
 
         def start_trial_for_new_business(sender, instance, created, raw=False, **kwargs):
-            # Every business starts its single trial the moment it exists, however it was created.
-            if created and not raw:
+            # A business owned by a verified account starts its single trial when it is created.
+            # Owners who still have to confirm their email start it on verification instead.
+            if created and not raw and instance.owner.is_email_verified:
                 start_trial(instance)
 
         post_save.connect(

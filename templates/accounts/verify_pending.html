@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Confirmá tu email · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="auth">
+    <div class="card">
+      <span class="icon-box" style="margin-bottom: 16px">{% include "_icon.html" with name="mail" size=26 %}</span>
+      <h1>Confirmá tu email</h1>
+      <p class="sub">Te mandamos un link a <strong>{{ user.email }}</strong>. Tocalo para activar tu negocio: ahí empieza tu prueba gratis.</p>
+      <p class="helptext">Si no lo ves, revisá la carpeta de spam o promociones. El link vence en unos días.</p>
+      <form method="post" action="{% url 'resend_verification' %}" style="margin-top: 18px">
+        {% csrf_token %}
+        <button class="btn btn-quiet btn-block" type="submit">Reenviar el link</button>
+      </form>
+    </div>
+    <form method="post" action="{% url 'logout' %}" class="alt">
+      {% csrf_token %}
+      <button class="link-button" type="submit">¿Te equivocaste de email? Salir</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

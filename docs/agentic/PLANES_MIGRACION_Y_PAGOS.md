@@ -32,8 +32,9 @@
 - Una sola prueba por negocio, que empieza al crearlo. No hay forma, desde la app, de reiniciarla ni extenderla.
 - Un negocio con la prueba vencida o la suscripción cancelada puede volver a elegir un plan; no recibe otra prueba.
 - Regalar días o una prueba nueva es una decisión comercial manual (operador), no una función de la app.
-- Limitación conocida: sin verificación de email, una persona puede crear otra cuenta con otro email y obtener
-  otra prueba. Se propone una historia futura de verificación de email.
+- Desde HU-28 la prueba empieza al confirmar el email y un mismo buzón (incluidos sus alias) no puede abrir otra
+  cuenta. Limitación que queda: alguien con varios buzones reales puede abrir varias cuentas; frenarlo del todo
+  exigiría verificar teléfono o CUIT.
 
 ## 2. Preparación para pagos (Fase 8)
 
@@ -54,8 +55,8 @@
   No hay campos para números de tarjeta, CVV, credenciales ni otros datos de medios de pago.
 
 ### Componentes necesarios para cobrar de verdad (fase posterior, con su propio ADR)
-1. **Elección del proveedor** compatible con Argentina y con cobro recurrente (por ejemplo, suscripciones de
-   Mercado Pago). Usar su checkout oficial y sus tokens: los datos de la tarjeta nunca pasan por TurnoFacil.
+1. **Elección del proveedor** compatible con Argentina y con cobro recurrente. Propuesta: suscripciones de
+   Mercado Pago con acreditación a 35 días (`ADR/ADR-0005-proveedor-de-pagos.md`). Usar su checkout oficial y sus tokens: los datos de la tarjeta nunca pasan por TurnoFacil.
 2. **Implementación de `PaymentProvider`** para ese proveedor: crear la suscripción o preferencia de pago y
    devolver la URL de su checkout.
 3. **Endpoint de notificaciones (webhook)** público, con verificación de firma o consulta al proveedor antes de

@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 def create_business(email="a@example.com", name="Estética Luna"):
-    user = User.objects.create_user(email, "correct-horse-battery")
+    user = User.objects.create_user(email, "correct-horse-battery", verified=True)
     return Business.objects.create(owner=user, name=name)
 
 

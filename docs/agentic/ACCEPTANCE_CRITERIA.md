@@ -132,3 +132,11 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] La elección de plan pasa por una interfaz de proveedor de pagos; sin proveedor configurado, queda como pago pendiente y se informa el siguiente paso.
 - [ ] Solo una confirmación del proveedor puede activar una suscripción.
 - [ ] TurnoFacil no guarda datos de tarjetas ni de medios de pago.
+
+## HU-28: Verificación de email
+- [ ] Al registrarse, el dueño recibe un email con un link firmado que vence a los 3 días; la cuenta queda sin verificar.
+- [ ] Hasta confirmar, el panel solo muestra la pantalla de confirmación (con reenvío limitado a uno por minuto) y la página pública no toma reservas.
+- [ ] Al confirmar empieza la prueba de 14 días; confirmar de nuevo no la reinicia.
+- [ ] Un link alterado, falsificado o vencido se rechaza sin verificar la cuenta.
+- [ ] No se puede abrir otra cuenta con un alias del mismo buzón (mayúsculas, "+etiqueta", puntos en Gmail).
+- [ ] Las cuentas que ya existían quedan verificadas por la migración.
