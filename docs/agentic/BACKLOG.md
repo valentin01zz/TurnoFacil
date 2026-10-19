@@ -26,6 +26,17 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | 13 | HU-18 Tira de días del mes | HU-04 |
 | 14 | HU-19 Gráfico semanal en la agenda | HU-09 |
 
+## Planes y suscripciones (aprobado 2026-10-18)
+| Orden | Historia | Depende de |
+|---|---|---|
+| 15 | HU-21 Catálogo de planes | ADR-0004 |
+| 16 | HU-22 Prueba gratuita | HU-21 |
+| 17 | HU-23 Estados de suscripción y acceso | HU-22 |
+| 18 | HU-24 Límite de profesionales | HU-23 |
+| 19 | HU-25 Pantalla de planes | HU-23 |
+| 20 | HU-26 Avisos de vencimiento | HU-22 |
+| 21 | HU-27 Interfaz de pagos | HU-25 |
+
 ## Futuro
 - HU-11 Recordatorio automático por WhatsApp
 - HU-12 Pago o seña al reservar

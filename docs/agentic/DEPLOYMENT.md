@@ -47,6 +47,9 @@
 - [ ] En **Logs** de la tarea `turnofacil-reminders`: corridas cada 15 minutos con `Reminders sent: N`.
 - [ ] Logs del servicio web sin errores.
 - [ ] Borrar los datos de prueba y crear la cuenta real de la estética piloto.
+- [ ] Darle a la estética piloto el plan sin costo: en el servicio web, **Shell**, correr
+      `python manage.py grant_plan <slug-de-la-estetica> piloto` (ADR-0004).
+- [ ] En **Logs** de la tarea: también aparece `Trial notices sent: N` (avisos de prueba).
 
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy

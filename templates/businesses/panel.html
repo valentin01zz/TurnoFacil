@@ -11,7 +11,7 @@
       <a class="round" href="{{ previous_url }}" aria-label="Día anterior">{% include "_icon.html" with name="left" size=22 stroke=2.6 %}</a>
       <a class="round" href="{{ next_url }}" aria-label="Día siguiente">{% include "_icon.html" with name="right" size=22 stroke=2.6 %}</a>
       {% if date != today %}<a class="btn btn-quiet" href="{{ today_url }}">Hoy</a>{% endif %}
-      <a class="btn btn-primary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Cargar turno</a>
+      {% if not access.read_only %}<a class="btn btn-primary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Cargar turno</a>{% endif %}
     </div>
   </section>
 
@@ -57,10 +57,10 @@
                   {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
                 </div>
               </div>
-              <div class="appt-actions">
+              {% if not access.read_only %}<div class="appt-actions">
                 <a class="btn btn-small" href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=16 stroke=2.4 %}Reprogramar</a>
                 <a class="btn btn-small danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=16 stroke=2.4 %}Cancelar</a>
-              </div>
+              </div>{% endif %}
             </li>
           {% endfor %}
         </ul>

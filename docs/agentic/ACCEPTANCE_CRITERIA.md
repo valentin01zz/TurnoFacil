@@ -90,3 +90,45 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] Las animaciones se desactivan si el dispositivo pide reducir movimiento.
 - [ ] El contraste de textos cumple 4.5:1 (3:1 en textos grandes).
 - [ ] Todos los tests existentes siguen pasando.
+
+## HU-21: Catálogo de planes
+- [ ] Existen los planes Esencial (ARS 14.900, 1 profesional), Profesional (ARS 24.900, 5) y Negocio (ARS 39.900, 15).
+- [ ] Precio y límite de un plan se pueden cambiar con un comando, sin desplegar código, y el cambio se ve en la pantalla de planes.
+- [ ] Las funcionalidades de cada plan salen de un catálogo explícito; no se muestran funciones que no existen.
+
+## HU-22: Prueba gratuita
+- [ ] Al registrar un negocio empieza una prueba de 14 días (valor configurable) sin pedir tarjeta; inicio y fin quedan guardados.
+- [ ] El fin se calcula en el servidor; ningún dato enviado por el navegador cambia fechas, estado ni permisos.
+- [ ] Durante la prueba el negocio tiene los permisos y el límite del plan Profesional.
+- [ ] Un negocio tiene una sola prueba; no se puede reiniciar ni duplicar desde la app.
+- [ ] El panel muestra los días restantes y la fecha de finalización.
+- [ ] Los negocios que ya existían reciben una prueba de 14 días desde la migración.
+
+## HU-23: Estados de suscripción y acceso
+- [ ] Estados: prueba activa, prueba vencida, pago pendiente, activa, pago con problemas y cancelada; solo se pasa de uno a otro por transiciones permitidas, registradas con su motivo.
+- [ ] Con prueba vencida, pago pendiente fuera de la prueba, pago con problemas vencida la gracia, o cancelada: el panel queda en solo lectura y la página pública no toma reservas nuevas.
+- [ ] En solo lectura, el dueño ve agenda, servicios, profesionales y planes, pero no puede crear, editar, reprogramar ni cancelar (validado en el servidor, también con envíos directos).
+- [ ] Los turnos ya tomados se respetan: el cliente puede ver y cancelar su turno y recibe el recordatorio.
+- [ ] Nunca se borran negocios, profesionales ni turnos por cambios de estado.
+- [ ] Un negocio no puede ver ni cambiar la suscripción de otro.
+
+## HU-24: Límite de profesionales
+- [ ] No se puede crear ni reactivar un profesional si se alcanzó el límite del plan efectivo (validado en el servidor).
+- [ ] No se puede elegir un plan cuyo límite es menor que los profesionales activos; se informa cuántos hay que desactivar.
+- [ ] Si un negocio queda por encima del límite, nada se borra: se informa y solo se bloquea agregar o reactivar.
+
+## HU-25: Pantalla de planes
+- [ ] Muestra nombre, precio mensual, moneda, funcionalidades, límite de profesionales y diferencias de cada plan.
+- [ ] Muestra la duración de la prueba, el estado actual, la fecha de fin de la prueba y el plan elegido.
+- [ ] Permite elegir o cambiar de plan; elegir no marca la suscripción como paga.
+- [ ] Usa el copy aprobado y el diseño actual, y funciona en un celular.
+
+## HU-26: Avisos de vencimiento
+- [ ] El dueño recibe un email 7, 3 y 1 día antes del fin de la prueba y otro al finalizar.
+- [ ] Cada aviso se envía una sola vez aunque la tarea corra varias veces; si la tarea estuvo caída, se envía solo el aviso más urgente.
+- [ ] No se envían avisos de prueba a negocios con suscripción activa.
+
+## HU-27: Interfaz de pagos
+- [ ] La elección de plan pasa por una interfaz de proveedor de pagos; sin proveedor configurado, queda como pago pendiente y se informa el siguiente paso.
+- [ ] Solo una confirmación del proveedor puede activar una suscripción.
+- [ ] TurnoFacil no guarda datos de tarjetas ni de medios de pago.

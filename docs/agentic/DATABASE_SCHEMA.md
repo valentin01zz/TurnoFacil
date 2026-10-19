@@ -89,3 +89,11 @@ Los tramos de un mismo profesional y día no pueden solaparse (validación en la
 - Guardar `end_at` en el turno hace que editar la duración de un servicio no altere los turnos ya tomados.
 - Los turnos cancelados se conservan con `status = cancelled`; no se borran.
 - Los turnos manuales sin email no reciben confirmación ni recordatorio.
+
+## Planes y suscripciones (`billing`, ADR-0004)
+| Tabla | Campos principales | Reglas |
+|---|---|---|
+| Plan | code (único), name, monthly_price, currency, max_professionals, features (lista de códigos), is_public, sort_order | límite > 0, precio >= 0; editable con `set_plan` |
+| Subscription | business (único), plan, selected_plan, status, trial_started_at, trial_ends_at, current_period_end, canceled_at, provider, provider_subscription_id | una por negocio; fin de prueba posterior al inicio; referencia del proveedor única; sin datos de tarjetas |
+| SubscriptionEvent | subscription, from_status, to_status, reason, created_at | registro de cada cambio de estado |
+| TrialNotice | subscription, kind, sent_at | único por suscripción y tipo (avisos sin duplicados) |

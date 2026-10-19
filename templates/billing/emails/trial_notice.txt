@@ -1,0 +1,13 @@
+{% autoescape off %}Hola,
+
+{% if kind == "ended" %}La prueba gratuita de TurnoFacil para {{ business.name }} terminó el {{ trial_ends_at|date:"j \d\e F" }}.
+
+Tus datos y tus turnos siguen guardados. Mientras no tengas un plan activo, tu panel queda en modo lectura y tu página de reservas no toma turnos nuevos. Los turnos que ya tenías se mantienen.{% else %}A la prueba gratuita de TurnoFacil para {{ business.name }} le queda{{ days_left|pluralize:"n" }} {{ days_left }} día{{ days_left|pluralize }}: termina el {{ trial_ends_at|date:"j \d\e F" }} a las {{ trial_ends_at|time:"H:i" }}.
+
+Para seguir recibiendo reservas sin cortes, elegí tu plan antes de esa fecha.{% endif %}
+
+Ver los planes:
+{{ plans_url }}
+
+El equipo de TurnoFacil
+{% endautoescape %}

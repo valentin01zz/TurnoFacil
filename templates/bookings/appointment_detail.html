@@ -24,7 +24,7 @@
 
         {% if can_change %}
           <div class="actions" style="justify-content: center; margin-top: 16px">
-            <a class="btn btn-primary" href="{% url 'reschedule_appointment' appointment.manage_token %}">{% include "_icon.html" with name="refresh" size=18 %}Reprogramar</a>
+            {% if can_reschedule %}<a class="btn btn-primary" href="{% url 'reschedule_appointment' appointment.manage_token %}">{% include "_icon.html" with name="refresh" size=18 %}Reprogramar</a>{% endif %}
             <a class="btn btn-quiet" href="{% url 'cancel_appointment' appointment.manage_token %}">Cancelar turno</a>
           </div>
           <p class="fine">Podés reprogramar o cancelar hasta {{ change_limit_hours }} horas antes del turno.</p>

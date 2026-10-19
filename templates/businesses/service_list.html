@@ -7,7 +7,7 @@
       <div class="eyebrow">Tu negocio</div>
       <h1>Servicios</h1>
     </div>
-    <a class="btn btn-primary" href="{% url 'service_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar servicio</a>
+    {% if not access.read_only %}<a class="btn btn-primary" href="{% url 'service_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar servicio</a>{% endif %}
   </div>
   {% if services %}
     <ul class="items">
@@ -18,7 +18,7 @@
             <span class="dur" style="margin-left: 8px">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ service.duration_minutes }} min</span>
             {% if not service.is_active %}<span class="badge off" style="margin-left: 6px">Inactivo</span>{% endif %}
           </div>
-          <a class="btn btn-small" href="{% url 'service_edit' service.pk %}">Editar</a>
+          {% if not access.read_only %}<a class="btn btn-small" href="{% url 'service_edit' service.pk %}">Editar</a>{% endif %}
         </li>
       {% endfor %}
     </ul>

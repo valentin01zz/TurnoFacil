@@ -1,11 +1,14 @@
 from datetime import datetime, timedelta
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from billing.catalog import PANEL_EDIT
+from billing.decorators import requires_feature
 from bookings.models import Appointment
 
 from .forms import AgendaForm, BusinessForm, ProfessionalForm, ServiceForm, working_hours_formset
@@ -135,6 +138,7 @@ def panel(request):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def business_edit(request):
     form = BusinessForm(request.POST or None, instance=request.user.business)
     saved = False
@@ -151,6 +155,7 @@ def service_list(request):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def service_create(request):
     form = ServiceForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -162,6 +167,7 @@ def service_create(request):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def service_edit(request, pk):
     service = get_owned_or_404(request, Service, pk)
     form = ServiceForm(request.POST or None, instance=service)
@@ -178,22 +184,42 @@ def professional_list(request):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def professional_create(request):
+    if not request.access.can_add_professional:
+        messages.warning(request, limit_message(request.access))
+        return redirect("professional_list")
     professional = Professional(business=request.user.business)
     return professional_form(request, professional, extra=7, is_new=True)
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def professional_edit(request, pk):
     professional = get_owned_or_404(request, Professional, pk)
     return professional_form(request, professional, extra=2, is_new=False)
 
 
+def limit_message(access):
+    limit = access.max_professionals
+    return (
+        f"Tu plan permite hasta {limit} profesional{'es' if limit != 1 else ''} "
+        f"activo{'s' if limit != 1 else ''} y ya tenés {access.active_professionals}. "
+        "Desactivá uno o pasate a un plan más grande."
+    )
+
+
 def professional_form(request, professional, extra, is_new):
+    was_active = bool(professional.pk) and professional.is_active
     form = ProfessionalForm(request.POST or None, instance=professional)
     formset = working_hours_formset(extra)(
         request.POST or None, instance=professional, prefix="hours"
     )
+    if request.method == "POST" and form.is_valid():
+        # Creating or reactivating a professional must respect the plan limit (server-side).
+        becomes_active = form.cleaned_data["is_active"] and not was_active
+        if becomes_active and not request.access.can_add_professional:
+            form.add_error("is_active", limit_message(request.access))
     if request.method == "POST" and form.is_valid() and formset.is_valid():
         with transaction.atomic():
             form.save()

@@ -79,3 +79,40 @@
 **Como** Founder, **quiero** que TurnoFacil tenga una identidad visual propia, **para** que los negocios y sus clientes lo recuerden.
 - Prioridad: MVP
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-20)
+
+## Planes y suscripciones (aprobado 2026-10-18)
+
+## HU-21: Catálogo de planes
+**Como** Founder, **quiero** un catálogo de planes con precio, moneda, límite de profesionales y funcionalidades, **para** cambiar precios y límites sin tocar la app.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-21)
+
+## HU-22: Prueba gratuita
+**Como** dueño, **quiero** probar TurnoFacil 14 días sin tarjeta, **para** decidir si me sirve antes de pagar.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-22)
+
+## HU-23: Estados de suscripción y acceso
+**Como** Founder, **quiero** que cada negocio tenga un estado de suscripción explícito que defina qué puede hacer, **para** que el acceso sea coherente y no se pueda forzar.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-23)
+
+## HU-24: Límite de profesionales
+**Como** Founder, **quiero** que cada plan limite los profesionales activos, **para** que el precio acompañe el tamaño del negocio.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-24)
+
+## HU-25: Pantalla de planes
+**Como** dueño, **quiero** ver los planes, mi estado y cuándo termina mi prueba, **para** elegir el plan que me conviene.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-25)
+
+## HU-26: Avisos de vencimiento
+**Como** dueño, **quiero** recibir avisos antes de que termine mi prueba, **para** no quedarme sin reservas por olvido.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-26)
+
+## HU-27: Interfaz de pagos
+**Como** Founder, **quiero** la lógica de planes separada del cobro, con una interfaz lista para conectar un proveedor, **para** sumar cobros recurrentes después sin rehacer nada.
+- Prioridad: MVP comercial
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-27)

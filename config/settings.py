@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "accounts",
     "businesses",
     "bookings",
+    "billing",
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "billing.context_processors.subscription",
             ],
         },
     },
@@ -96,6 +98,11 @@ SLOT_STEP_MINUTES = 30
 BOOKING_WINDOW_DAYS = 60
 REMINDER_HOURS_BEFORE = 24
 CUSTOMER_CHANGE_LIMIT_HOURS = 2
+
+# Plans and subscriptions (see docs/agentic/ADR/ADR-0004-planes-y-suscripciones.md).
+TRIAL_DAYS = int(os.environ.get("TRIAL_DAYS", "14"))
+PAST_DUE_GRACE_DAYS = 3
+PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "billing.payments.ManualProvider")
 
 # Base URL for links in emails sent outside a request (reminders).
 SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000").rstrip("/")

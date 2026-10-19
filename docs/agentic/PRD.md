@@ -77,3 +77,18 @@ Tras ver el MVP construido, el Founder aprobó sumar al MVP, antes del piloto:
 - Elección de día con una tira de los días del mes, en lugar del campo de fecha.
 - Gráfico semanal de turnos en la agenda del panel.
 Historias HU-17 a HU-20.
+
+## 11. Planes y suscripciones (aprobado 2026-10-18)
+Para comercializar TurnoFacil como SaaS, el Founder aprobó una capa de planes, prueba gratuita y suscripciones,
+sin cobros reales todavía. Decisiones:
+- Tres planes públicos (Esencial, Profesional, Negocio) que se diferencian solo por la cantidad de profesionales
+  activos (1, 5 y 15). Precios de referencia en ARS: 14.900, 24.900 y 39.900, editables sin tocar código.
+- Prueba gratuita de 14 días (configurable) con los permisos del plan Profesional, sin tarjeta, que empieza al
+  registrar el negocio. Una sola prueba por negocio, sin reinicio por la app.
+- Al vencer la prueba o sin pago: el panel queda en solo lectura, la página pública deja de tomar reservas y los
+  turnos ya tomados se respetan (el cliente puede cancelarlos y recibe recordatorios). Nunca se borran datos.
+- No se puede pasar a un plan cuyo límite es menor que los profesionales activos; nada se borra automáticamente.
+- Negocios existentes: prueba de 14 días desde el deploy. Estética piloto: plan sin costo mientras dure el piloto.
+- Cobros: solo una interfaz preparada para un proveedor de pagos compatible con Argentina. Ninguna suscripción
+  queda activa sin confirmación confiable de pago. TurnoFacil no guarda datos de tarjetas ni de medios de pago.
+Historias HU-21 a HU-27. Diseño técnico en `ADR/ADR-0004-planes-y-suscripciones.md`.

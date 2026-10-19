@@ -8,6 +8,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from billing.catalog import PANEL_EDIT
+from billing.decorators import requires_feature
+
 from .emails import send_cancelled, send_confirmation, send_rescheduled
 from .forms import PanelAppointmentForm, PanelScheduleForm
 from .models import Appointment
@@ -37,6 +40,7 @@ def get_owned_appointment(request, pk, for_update=False):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def appointment_create(request):
     business = request.user.business
     initial = {"date": request.GET.get("date") or timezone.localdate()}
@@ -54,6 +58,7 @@ def appointment_create(request):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def appointment_reschedule(request, pk):
     business = request.user.business
     appointment = get_owned_appointment(request, pk)
@@ -88,6 +93,7 @@ def appointment_reschedule(request, pk):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
 def appointment_cancel(request, pk):
     appointment = get_owned_appointment(request, pk)
     if request.method != "POST":

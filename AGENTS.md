@@ -16,6 +16,7 @@ para lo específico del proyecto y NEXORA para las reglas generales.
   - Verificación: `.venv\Scripts\python manage.py check`. No hay paso de build.
   - Servidor local: `.venv\Scripts\python manage.py runserver`
   - Recordatorios: `.venv\Scripts\python manage.py send_reminders` (en producción, cada 15 minutos con el programador del hosting).
+  - Planes (ADR-0004): `run_billing_tasks` (vence pruebas y envía avisos; corre junto con los recordatorios), `set_plan <código> --price N --max-professionals N` (cambia precio o límite) y `grant_plan <slug> <plan> [--months N]` (solo operadores: activa un plan sin cobro online; sin `--months`, sin vencimiento, solo para `piloto`).
 
 ## Idioma
 Documentación y comunicación con el Founder en español. Código, nombres técnicos y commits en inglés.

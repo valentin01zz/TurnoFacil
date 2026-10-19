@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Planes · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap">
+  <section class="plans-hero">
+    <div class="eyebrow">Planes</div>
+    <h1 class="page-title" style="margin-top: 6px">Elegí el plan ideal para tu negocio</h1>
+    <p class="page-lead">Administrá tus turnos, organizá a tus profesionales y permití que tus clientes reserven online.</p>
+  </section>
+
+  <div class="plans-top">
+    <section class="card status-card" aria-labelledby="t-estado">
+      <h2 id="t-estado">Tu suscripción</h2>
+      <p class="status-line"><span class="badge {% if access.read_only %}off{% else %}violet{% endif %}">{{ access.status_label }}</span></p>
+      {% if access.in_trial %}
+        <p class="days-left"><b>{{ access.trial_days_left }}</b> día{{ access.trial_days_left|pluralize }} de prueba</p>
+        <p>Tu prueba gratis termina el <strong>{{ access.trial_ends_at|date:"l j \d\e F" }}</strong> a las {{ access.trial_ends_at|time:"H:i" }}. Hasta entonces tenés todo lo del plan Profesional.</p>
+      {% elif access.status == "active" %}
+        <p>Tu plan <strong>{{ access.subscription.plan.name }}</strong> está activo{% if access.subscription.current_period_end %} hasta el {{ access.subscription.current_period_end|date:"j \d\e F" }}{% endif %}.</p>
+      {% elif access.read_only %}
+        {% if access.trial_ends_at %}<p>Tu prueba gratis terminó el <strong>{{ access.trial_ends_at|date:"j \d\e F" }}</strong>.</p>{% endif %}
+        <p>Tus datos y tus turnos siguen guardados. Mientras no tengas un plan activo, tu panel queda en modo lectura y tu página de reservas no toma turnos nuevos.</p>
+      {% endif %}
+      {% if access.subscription.selected_plan %}
+        <p class="notice" style="margin-top: 12px">Elegiste el plan <strong>{{ access.subscription.selected_plan.name }}</strong>. Falta activar el pago: te vamos a contactar.</p>
+      {% endif %}
+      {% if access.over_limit %}
+        <p class="notice" style="margin-top: 12px">Tenés {{ access.active_professionals }} profesionales activos y tu plan permite {{ access.max_professionals }}. No borramos nada: desactivá los que sobren para poder agregar o reactivar profesionales.</p>
+      {% endif %}
+    </section>
+
+    <section class="trial-box" aria-label="Prueba gratis">
+      <span class="icon-box">{% include "_icon.html" with name="star" size=26 %}</span>
+      <p>Probá gratis durante {{ trial_days }} días. Sin tarjeta de crédito y sin compromiso. Elegí tu plan al terminar la prueba.</p>
+    </section>
+  </div>
+
+  <div class="plan-grid">
+    {% for card in cards %}
+      <article class="plan{% if card.plan.code == 'profesional' %} featured{% endif %}{% if card.is_current %} current{% endif %}" aria-labelledby="plan-{{ card.plan.code }}">
+        {% if card.is_current %}<span class="plan-tag">Tu plan</span>{% elif card.is_selected %}<span class="plan-tag">Elegido</span>{% elif access.in_trial and card.plan.code == "profesional" %}<span class="plan-tag">Tu prueba</span>{% endif %}
+        <h2 id="plan-{{ card.plan.code }}">{{ card.plan.name }}</h2>
+        <p class="price"><span class="amount">$ {{ card.plan.monthly_price|floatformat:"0g" }}</span> <span class="per">{{ card.plan.currency }} por mes</span></p>
+        <p class="limit">{% include "_icon.html" with name="users" size=20 %}Hasta {{ card.plan.max_professionals }} profesional{{ card.plan.max_professionals|pluralize:"es" }} activo{{ card.plan.max_professionals|pluralize }}</p>
+        <ul class="plan-features">
+          {% for feature in card.features %}<li>{% include "_icon.html" with name="check" size=18 stroke=2.8 %}{{ feature }}</li>{% endfor %}
+        </ul>
+        {% if card.is_current %}
+          <p class="plan-note">Es tu plan actual.</p>
+        {% elif not card.fits %}
+          <button class="btn btn-block" type="button" disabled>Elegir {{ card.plan.name }}</button>
+          <p class="plan-note">Tenés {{ access.active_professionals }} profesionales activos: desactivá {{ card.excess }} para elegir este plan.</p>
+        {% else %}
+          <form method="post" action="{% url 'choose_plan' card.plan.code %}">
+            {% csrf_token %}
+            <button class="btn btn-block{% if card.plan.code == 'profesional' %} btn-primary{% endif %}" type="submit">{% if card.is_selected %}Elegido{% elif access.subscription.selected_plan or access.status == "active" %}Cambiar a {{ card.plan.name }}{% else %}Elegir {{ card.plan.name }}{% endif %}</button>
+          </form>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+
+  <p class="helptext plans-foot">Precios en pesos argentinos, por mes. Los tres planes incluyen todas las funciones de TurnoFacil; cambia la cantidad de profesionales activos. Todavía no cobramos online: al elegir un plan te contactamos para activar el pago.</p>
+</div>
+{% endblock %}

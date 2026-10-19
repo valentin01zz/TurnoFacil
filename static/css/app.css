@@ -363,3 +363,37 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
   .strike::after { transform: rotate(-4deg); }
   .burst { display: none; }
 }
+
+/* ---------- Plans and subscription ---------- */
+.sub-banner { border-bottom: 1.5px solid var(--ink); font-size: 15px; }
+.sub-banner .inner { max-width: 1180px; margin: 0 auto; padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sub-banner a { font-weight: 800; color: var(--ink); }
+.sub-banner.trial { background: var(--accent); color: var(--ink); }
+.sub-banner.locked { background: var(--warm); color: var(--warm-ink); }
+.messages { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+.plans-top { display: flex; flex-wrap: wrap; gap: 22px; align-items: stretch; margin-bottom: 32px; }
+.status-card { flex: 2 1 380px; }
+.status-card p { margin: 0 0 8px; color: var(--body); }
+.status-line { margin-bottom: 10px !important; }
+.days-left b { font-family: var(--display); font-size: 56px; line-height: 1; color: var(--ink); }
+.days-left { font-weight: 700; color: var(--ink) !important; }
+.trial-box { flex: 1 1 260px; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 26px; border-radius: var(--radius); background: var(--violet); color: #fff; border: 1.5px solid var(--ink); box-shadow: var(--shadow); font-family: var(--display); font-size: 22px; line-height: 1.2; }
+.trial-box p { margin: 0; }
+.trial-box .icon-box { background: var(--accent); color: var(--ink); }
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; align-items: stretch; }
+.plan { position: relative; display: flex; flex-direction: column; gap: 14px; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 28px; padding: 28px; box-shadow: var(--shadow); transition: transform .25s var(--spring); }
+.plan:hover { transform: translateY(-6px) rotate(-.5deg); }
+.plan.featured { box-shadow: 8px 8px 0 var(--violet); }
+.plan.current { outline: 4px solid var(--accent); outline-offset: 4px; }
+.plan h2 { margin: 0; font-family: var(--display); font-size: 30px; letter-spacing: -0.02em; }
+.plan-tag { position: absolute; top: -14px; right: 20px; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 800; font-size: 13px; transform: rotate(3deg); }
+.price { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.price .amount { font-family: var(--display); font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+.price .per { color: var(--muted); font-weight: 700; }
+.limit { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 800; padding: 10px 14px; border-radius: 14px; background: var(--violet-soft); color: var(--violet-ink); }
+.plan-features { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.plan-features li { display: flex; gap: 10px; align-items: flex-start; color: var(--body); }
+.plan-features svg { color: var(--accent-ink); flex: 0 0 auto; margin-top: 2px; }
+.plan form { margin: 0; }
+.plan-note { margin: 0; font-size: 14px; color: var(--muted); text-align: center; }
+.plans-foot { margin: 28px 0 48px; text-align: center; }

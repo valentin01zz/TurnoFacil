@@ -22,6 +22,7 @@
           <a href="{% url 'service_list' %}"{% if current == "service_list" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>Servicios</a>
           <a href="{% url 'professional_list' %}"{% if current == "professional_list" or current == "professional_create" or current == "professional_edit" %} aria-current="page"{% endif %}>Profesionales</a>
           <a href="{% url 'business_edit' %}"{% if current == "business_edit" %} aria-current="page"{% endif %}>Mi negocio</a>
+          <a href="{% url 'plans' %}"{% if current == "plans" %} aria-current="page"{% endif %}>Planes</a>
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit">Salir</button>
@@ -29,6 +30,16 @@
         </nav>
       </div>
     </header>
+    {% if access %}
+      {% if access.in_trial %}
+        <div class="sub-banner trial" role="status"><div class="inner">{% include "_icon.html" with name="star" size=18 %}<span>Prueba gratis: te quedan <strong>{{ access.trial_days_left }} día{{ access.trial_days_left|pluralize }}</strong> (termina el {{ access.trial_ends_at|date:"j \d\e F" }}).</span>{% if current != "plans" %}<a href="{% url 'plans' %}">Ver planes</a>{% endif %}</div></div>
+      {% elif access.read_only %}
+        <div class="sub-banner locked" role="status"><div class="inner">{% include "_icon.html" with name="clock" size=18 %}<span><strong>Tu panel está en modo lectura.</strong> {% if access.status == "trial_expired" %}Tu prueba gratis terminó.{% else %}No tenés un plan activo.{% endif %} Tu página no toma reservas nuevas.</span>{% if current != "plans" %}<a href="{% url 'plans' %}">Elegir un plan</a>{% endif %}</div></div>
+      {% endif %}
+      {% if access.over_limit and current != "plans" %}
+        <div class="sub-banner locked" role="status"><div class="inner"><span>Tenés {{ access.active_professionals }} profesionales activos y tu plan permite {{ access.max_professionals }}. No borramos nada, pero no vas a poder agregar ni reactivar profesionales.</span></div></div>
+      {% endif %}
+    {% endif %}
     {% endwith %}
   {% else %}
     <div class="wrap">
@@ -42,6 +53,11 @@
   {% endif %}
 {% endblock %}
 <main>
+  {% if messages %}
+    <div class="wrap messages">
+      {% for message in messages %}<p class="notice{% if message.tags == 'success' %} ok{% endif %}" role="status">{{ message }}</p>{% endfor %}
+    </div>
+  {% endif %}
   {% block content %}{% endblock %}
 </main>
 </body>

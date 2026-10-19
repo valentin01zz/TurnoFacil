@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from billing.access import get_access
+from billing.catalog import BOOKING_ONLINE
 from businesses.models import Business
 
 from .availability import available_slots
@@ -33,6 +35,8 @@ def booking_page(request, slug):
 def book(request, slug):
     business = get_object_or_404(Business, slug=slug)
     selection = SlotQueryForm(request.POST, business=business)
+    if not accepts_bookings(business):
+        return render_booking_page(request, business, selection, status=403)
     if not selection.is_valid():
         return render_booking_page(request, business, selection, status=400)
 
@@ -76,6 +80,10 @@ def create_appointment(business, professional, service, data, source=Appointment
         return None
 
 
+def accepts_bookings(business):
+    return get_access(business).can(BOOKING_ONLINE)
+
+
 def selected_values(form):
     """Valid choices from a selection form even when other fields are still missing."""
     if not form.is_bound:
@@ -97,7 +105,7 @@ def month_links(base_url, strip, params):
 def render_booking_page(request, business, selection, booking=None, status=200):
     services = list(business.services.filter(is_active=True))
     professionals = list(business.professionals.filter(is_active=True))
-    is_taking_bookings = bool(services and professionals)
+    is_taking_bookings = bool(services and professionals) and accepts_bookings(business)
 
     chosen = selected_values(selection)
     service = chosen.get("service")
@@ -206,6 +214,8 @@ def render_appointment(request, appointment, template="bookings/appointment_deta
         "appointment": appointment,
         "date_label": long_date(timezone.localdate(appointment.start_at)),
         "can_change": appointment.customer_can_change(),
+        "can_reschedule": appointment.customer_can_change()
+        and accepts_bookings(appointment.business),
         "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
         "just_booked": just_booked,
         "first_name": (appointment.customer_name.split() or [""])[0],
@@ -297,9 +307,22 @@ def render_reschedule(request, appointment, query, slot_form=None, status=200):
     )
 
 
+NOT_TAKING_BOOKINGS = (
+    "Este negocio no está tomando reservas online en este momento. Podés cancelar tu turno o "
+    "contactar al negocio para cambiarlo."
+)
+
+
 def reschedule_appointment(request, token):
+    current = get_appointment(token)
+    if (
+        current is not None
+        and current.customer_can_change()
+        and not accepts_bookings(current.business)
+    ):
+        return render_appointment(request, current, notice=NOT_TAKING_BOOKINGS)
     if request.method != "POST":
-        appointment = get_appointment(token)
+        appointment = current
         if appointment is None or not appointment.customer_can_change():
             return render_appointment(request, appointment)
         query = RescheduleQueryForm(request.GET or None, appointment=appointment)
