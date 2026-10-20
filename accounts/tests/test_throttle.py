@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -53,6 +53,48 @@ class ThrottleTests(TestCase):
         self.assertEqual(throttle.client_ip(Request()), "200.1.2.3")
         Request.META = {"REMOTE_ADDR": "10.0.0.9"}
         self.assertEqual(throttle.client_ip(Request()), "10.0.0.9")
+
+
+def request_with(forwarded, remote="10.0.0.1"):
+    class Request:
+        META = {"HTTP_X_FORWARDED_FOR": forwarded, "REMOTE_ADDR": remote}
+
+    return Request()
+
+
+class TrustedProxyTests(TestCase):
+    """A client may send its own X-Forwarded-For; only what the trusted proxy appended counts."""
+
+    @override_settings(CLIENT_IP_PROXY_COUNT=1)
+    def test_forged_entries_before_the_proxy_are_ignored(self):
+        for forged in ("1.1.1.1", "2.2.2.2", "3.3.3.3, 4.4.4.4"):
+            ip = throttle.client_ip(request_with(f"{forged}, 200.1.2.3"))
+            self.assertEqual(ip, "200.1.2.3")
+
+    @override_settings(CLIENT_IP_PROXY_COUNT=2)
+    def test_two_proxies(self):
+        ip = throttle.client_ip(request_with("6.6.6.6, 200.1.2.3, 10.0.0.5"))
+
+        self.assertEqual(ip, "200.1.2.3")
+
+    @override_settings(CLIENT_IP_PROXY_COUNT=2)
+    def test_fewer_entries_than_proxies_falls_back_to_the_connection(self):
+        self.assertEqual(throttle.client_ip(request_with("200.1.2.3")), "10.0.0.1")
+
+    @override_settings(CLIENT_IP_PROXY_COUNT=0)
+    def test_without_a_proxy_the_header_is_not_trusted(self):
+        self.assertEqual(throttle.client_ip(request_with("1.1.1.1")), "10.0.0.1")
+
+    @override_settings(CLIENT_IP_PROXY_COUNT=1)
+    def test_rotating_forged_headers_do_not_escape_the_login_limit(self):
+        for attempt in range(30):
+            self.client.post(
+                reverse("login"),
+                {"username": f"cuenta{attempt}@example.com", "password": "wrong"},
+                HTTP_X_FORWARDED_FOR=f"9.9.9.{attempt}, 200.1.2.3",
+            )
+
+        self.assertTrue(throttle.is_limited("login_ip", "200.1.2.3"))
 
 
 class LoginLimitTests(TestCase):
