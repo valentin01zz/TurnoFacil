@@ -277,6 +277,9 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
 .hours-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 12px; padding: 16px; margin: 0 0 12px; border: 1.5px solid var(--line); border-radius: 18px; background: var(--soft); }
 .hours-row > div { margin-bottom: 0; }
 .hours-row legend { font-weight: 700; padding: 0 6px; }
+.hours-row .hours-delete { flex-direction: row; align-items: center; gap: 8px; align-self: end; padding-bottom: 12px; }
+.hours-row.is-deleted { opacity: .5; border-style: dashed; }
+.hours-row.is-deleted .hours-delete { opacity: 1; }
 
 /* ---------- Landing ---------- */
 .landing-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 48px; margin: 40px 0 80px; }
@@ -397,3 +400,4 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
 .plan form { margin: 0; }
 .plan-note { margin: 0; font-size: 14px; color: var(--muted); text-align: center; }
 .plans-foot { margin: 28px 0 48px; text-align: center; }
+

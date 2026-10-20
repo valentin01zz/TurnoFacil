@@ -37,7 +37,8 @@ def available_slots(professional, service, date, now=None, ignore=None):
         appointments = appointments.exclude(pk=ignore.pk)
     busy = list(appointments.values_list("start_at", "end_at"))
 
-    slots = []
+    # Every range of the day (split shifts have several); a set so ranges never repeat a start.
+    slots = set()
     for hours in professional.working_hours.filter(weekday=date.weekday()):
         start = timezone.make_aware(datetime.combine(date, hours.start_time), tz)
         end = timezone.make_aware(datetime.combine(date, hours.end_time), tz)
@@ -47,6 +48,6 @@ def available_slots(professional, service, date, now=None, ignore=None):
                 start < busy_end and busy_start < finish for busy_start, busy_end in busy
             )
             if start > now and not overlaps:
-                slots.append(start)
+                slots.add(start)
             start += step
-    return slots
+    return sorted(slots)

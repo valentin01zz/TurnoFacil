@@ -79,4 +79,43 @@
       strip.scrollLeft = target.offsetLeft - strip.offsetLeft - 8;
     }
   });
+
+  // Working hours: add rows from the formset's empty form and dim the rows marked for deletion.
+  // Without JavaScript the form still has a few empty rows; the server enforces the limit.
+  var addHours = document.querySelector("[data-hours-add]");
+  var hoursRows = document.querySelector("[data-hours-rows]");
+  var hoursTemplate = document.querySelector("[data-hours-template]");
+  var totalForms = document.querySelector("[name=hours-TOTAL_FORMS]");
+  if (addHours && hoursRows && hoursTemplate && totalForms) {
+    var maxRows = parseInt(addHours.getAttribute("data-max"), 10);
+    var limitNote = document.querySelector("[data-hours-limit]");
+    var markDeleted = function (checkbox) {
+      checkbox.closest("[data-hours-row]").classList.toggle("is-deleted", checkbox.checked);
+    };
+    var refresh = function () {
+      var kept = hoursRows.querySelectorAll("[data-hours-row]:not(.is-deleted)").length;
+      // The server also refuses more than twice the limit of rows sent, deleted ones included.
+      var full = kept >= maxRows || parseInt(totalForms.value, 10) >= maxRows * 2;
+      addHours.disabled = full;
+      if (limitNote) { limitNote.hidden = !full; }
+    };
+    hoursRows.addEventListener("change", function (event) {
+      if (event.target.matches("input[type=checkbox][name$=-DELETE]")) {
+        markDeleted(event.target);
+        refresh();
+      }
+    });
+    addHours.addEventListener("click", function () {
+      var index = parseInt(totalForms.value, 10);
+      var html = hoursTemplate.innerHTML.replace(/__prefix__/g, index).replace("Tramo nuevo", "Tramo " + (index + 1));
+      hoursRows.insertAdjacentHTML("beforeend", html);
+      totalForms.value = index + 1;
+      var added = hoursRows.lastElementChild.querySelector("select, input:not([type=hidden])");
+      if (added) { added.focus(); }
+      refresh();
+    });
+    hoursRows.querySelectorAll("input[type=checkbox][name$=-DELETE]:checked").forEach(markDeleted);
+    addHours.hidden = false;
+    refresh();
+  }
 })();

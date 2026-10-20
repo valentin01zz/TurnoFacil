@@ -197,7 +197,7 @@ def professional_create(request):
 @requires_feature(PANEL_EDIT)
 def professional_edit(request, pk):
     professional = get_owned_or_404(request, Professional, pk)
-    return professional_form(request, professional, extra=2, is_new=False)
+    return professional_form(request, professional, extra=3, is_new=False)
 
 
 def limit_message(access):

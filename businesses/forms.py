@@ -2,6 +2,9 @@ from django import forms
 
 from .models import Business, Professional, Service, WorkingHours
 
+# Working-hour ranges a professional can have (several per day are allowed).
+MAX_WORKING_HOURS = 50
+
 
 def single_line(value):
     """Collapse line breaks, tabs and repeated spaces: these values end up in emails."""
@@ -61,10 +64,22 @@ class WorkingHoursForm(forms.ModelForm):
 
 
 class BaseWorkingHoursFormSet(forms.BaseInlineFormSet):
+    default_error_messages = {
+        "too_many_forms": (
+            f"Podés cargar hasta {MAX_WORKING_HOURS} horarios por profesional. "
+            "Uní tramos o borrá los que no uses."
+        ),
+    }
+
     def clean(self):
+        # Overlaps first, so an exact copy gets this message and not the generic duplicate one.
+        if not any(self.errors):
+            self.check_overlaps()
         super().clean()
-        if any(self.errors):
-            return
+
+    def check_overlaps(self):
+        """Sorted by day and start, any overlap shows up between neighbours, in any input order.
+        Back-to-back ranges (09:00-13:00 and 13:00-17:00) are allowed."""
         ranges = sorted(
             (
                 form.cleaned_data["weekday"],
@@ -89,6 +104,10 @@ def working_hours_formset(extra):
         formset=BaseWorkingHoursFormSet,
         extra=extra,
         can_delete=True,
+        max_num=MAX_WORKING_HOURS,
+        validate_max=True,
+        # Rows sent at all, deleted ones included: a forged form cannot make the server build more.
+        absolute_max=MAX_WORKING_HOURS * 2,
     )
 
 
