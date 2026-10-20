@@ -21,8 +21,8 @@ FEATURES = {
 
 # Features every plan includes. The others go only to some plans, granted by data migrations.
 ALL_FEATURES = [code for code in FEATURES if code != BOOKING_DEPOSIT]
-# Plans with the deposit (billing migration 0004).
-DEPOSIT_PLAN_CODES = ("profesional", "negocio")
+# Plans with the deposit (billing migration 0004). Piloto is hidden from owners.
+DEPOSIT_PLAN_CODES = ("profesional", "negocio", "piloto")
 
 
 def feature_labels(codes):

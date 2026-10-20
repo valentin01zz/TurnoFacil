@@ -93,13 +93,13 @@ class DepositModelTests(TestCase):
 
 
 class DepositPlanMigrationTests(TestCase):
-    def test_only_profesional_and_negocio_get_the_deposit(self):
+    def test_profesional_negocio_and_piloto_get_the_deposit(self):
         plans = {plan.code: plan.features for plan in Plan.objects.all()}
 
         self.assertIn(BOOKING_DEPOSIT, plans["profesional"])
         self.assertIn(BOOKING_DEPOSIT, plans["negocio"])
         self.assertNotIn(BOOKING_DEPOSIT, plans["esencial"])
-        self.assertNotIn(BOOKING_DEPOSIT, plans["piloto"])
+        self.assertIn(BOOKING_DEPOSIT, plans["piloto"])
 
     def test_the_migration_can_be_reverted_and_applied_again(self):
         GRANT.revoke(django_apps, None)
@@ -121,8 +121,8 @@ class DepositSettingsPageTests(TestCase):
     def post(self, **changes):
         return self.client.post(self.url, {**VALID, **changes})
 
-    def test_profesional_negocio_and_the_trial_can_turn_it_on(self):
-        for index, plan in enumerate(("profesional", "negocio", None)):
+    def test_profesional_negocio_piloto_and_the_trial_can_turn_it_on(self):
+        for index, plan in enumerate(("profesional", "negocio", "piloto", None)):
             with self.subTest(plan or "trial"):
                 business = create_business(f"dueño{index}@example.com", f"Negocio {index}")
                 if plan:

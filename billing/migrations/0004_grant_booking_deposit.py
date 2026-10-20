@@ -1,9 +1,10 @@
-"""Give the deposit by bank transfer (booking.deposit) to the Profesional and Negocio plans."""
+"""Give the deposit by bank transfer (booking.deposit) to Profesional, Negocio and the free
+pilot plan (the pilot business uses it; Founder decision, 2026-10-20)."""
 
 from django.db import migrations
 
 FEATURE = "booking.deposit"
-PLANS = ["profesional", "negocio"]
+PLANS = ["profesional", "negocio", "piloto"]
 
 
 def grant(apps, schema_editor):
