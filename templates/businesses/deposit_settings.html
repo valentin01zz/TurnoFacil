@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Seña por transferencia · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Seña por transferencia</h1>
+  <p class="page-lead">Si querés, tus clientes ven a quién y cuánto transferir apenas reservan, en el detalle del turno y en el email de confirmación.</p>
+  {% if not allowed %}
+    <div class="card">
+      <p>La seña por transferencia está en los planes <strong>Profesional</strong> y <strong>Negocio</strong>.</p>
+      {% if deposit.pk %}<p class="helptext">Tus datos de seña quedan guardados, pero tus clientes no los ven con tu plan actual.</p>{% endif %}
+      <a class="btn btn-primary" href="{% url 'plans' %}">Ver planes</a>
+    </div>
+  {% else %}
+    <div class="card">
+      <p>La seña es una condición tuya: el turno queda confirmado igual. TurnoFacil no recibe ni verifica la transferencia; la coordinás vos con tu cliente.</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_div }}
+        <button class="btn btn-primary" type="submit">Guardar</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Así lo ven tus clientes</h2>
+      {% if preview %}
+        {% include "bookings/_deposit.html" with deposit=preview %}
+      {% else %}
+        <p>Tus clientes no ven ninguna seña. Activá “Pedir seña al reservar” y guardá para verla acá.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  <p><a class="link-button" href="{% url 'business_edit' %}">Volver a Mi negocio</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+<section class="deposit-box" aria-labelledby="deposit-title">
+  <h2 id="deposit-title">Seña por transferencia</h2>
+  <p>{{ deposit.business.name }} pide una seña de <strong>$ {{ deposit.amount|floatformat:"-2g" }}</strong> para este turno.</p>
+  <dl>
+    <div><dt>Titular</dt><dd>{{ deposit.holder_name }}</dd></div>
+    {% if deposit.transfer_alias %}<div><dt>Alias</dt><dd>{{ deposit.transfer_alias }}</dd></div>{% endif %}
+    {% if deposit.cbu_cvu %}<div><dt>CBU/CVU</dt><dd>{{ deposit.cbu_cvu }}</dd></div>{% endif %}
+    {% if deposit.holder_tax_id %}<div><dt>CUIT/CUIL</dt><dd>{{ deposit.holder_tax_id }}</dd></div>{% endif %}
+  </dl>
+  {% if deposit.instructions %}<p>{{ deposit.instructions }}</p>{% endif %}
+  <p class="fine">La transferencia se coordina directamente con el negocio. TurnoFacil no verifica automáticamente el pago. Si tenés dudas, consultá a {{ deposit.business.name }}.</p>
+</section>

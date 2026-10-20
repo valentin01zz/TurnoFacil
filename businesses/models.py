@@ -108,3 +108,46 @@ class WorkingHours(models.Model):
 
     def __str__(self):
         return f"{self.get_weekday_display()} {self.start_time:%H:%M}-{self.end_time:%H:%M}"
+
+
+class DepositSettings(models.Model):
+    """Bank transfer details a business shows customers to pay a deposit (seña) for a booking.
+
+    Only instructions: TurnoFacil never checks or records the transfer, and the booking stays
+    confirmed either way. No card data, tokens or bank credentials are stored here.
+    """
+
+    business = models.OneToOneField(Business, on_delete=models.CASCADE, related_name="deposit")
+    enabled = models.BooleanField("pedir seña", default=False)
+    # Fixed amount in Argentine pesos (services have no price to take a percentage of).
+    amount = models.DecimalField("monto", max_digits=10, decimal_places=2, null=True, blank=True)
+    holder_name = models.CharField("titular de la cuenta", max_length=100, blank=True)
+    transfer_alias = models.CharField("alias", max_length=20, blank=True)
+    cbu_cvu = models.CharField("CBU o CVU", max_length=22, blank=True)
+    holder_tax_id = models.CharField("CUIT o CUIL", max_length=13, blank=True)
+    instructions = models.CharField("indicaciones", max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            # Turned on, it always has an amount, a holder and somewhere to transfer to.
+            models.CheckConstraint(
+                condition=models.Q(enabled=False)
+                | (
+                    # NULL > 0 is not false in SQL, so the amount is required explicitly.
+                    models.Q(amount__isnull=False)
+                    & models.Q(amount__gt=0)
+                    & ~models.Q(holder_name="")
+                    & (~models.Q(transfer_alias="") | ~models.Q(cbu_cvu=""))
+                ),
+                name="deposit_complete_when_enabled",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(amount__isnull=True) | models.Q(amount__gt=0),
+                name="deposit_amount_positive",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Seña de {self.business}"

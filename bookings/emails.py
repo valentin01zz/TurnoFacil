@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
+from businesses.deposit import public_deposit
+
 logger = logging.getLogger(__name__)
 
 
@@ -13,6 +15,7 @@ def send_confirmation(appointment, manage_url):
         manage_url,
         subject=f"Turno confirmado en {appointment.business.name}",
         template="bookings/emails/confirmation.txt",
+        deposit=public_deposit(appointment.business),
     )
 
 
@@ -43,7 +46,7 @@ def send_reminder(appointment, manage_url):
     )
 
 
-def send_customer_email(appointment, manage_url, subject, template):
+def send_customer_email(appointment, manage_url, subject, template, deposit=None):
     """Email the customer about their appointment. Returns whether it was sent; never raises."""
     if not appointment.customer_email:
         return False
@@ -51,6 +54,7 @@ def send_customer_email(appointment, manage_url, subject, template):
         "appointment": appointment,
         "manage_url": manage_url,
         "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
+        "deposit": deposit,
     }
     try:
         send_mail(

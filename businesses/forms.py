@@ -1,6 +1,8 @@
+import re
+
 from django import forms
 
-from .models import Business, Professional, Service, WorkingHours
+from .models import Business, DepositSettings, Professional, Service, WorkingHours
 
 # Working-hour ranges a professional can have (several per day are allowed).
 MAX_WORKING_HOURS = 50
@@ -43,6 +45,90 @@ class ProfessionalForm(forms.ModelForm):
     class Meta:
         model = Professional
         fields = ["name", "is_active"]
+
+
+ALIAS_PATTERN = re.compile(r"^[A-Za-z0-9.\-]{6,20}$")
+
+
+class DepositSettingsForm(forms.ModelForm):
+    # Room for spaces and dashes as people paste them; cleaned down to the stored length.
+    cbu_cvu = forms.CharField(
+        label="CBU o CVU",
+        max_length=30,
+        required=False,
+        help_text="22 números. Cargá el alias, el CBU/CVU o los dos.",
+    )
+    holder_tax_id = forms.CharField(
+        label="CUIT o CUIL", max_length=16, required=False, help_text="Opcional."
+    )
+
+    class Meta:
+        model = DepositSettings
+        fields = [
+            "enabled",
+            "amount",
+            "holder_name",
+            "transfer_alias",
+            "cbu_cvu",
+            "holder_tax_id",
+            "instructions",
+        ]
+        labels = {"enabled": "Pedir seña al reservar", "amount": "Monto de la seña (ARS)"}
+        help_texts = {
+            "transfer_alias": "Entre 6 y 20 letras, números, puntos o guiones.",
+            "instructions": (
+                "Opcional, hasta 300 caracteres. Por ejemplo, a dónde mandar el comprobante o cómo "
+                "contactarte si hay dudas."
+            ),
+        }
+        widgets = {"instructions": forms.Textarea(attrs={"rows": 3, "maxlength": 300})}
+
+    def clean_amount(self):
+        amount = self.cleaned_data["amount"]
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError("El monto tiene que ser mayor a cero.")
+        return amount
+
+    def clean_holder_name(self):
+        return single_line(self.cleaned_data["holder_name"])
+
+    def clean_transfer_alias(self):
+        alias = self.cleaned_data["transfer_alias"].strip()
+        if alias and not ALIAS_PATTERN.match(alias):
+            raise forms.ValidationError(
+                "El alias tiene entre 6 y 20 caracteres: letras, números, puntos o guiones."
+            )
+        return alias
+
+    def clean_cbu_cvu(self):
+        number = re.sub(r"[\s-]", "", self.cleaned_data["cbu_cvu"])
+        if number and not re.fullmatch(r"\d{22}", number):
+            raise forms.ValidationError("El CBU o CVU tiene 22 números.")
+        return number
+
+    def clean_holder_tax_id(self):
+        digits = re.sub(r"[\s-]", "", self.cleaned_data["holder_tax_id"])
+        if not digits:
+            return ""
+        if not re.fullmatch(r"\d{11}", digits):
+            raise forms.ValidationError("El CUIT o CUIL tiene 11 números.")
+        return f"{digits[:2]}-{digits[2:10]}-{digits[10]}"
+
+    def clean_instructions(self):
+        return single_line(self.cleaned_data["instructions"])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("enabled"):
+            return cleaned_data
+        if not cleaned_data.get("amount") and "amount" not in self.errors:
+            self.add_error("amount", "Para pedir seña, cargá el monto.")
+        if not cleaned_data.get("holder_name") and "holder_name" not in self.errors:
+            self.add_error("holder_name", "Para pedir seña, cargá el titular de la cuenta.")
+        has_destination = cleaned_data.get("transfer_alias") or cleaned_data.get("cbu_cvu")
+        if not has_destination and not {"transfer_alias", "cbu_cvu"} & set(self.errors):
+            raise forms.ValidationError("Para pedir seña, cargá el alias o el CBU/CVU.")
+        return cleaned_data
 
 
 class WorkingHoursForm(forms.ModelForm):

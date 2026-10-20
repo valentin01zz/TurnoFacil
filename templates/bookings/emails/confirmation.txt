@@ -8,6 +8,14 @@ Profesional: {{ appointment.professional.name }}
 Día: {{ appointment.start_at|date:"l j \d\e F" }}
 Hora: {{ appointment.start_at|time:"H:i" }}
 {% if appointment.business.address %}Dirección: {{ appointment.business.address }}
+{% endif %}{% if deposit %}
+Seña: {{ appointment.business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia.
+Titular: {{ deposit.holder_name }}
+{% if deposit.transfer_alias %}Alias: {{ deposit.transfer_alias }}
+{% endif %}{% if deposit.cbu_cvu %}CBU/CVU: {{ deposit.cbu_cvu }}
+{% endif %}{% if deposit.holder_tax_id %}CUIT/CUIL: {{ deposit.holder_tax_id }}
+{% endif %}{% if deposit.instructions %}{{ deposit.instructions }}
+{% endif %}La transferencia se coordina directamente con el negocio. TurnoFacil no verifica automáticamente el pago.
 {% endif %}
 Para ver, reprogramar o cancelar tu turno, entrá a este link:
 {{ manage_url }}
