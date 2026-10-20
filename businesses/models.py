@@ -1,6 +1,8 @@
 from django.conf import settings
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
+
+SLUG_ATTEMPTS = 5
 
 
 class Business(models.Model):
@@ -16,9 +18,20 @@ class Business(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.slug:
+        if self.slug:
+            return super().save(*args, **kwargs)
+        # Two sign-ups with the same name at once may pick the same free slug; the unique index
+        # stops the second one, which then picks again.
+        for attempt in range(SLUG_ATTEMPTS):
             self.slug = self._unique_slug()
-        super().save(*args, **kwargs)
+            try:
+                with transaction.atomic():
+                    return super().save(*args, **kwargs)
+            except IntegrityError:
+                taken = Business.objects.filter(slug=self.slug).exists()
+                self.slug = ""
+                if not taken or attempt == SLUG_ATTEMPTS - 1:
+                    raise
 
     def _unique_slug(self):
         base = slugify(self.name) or "negocio"
@@ -85,6 +98,11 @@ class WorkingHours(models.Model):
             models.CheckConstraint(
                 condition=models.Q(end_time__gt=models.F("start_time")),
                 name="working_hours_end_after_start",
+            ),
+            # Overlaps are checked by the form (BaseWorkingHoursFormSet); exact copies never pass.
+            models.UniqueConstraint(
+                fields=["professional", "weekday", "start_time", "end_time"],
+                name="working_hours_unique_range",
             ),
         ]
 

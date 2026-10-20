@@ -1,6 +1,8 @@
 # Render Blueprint for TurnoFacil (see docs/agentic/ADR/ADR-0002-hosting.md and docs/agentic/DEPLOYMENT.md).
 # Values marked "sync: false" are asked for once, in the Render dashboard, when the Blueprint is created.
-# The cron job repeats the variables it needs: Blueprint files have no shared variables or interpolation.
+# The cron job repeats the variables it needs. Secrets use "sync: false", which Render does not let
+# environment groups hold and only asks for when the Blueprint is first created: after that, set them
+# by hand in the dashboard, with the SAME value in web and cron (see docs/agentic/DEPLOYMENT.md).
 
 services:
   - type: web
@@ -40,6 +42,14 @@ services:
         value: resend
       - key: EMAIL_HOST_PASSWORD
         sync: false
+      # Payments (ADR-0005). Empty PAYMENT_PROVIDER means the manual provider. The cron needs the same
+      # provider and credentials as the web service, or it cannot reconcile Mercado Pago subscriptions.
+      - key: PAYMENT_PROVIDER
+        sync: false
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADOPAGO_WEBHOOK_SECRET
+        sync: false
 
   - type: cron
     name: turnofacil-reminders
@@ -75,6 +85,14 @@ services:
       - key: EMAIL_HOST_USER
         value: resend
       - key: EMAIL_HOST_PASSWORD
+        sync: false
+      # Payments (ADR-0005). Empty PAYMENT_PROVIDER means the manual provider. The cron needs the same
+      # provider and credentials as the web service, or it cannot reconcile Mercado Pago subscriptions.
+      - key: PAYMENT_PROVIDER
+        sync: false
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADOPAGO_WEBHOOK_SECRET
         sync: false
 
 databases:

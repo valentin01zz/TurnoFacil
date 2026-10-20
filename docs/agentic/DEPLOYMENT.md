@@ -103,6 +103,40 @@ Hasta hacer esto, la app sigue con el proveedor manual: se elige el plan y el pa
 - Paso a producción el 2026-10-19: credenciales de **TurnoFacil-Online** en los dos servicios, acreditación a
   10 días (ADR-0005).
 
+## Endurecimiento posterior a la auditoría (2026-10-20)
+Cambios de la rama `fix/audit-hardening` que piden algo en Render o una verificación después del deploy:
+
+- **Variables de pago en `render.yaml`:** `PAYMENT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN` y
+  `MERCADOPAGO_WEBHOOK_SECRET` quedan declaradas en web **y** en la tarea, con `sync: false`. Render no las
+  pide en servicios ya creados ni toca los valores cargados a mano: solo hay que confirmar que en
+  `turnofacil-reminders` tienen el **mismo valor** que en `turnofacil-web`. Si la tarea no tiene el proveedor,
+  sus logs muestran `subscriptions belong to another payment provider ... check PAYMENT_PROVIDER`.
+- **Migraciones nuevas:** `billing 0003` (tablas de intentos de checkout y de cobros aplicados; solo agrega) y
+  `businesses 0005`/`0006` (borra horarios **idénticos** duplicados, si los hubiera, y agrega la restricción
+  única). Por la regla de Rollback, antes de desplegar: **Recovery > Export** de la base.
+- **Ventana del webhook:** un aviso firmado con más de 5 minutos de diferencia se rechaza con 401
+  (`MERCADOPAGO_WEBHOOK_MAX_AGE_SECONDS`, por defecto `300`). Después del deploy, verificar:
+  - [ ] **Webhooks > Simular notificación** responde 200.
+  - [ ] En los logs de `turnofacil-web` no aparece `invalid or old signature` con avisos reales.
+  Si aparece (por ejemplo, porque Mercado Pago reintenta con la firma original), cargar
+  `MERCADOPAGO_WEBHOOK_MAX_AGE_SECONDS=0` en web para apagar el control.
+- **IP para los límites de intentos (decisión del Founder, 2026-10-20):** se mantiene la opción A, la
+  primera IP de `X-Forwarded-For` (lo que documenta Render), salvo evidencia contraria. No se configura
+  `CLIENT_IP_PROXY_COUNT` de forma preventiva: si Render ya pone la IP real primero, usar la última haría que
+  todos los clientes compartan la IP del proxy y, con ella, los límites de reservas, registros y recuperación.
+  Los límites por cuenta/email siguen siendo la defensa principal del login; el de IP es una segunda barrera.
+  Prueba, desde una terminal propia:
+  - [ ] 31 logins fallidos contra `https://turnofacil.online/login/`, cada uno con una cuenta distinta y un
+        encabezado `X-Forwarded-For` falso distinto.
+  - **Si el intento 31 muestra el bloqueo:** Render sanea el encabezado. Se mantiene A, no se configura
+    `CLIENT_IP_PROXY_COUNT` y se anota el resultado acá, con la fecha.
+  - **Si no muestra el bloqueo:** la primera IP se puede falsificar. Cargar `CLIENT_IP_PROXY_COUNT=1` en web
+    (se usa la última IP de la lista, la que agrega el proxy de Render), repetir la prueba y verificar que
+    clientes reales no compartan una única IP: después de algunos logins fallidos desde redes distintas, en
+    la **Shell** del servicio web,
+    `python manage.py shell -c "from accounts.models import Attempt; print(set(Attempt.objects.filter(scope='login_ip').values_list('key', flat=True)))"`
+    tiene que mostrar varias IPs públicas distintas, no una sola IP interna de Render.
+
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy
   (unos minutos). La tarea de recordatorios se revierte igual, desde su propio servicio.

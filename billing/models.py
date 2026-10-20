@@ -100,6 +100,60 @@ class SubscriptionEvent(models.Model):
         ordering = ["created_at", "pk"]
 
 
+class CheckoutAttempt(models.Model):
+    """One try at paying a plan through the provider, saved before calling it.
+
+    Its idempotency key is reused when the same checkout is retried, so a double click or a timeout
+    after the provider created the checkout never leaves two of them. It grants nothing by itself.
+    """
+
+    OPEN = "open"
+    CLOSED = "closed"
+    STATUSES = [(OPEN, "Abierto"), (CLOSED, "Cerrado")]
+
+    subscription = models.ForeignKey(
+        Subscription, on_delete=models.CASCADE, related_name="checkout_attempts"
+    )
+    plan = models.ForeignKey(Plan, on_delete=models.PROTECT, related_name="+")
+    payer_email = models.EmailField(blank=True)
+    idempotency_key = models.CharField(max_length=64, unique=True)
+    status = models.CharField(max_length=10, choices=STATUSES, default=OPEN)
+    # What the provider returned; empty until the provider answered.
+    provider_reference = models.CharField(max_length=100, blank=True)
+    redirect_url = models.URLField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["subscription"],
+                condition=models.Q(status="open"),
+                name="checkout_attempt_one_open_per_subscription",
+            )
+        ]
+
+
+class ProviderPayment(models.Model):
+    """A charge confirmed by the provider and already applied, so it is never applied twice."""
+
+    subscription = models.ForeignKey(
+        Subscription, on_delete=models.CASCADE, related_name="provider_payments"
+    )
+    provider = models.CharField(max_length=30)
+    external_payment_id = models.CharField(max_length=100)
+    charged_at = models.DateTimeField()
+    period_end = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "external_payment_id"],
+                name="provider_payment_applied_once",
+            )
+        ]
+
+
 class TrialNotice(models.Model):
     DAYS_7 = "days_7"
     DAYS_3 = "days_3"

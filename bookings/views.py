@@ -65,8 +65,17 @@ def book(request, slug):
     return render_booking_page(request, business, selection, booking=booking)
 
 
+class CrossBusinessError(ValueError):
+    """The professional or service belongs to another business. Forms never allow it."""
+
+
 def create_appointment(business, professional, service, data, source=Appointment.ONLINE):
     """Create a confirmed appointment, or return None if the slot was taken meanwhile."""
+    if professional.business_id != business.pk or service.business_id != business.pk:
+        raise CrossBusinessError(
+            f"Professional {professional.pk} or service {service.pk} "
+            f"is not from business {business.pk}"
+        )
     start_at = data["start_at"]
     email = data.get("customer_email", "")
     reminder_due_at = start_at - timedelta(hours=settings.REMINDER_HOURS_BEFORE)

@@ -225,8 +225,9 @@ def mercadopago_webhook(request):
         request.headers.get("x-signature", ""),
         request.headers.get("x-request-id", ""),
         query_id,
+        max_age=settings.MERCADOPAGO_WEBHOOK_MAX_AGE_SECONDS,
     ):
-        logger.warning("Rejected a Mercado Pago notification with an invalid signature")
+        logger.warning("Rejected a Mercado Pago notification with an invalid or old signature")
         return HttpResponse(status=401)
     try:
         body = json.loads(request.body or b"{}")

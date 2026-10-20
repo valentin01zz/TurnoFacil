@@ -1,6 +1,8 @@
 import hashlib
 import hmac
 import json
+import threading
+import time
 from datetime import timedelta
 from datetime import timezone as dt_timezone
 from io import BytesIO, StringIO
@@ -8,7 +10,8 @@ from unittest import mock
 from urllib.error import HTTPError
 
 from django.core.management import CommandError, call_command
-from django.test import TestCase, override_settings
+from django.db import connection
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -20,7 +23,7 @@ from billing.mercadopago import (
     external_reference,
     valid_signature,
 )
-from billing.models import Plan, Subscription
+from billing.models import CheckoutAttempt, Plan, ProviderPayment, Subscription
 from billing.payments import PaymentError, PaymentNotFound, reconcile_subscriptions
 from billing.services import add_months, choose_plan, set_provider_reference
 from bookings.tests.helpers import create_business, create_professional
@@ -39,23 +42,34 @@ class FakeClient:
         self.preapprovals = {}
         self.payments = {}
         self.fail = False
+        # Mercado Pago creates the checkout but the answer never arrives (timeout).
+        self.lose_answer = False
         self.next_id = 1
+        # Like the real API: the same idempotency key returns what it created the first time.
+        self.by_key = {}
 
     def _call(self, *call):
         self.calls.append(call)
         if self.fail:
             raise PaymentError("Mercado Pago no responde")
 
-    def create_preapproval(self, body):
+    def create_preapproval(self, body, idempotency_key=None):
         self._call("create", body)
-        preapproval_id = f"pre_{self.next_id}"
-        self.next_id += 1
-        self.preapprovals[preapproval_id] = {
-            "id": preapproval_id,
-            "status": "pending",
-            "external_reference": body["external_reference"],
-            "auto_recurring": dict(body["auto_recurring"]),
-        }
+        if idempotency_key in self.by_key:
+            preapproval_id = self.by_key[idempotency_key]
+        else:
+            preapproval_id = f"pre_{self.next_id}"
+            self.next_id += 1
+            self.preapprovals[preapproval_id] = {
+                "id": preapproval_id,
+                "status": "pending",
+                "external_reference": body["external_reference"],
+                "auto_recurring": dict(body["auto_recurring"]),
+            }
+            if idempotency_key:
+                self.by_key[idempotency_key] = preapproval_id
+        if self.lose_answer:
+            raise PaymentError("No pudimos comunicarnos con Mercado Pago: timed out")
         return {
             "id": preapproval_id,
             "init_point": f"https://mp.example/checkout?preapproval_id={preapproval_id}",
@@ -87,7 +101,8 @@ class FakeMercadoPagoProvider(MercadoPagoProvider):
         super().__init__(client=FAKE)
 
 
-def sign(data_id, request_id="req-1", ts="1760000000", secret=SECRET):
+def sign(data_id, request_id="req-1", ts=None, secret=SECRET):
+    ts = ts or str(int(time.time()))
     manifest = f"id:{data_id.lower()};request-id:{request_id};ts:{ts};"
     digest = hmac.new(secret.encode(), manifest.encode(), hashlib.sha256).hexdigest()
     return f"ts={ts},v1={digest}"
@@ -673,3 +688,238 @@ class ClientTests(TestCase):
                     "x"
                 )
         urlopen.assert_not_called()
+
+    def test_the_given_idempotency_key_is_sent(self):
+        client = MercadoPagoClient(access_token="token", base_url="https://api.example")
+        answer = mock.MagicMock()
+        answer.__enter__.return_value.read.return_value = b'{"id": "pre_1"}'
+
+        with mock.patch("billing.mercadopago.urlrequest.urlopen", return_value=answer) as urlopen:
+            client.create_preapproval({"reason": "x"}, idempotency_key="key-1")
+
+        self.assertEqual(urlopen.call_args[0][0].get_header("X-idempotency-key"), "key-1")
+
+
+class SignatureAgeTests(TestCase):
+    NOW = 1_800_000_000
+
+    def check(self, ts, max_age=300):
+        header = sign("123", ts=str(ts))
+        return valid_signature(SECRET, header, "req-1", "123", max_age=max_age, now=self.NOW)
+
+    def test_a_recent_signature_is_accepted(self):
+        self.assertTrue(self.check(self.NOW - 60))
+        self.assertTrue(self.check(self.NOW * 1000))  # milliseconds
+
+    def test_old_or_future_signatures_are_rejected(self):
+        self.assertFalse(self.check(self.NOW - 301))
+        self.assertFalse(self.check(self.NOW + 301))
+        self.assertFalse(self.check("no-es-un-numero"))
+
+    def test_the_age_check_can_be_turned_off(self):
+        self.assertTrue(self.check(self.NOW - 86400, max_age=0))
+
+
+class WebhookReplayTests(MercadoPagoTestCase):
+    def test_an_old_valid_signature_is_rejected_before_calling_the_api(self):
+        self.checkout()
+        FAKE.preapprovals["pre_1"]["status"] = "authorized"
+        FAKE.calls.clear()
+        old = str(int(time.time()) - 3600)
+
+        with self.assertLogs("billing.views", level="WARNING"):
+            response = self.notify(
+                "subscription_preapproval", "pre_1", header=sign("pre_1", ts=old)
+            )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(FAKE.calls, [])
+        self.assertEqual(self.refresh().status, Subscription.PENDING_PAYMENT)
+
+    def test_a_processed_notification_sent_again_changes_nothing(self):
+        self.subscribed()
+        self.charge("ap_1", "approved", timezone.now())
+        events = self.subscription.events.count()
+        period_end = self.refresh().current_period_end
+
+        self.assertEqual(self.notify("subscription_authorized_payment", "ap_1").status_code, 200)
+
+        self.assertEqual(self.subscription.events.count(), events)
+        self.assertEqual(self.refresh().current_period_end, period_end)
+
+
+class CheckoutIdempotencyTests(MercadoPagoTestCase):
+    def creates(self):
+        return [call for call in FAKE.calls if call[0] == "create"]
+
+    def test_a_double_click_reuses_the_same_checkout(self):
+        first = self.checkout()
+        second = self.checkout()
+
+        self.assertEqual(first.url, second.url)
+        self.assertEqual(len(self.creates()), 1)
+        self.assertEqual(list(FAKE.preapprovals), ["pre_1"])
+        self.assertEqual(self.refresh().provider_subscription_id, "pre_1")
+        self.assertEqual(CheckoutAttempt.objects.filter(status=CheckoutAttempt.OPEN).count(), 1)
+
+    def test_a_timeout_after_mercado_pago_created_it_is_recovered(self):
+        FAKE.lose_answer = True
+
+        with self.assertLogs("billing.views", level="ERROR"):
+            response = self.checkout()
+
+        self.assertContains(response, "No pudimos conectarnos con Mercado Pago")
+        subscription = self.refresh()
+        self.assertEqual(subscription.status, Subscription.TRIALING)
+        self.assertEqual(subscription.provider_subscription_id, "")
+
+        FAKE.lose_answer = False
+        response = self.checkout()
+
+        self.assertRedirects(
+            response,
+            "https://mp.example/checkout?preapproval_id=pre_1",
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(list(FAKE.preapprovals), ["pre_1"])
+        subscription = self.refresh()
+        self.assertEqual(subscription.status, Subscription.PENDING_PAYMENT)
+        self.assertEqual(subscription.provider_subscription_id, "pre_1")
+
+    def test_another_email_starts_a_new_checkout(self):
+        self.checkout(email="uno@luna.example")
+        self.checkout(email="dos@luna.example")
+
+        self.assertEqual(self.refresh().provider_subscription_id, "pre_2")
+        self.assertIn(("update", "pre_1", {"status": "cancelled"}), FAKE.calls)
+        self.assertEqual(CheckoutAttempt.objects.filter(status=CheckoutAttempt.OPEN).count(), 1)
+
+    def test_an_old_pending_checkout_is_not_reused(self):
+        self.checkout()
+        CheckoutAttempt.objects.update(created_at=timezone.now() - timedelta(minutes=31))
+
+        self.checkout()
+
+        self.assertEqual(self.refresh().provider_subscription_id, "pre_2")
+
+    def test_an_authorized_checkout_is_not_reused_after_a_cancellation(self):
+        self.subscribed()
+        self.client.post(reverse("cancel_subscription"))
+
+        self.checkout()
+
+        self.assertEqual(len(self.creates()), 2)
+        self.assertEqual(self.refresh().provider_subscription_id, "pre_2")
+
+
+class SlowFakeClient(FakeClient):
+    """Answers slowly, so two requests really overlap."""
+
+    def create_preapproval(self, body, idempotency_key=None):
+        time.sleep(0.3)
+        return super().create_preapproval(body, idempotency_key)
+
+
+@override_settings(SITE_URL="https://turnofacil.example")
+class ConcurrentCheckoutTests(TransactionTestCase):
+    serialized_rollback = True  # keeps the plans created by the data migration
+
+    def test_two_requests_at_once_create_one_checkout(self):
+        subscription = create_business(name="Studio Norte").subscription
+        plan = Plan.objects.get(code="negocio")
+        client = SlowFakeClient()
+        barrier = threading.Barrier(2)
+        urls, errors = [], []
+
+        def pay():
+            try:
+                barrier.wait()
+                current = Subscription.objects.get(pk=subscription.pk)
+                result = MercadoPagoProvider(client=client).start_checkout(
+                    current, plan, payer_email="pagos@norte.example"
+                )
+                urls.append(result.redirect_url)
+            except Exception as error:  # reported below, threads cannot fail the test
+                errors.append(error)
+            finally:
+                connection.close()
+
+        threads = [threading.Thread(target=pay) for _ in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        self.assertEqual(errors, [])
+        self.assertEqual(len(urls), 2)
+        self.assertEqual(len(set(urls)), 1)
+        self.assertEqual(list(client.preapprovals), ["pre_1"])
+        self.assertEqual(len([call for call in client.calls if call[0] == "create"]), 1)
+
+
+class ChargeIdempotencyTests(MercadoPagoTestCase):
+    def test_each_charge_is_recorded_once(self):
+        self.subscribed()
+        debit = timezone.now()
+
+        self.charge("ap_1", "approved", debit)
+        self.charge("ap_1", "approved", debit)
+
+        self.assertEqual(
+            list(ProviderPayment.objects.values_list("external_payment_id", flat=True)), ["ap_1"]
+        )
+
+    def test_a_late_rejection_of_an_applied_charge_changes_nothing(self):
+        self.subscribed()
+        debit = timezone.now()
+        self.charge("ap_1", "approved", debit)
+        events = self.subscription.events.count()
+
+        self.charge("ap_1", "rejected", debit)
+
+        self.assertEqual(self.refresh().status, Subscription.ACTIVE)
+        self.assertEqual(self.subscription.events.count(), events)
+
+    def test_an_older_charge_never_moves_the_paid_period_back(self):
+        self.subscribed()
+        later = timezone.now()
+        self.charge("ap_2", "approved", later)
+        events = self.subscription.events.count()
+
+        self.charge("ap_1", "approved", later - timedelta(days=31))
+
+        self.assertEqual(self.refresh().current_period_end, add_months(later, 1))
+        self.assertEqual(self.subscription.events.count(), events)
+        self.assertEqual(ProviderPayment.objects.count(), 2)
+
+    def test_a_past_due_subscription_recovers_without_losing_paid_time(self):
+        subscription = self.subscribed()
+        period_end = subscription.current_period_end
+        self.charge("ap_1", "rejected", period_end)
+
+        self.charge("ap_2", "approved", period_end - timedelta(days=40))
+
+        subscription = self.refresh()
+        self.assertEqual(subscription.status, Subscription.ACTIVE)
+        self.assertEqual(subscription.current_period_end, period_end)
+
+
+class ProviderSettingTests(TestCase):
+    def setUp(self):
+        self.business = create_business()
+        subscription = set_active(self.business, "negocio", timezone.now() + timedelta(days=10))
+        set_provider_reference(subscription, "mercadopago", "pre_1")
+
+    @override_settings(PAYMENT_PROVIDER="billing.payments.ManualProvider")
+    def test_the_scheduled_task_warns_when_its_provider_is_missing(self):
+        with self.assertLogs("billing.payments", level="ERROR") as logs:
+            call_command("run_billing_tasks", stdout=StringIO())
+
+        self.assertIn("PAYMENT_PROVIDER", logs.output[0])
+
+    @override_settings(PAYMENT_PROVIDER=PROVIDER)
+    def test_no_warning_with_the_right_provider(self):
+        FAKE.__init__()
+
+        with self.assertNoLogs("billing.payments", level="ERROR"):
+            call_command("run_billing_tasks", stdout=StringIO())

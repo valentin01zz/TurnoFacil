@@ -14,6 +14,11 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+# Which X-Forwarded-For entry is the client, for rate limits by IP (accounts/throttle.py).
+# Empty: the first one (what Render documents). N: the N-th from the right, for N trusted proxies
+# that each append the address they saw. "0": ignore the header and use the connection's address.
+_proxy_count = os.environ.get("CLIENT_IP_PROXY_COUNT", "").strip()
+CLIENT_IP_PROXY_COUNT = int(_proxy_count) if _proxy_count else None
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -106,11 +111,18 @@ PAST_DUE_GRACE_DAYS = 3
 # Email verification: the trial starts when the owner confirms the address.
 EMAIL_VERIFICATION_DAYS = 3
 EMAIL_VERIFICATION_RESEND_SECONDS = 60
-PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "billing.payments.ManualProvider")
+# An empty value (a Render variable left blank) also means the manual provider.
+PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER") or "billing.payments.ManualProvider"
 # Mercado Pago subscriptions (ADR-0005). Credentials only from the environment, never in the repo.
 MERCADOPAGO_ACCESS_TOKEN = os.environ.get("MERCADOPAGO_ACCESS_TOKEN", "")
 MERCADOPAGO_WEBHOOK_SECRET = os.environ.get("MERCADOPAGO_WEBHOOK_SECRET", "")
 MERCADOPAGO_API_URL = os.environ.get("MERCADOPAGO_API_URL", "https://api.mercadopago.com")
+# Signed notifications older (or further ahead) than this many seconds are rejected; 0 turns it off.
+MERCADOPAGO_WEBHOOK_MAX_AGE_SECONDS = int(
+    os.environ.get("MERCADOPAGO_WEBHOOK_MAX_AGE_SECONDS") or "300"
+)
+# A repeated checkout (double click, retry) reuses the pending Mercado Pago link for this long.
+CHECKOUT_REUSE_MINUTES = 30
 # Manual bank transfer, shown on the plans page only when an alias is set.
 TRANSFER_ALIAS = os.environ.get("TRANSFER_ALIAS", "")
 TRANSFER_HOLDER = os.environ.get("TRANSFER_HOLDER", "")

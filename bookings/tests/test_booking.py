@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from bookings.models import Appointment
-from bookings.views import TAKEN_MESSAGE
+from bookings.views import TAKEN_MESSAGE, CrossBusinessError
 from bookings.views import create_appointment as create_from_form
 
 from .helpers import (
@@ -277,3 +277,54 @@ class AppointmentRulesTests(TestCase):
 
         appointment.refresh_from_db()
         self.assertEqual(appointment.end_at, local_dt(self.date, 10, 50))
+
+
+class CrossBusinessTests(TestCase):
+    """Business A can never get an appointment with business B's professional or service."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.business = create_business()
+        cls.professional = create_professional(cls.business)
+        cls.service = create_service(cls.business)
+        cls.other = create_business("b@example.com", name="Barbería Sur")
+        cls.other_professional = create_professional(cls.other, name="Bruno")
+        cls.other_service = create_service(cls.other, name="Corte")
+        cls.data = {
+            "start_at": local_dt(future_date(), 10, 0),
+            "customer_name": "Laura",
+            "customer_phone": "11 5555 1234",
+            "customer_email": "laura@example.com",
+        }
+
+    def test_a_professional_from_another_business_is_rejected(self):
+        with self.assertRaises(CrossBusinessError):
+            create_from_form(self.business, self.other_professional, self.service, self.data)
+
+        self.assertFalse(Appointment.objects.exists())
+
+    def test_a_service_from_another_business_is_rejected(self):
+        with self.assertRaises(CrossBusinessError):
+            create_from_form(self.business, self.professional, self.other_service, self.data)
+
+        self.assertFalse(Appointment.objects.exists())
+
+    def test_both_from_another_business_are_rejected(self):
+        with self.assertRaises(CrossBusinessError):
+            create_from_form(self.business, self.other_professional, self.other_service, self.data)
+
+        self.assertFalse(Appointment.objects.exists())
+
+    def test_the_same_business_still_books(self):
+        appointment = create_from_form(self.business, self.professional, self.service, self.data)
+
+        self.assertEqual(appointment.business, self.business)
+
+    def test_moving_to_a_professional_from_another_business_is_rejected(self):
+        appointment = create_appointment(self.professional, self.service, self.data["start_at"])
+
+        with self.assertRaises(ValueError):
+            appointment.move_to(self.data["start_at"], professional=self.other_professional)
+
+        appointment.refresh_from_db()
+        self.assertEqual(appointment.professional, self.professional)

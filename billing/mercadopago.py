@@ -4,13 +4,17 @@ Rules that keep this safe:
 - The owner pays on Mercado Pago's own checkout; card data never reaches TurnoFacil.
 - A notification is only a hint: its signature is checked, and then the real state is always read
   back from the API with our own credentials before anything changes.
-- Applying the same state twice changes nothing, so retried or repeated notifications are harmless.
+- Applying the same state twice changes nothing, so retried or repeated notifications are harmless:
+  each charge is recorded once applied (ProviderPayment) and the paid period never moves back.
+- A checkout is saved before Mercado Pago is called (CheckoutAttempt) and retried with the same
+  idempotency key, so double clicks, concurrent requests and timeouts never create two checkouts.
 """
 
 import hashlib
 import hmac
 import json
 import logging
+import time
 import uuid
 from datetime import timedelta
 from datetime import timezone as dt_timezone
@@ -19,12 +23,13 @@ from urllib import request as urlrequest
 from urllib.parse import quote
 
 from django.conf import settings
+from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from . import services
-from .models import Subscription
+from .models import CheckoutAttempt, ProviderPayment, Subscription
 from .payments import CheckoutResult, PaymentError, PaymentNotFound, PaymentProvider
 
 logger = logging.getLogger(__name__)
@@ -48,8 +53,12 @@ def api_date(moment):
     return moment.astimezone(dt_timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
-def valid_signature(secret, signature_header, request_id, data_id):
-    """Check Mercado Pago's `x-signature` header (HMAC-SHA256 of the documented manifest)."""
+def valid_signature(secret, signature_header, request_id, data_id, max_age=0, now=None):
+    """Check Mercado Pago's `x-signature` header (HMAC-SHA256 of the documented manifest).
+
+    With `max_age` (seconds), a signature whose timestamp is further than that from `now` is
+    rejected too, so a captured notification cannot be replayed later.
+    """
     parts = {}
     for item in (signature_header or "").split(","):
         key, _, value = item.strip().partition("=")
@@ -64,7 +73,20 @@ def valid_signature(secret, signature_header, request_id, data_id):
         manifest += f"request-id:{request_id};"
     manifest += f"ts:{ts};"
     expected = hmac.new(secret.encode(), manifest.encode(), hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, received)
+    if not hmac.compare_digest(expected, received):
+        return False
+    return not max_age or is_recent(ts, max_age, now)
+
+
+def is_recent(ts, max_age, now=None):
+    try:
+        sent = int(ts)
+    except ValueError:
+        return False
+    if sent > 10**11:  # milliseconds
+        sent //= 1000
+    now = time.time() if now is None else now
+    return abs(now - sent) <= max_age
 
 
 class MercadoPagoClient:
@@ -73,7 +95,7 @@ class MercadoPagoClient:
         self.base_url = (base_url or settings.MERCADOPAGO_API_URL).rstrip("/")
         self.timeout = timeout
 
-    def request(self, method, path, body=None):
+    def request(self, method, path, body=None, idempotency_key=None):
         if not self.access_token:
             raise PaymentError("Falta configurar MERCADOPAGO_ACCESS_TOKEN")
         headers = {
@@ -81,7 +103,7 @@ class MercadoPagoClient:
             "Content-Type": "application/json",
         }
         if method == "POST":
-            headers["X-Idempotency-Key"] = str(uuid.uuid4())
+            headers["X-Idempotency-Key"] = idempotency_key or str(uuid.uuid4())
         data = json.dumps(body).encode() if body is not None else None
         req = urlrequest.Request(self.base_url + path, data=data, headers=headers, method=method)
         try:
@@ -97,8 +119,8 @@ class MercadoPagoClient:
     def get_preapproval(self, preapproval_id):
         return self.request("GET", f"/preapproval/{quote(str(preapproval_id), safe='')}")
 
-    def create_preapproval(self, body):
-        return self.request("POST", "/preapproval", body)
+    def create_preapproval(self, body, idempotency_key=None):
+        return self.request("POST", "/preapproval", body, idempotency_key=idempotency_key)
 
     def update_preapproval(self, preapproval_id, body):
         return self.request("PUT", f"/preapproval/{quote(str(preapproval_id), safe='')}", body)
@@ -148,36 +170,110 @@ def apply_payment(subscription, data, now=None):
     """A monthly charge: approved extends one month from its date, rejected flags the problem."""
     now = now or timezone.now()
     payment_status = (data.get("payment") or {}).get("status")
+    payment_id = str(data.get("id") or "")
+    if payment_id and already_applied(payment_id):
+        # Repeated or late notification (even with another status): its effect is already in.
+        logger.info("Mercado Pago charge %s was already applied", payment_id)
+        return subscription
     if payment_status == "approved":
-        if subscription.status not in (
-            Subscription.ACTIVE,
-            Subscription.PAST_DUE,
-            Subscription.PENDING_PAYMENT,
-        ):
-            logger.warning(
-                "Approved charge for subscription %s in state %s",
-                subscription.pk,
-                subscription.status,
-            )
-            return subscription
-        charged_at = parse_date(data.get("debit_date")) or parse_date(data.get("date_created"))
-        period_end = services.add_months(charged_at or now, 1)
-        current = subscription.current_period_end
-        if subscription.status == Subscription.ACTIVE and current and current >= period_end:
-            return subscription  # already applied
-        return services.transition(
-            subscription,
-            Subscription.ACTIVE,
-            "Cobro mensual aprobado por Mercado Pago",
-            plan=subscription.selected_plan or subscription.plan,
-            selected_plan=None,
-            current_period_end=period_end,
-        )
+        return apply_approved_payment(subscription, data, payment_id, now)
     if payment_status in ("rejected", "cancelled") and (
         subscription.status == Subscription.ACTIVE and subscription.renews_automatically
     ):
         return services.mark_past_due(subscription, "Mercado Pago no pudo cobrar la cuota")
     return subscription
+
+
+def already_applied(payment_id):
+    return ProviderPayment.objects.filter(provider=NAME, external_payment_id=payment_id).exists()
+
+
+def apply_approved_payment(subscription, data, payment_id, now):
+    """Extend one month from the charge date, once per charge, without moving the period back."""
+    charged_at = parse_date(data.get("debit_date")) or parse_date(data.get("date_created")) or now
+    period_end = services.add_months(charged_at, 1)
+    with transaction.atomic():
+        # Notifications for the same subscription are applied one at a time.
+        locked = Subscription.objects.select_for_update().get(pk=subscription.pk)
+        if payment_id and already_applied(payment_id):
+            logger.info("Mercado Pago charge %s was already applied", payment_id)
+            return refreshed(subscription)
+        if locked.status not in (
+            Subscription.ACTIVE,
+            Subscription.PAST_DUE,
+            Subscription.PENDING_PAYMENT,
+        ):
+            logger.warning(
+                "Approved charge for subscription %s in state %s", locked.pk, locked.status
+            )
+            return refreshed(subscription)
+        if payment_id:
+            ProviderPayment.objects.create(
+                subscription=locked,
+                provider=NAME,
+                external_payment_id=payment_id,
+                charged_at=charged_at,
+                period_end=period_end,
+            )
+        current = locked.current_period_end
+        if current and current >= period_end:
+            if locked.status == Subscription.ACTIVE:
+                return refreshed(subscription)  # an older charge: the paid period stays
+            period_end = current
+        services.transition(
+            locked,
+            Subscription.ACTIVE,
+            "Cobro mensual aprobado por Mercado Pago",
+            plan=locked.selected_plan or locked.plan,
+            selected_plan=None,
+            current_period_end=period_end,
+        )
+    return refreshed(subscription)
+
+
+def refreshed(subscription):
+    subscription.refresh_from_db()
+    return subscription
+
+
+def open_checkout_attempt(subscription, plan, payer_email, now=None):
+    """The attempt to use for this checkout, committed before Mercado Pago is called.
+
+    A recent open attempt for the same plan and email is reused (with its idempotency key);
+    otherwise it is closed and a new one starts.
+    """
+    now = now or timezone.now()
+    with transaction.atomic():
+        locked = Subscription.objects.select_for_update().get(pk=subscription.pk)
+        current = CheckoutAttempt.objects.filter(
+            subscription=locked, status=CheckoutAttempt.OPEN
+        ).first()
+        if current and reusable_attempt(current, locked, plan, payer_email, now):
+            return current
+        if current:
+            current.status = CheckoutAttempt.CLOSED
+            current.save(update_fields=["status"])
+        return CheckoutAttempt.objects.create(
+            subscription=locked,
+            plan=plan,
+            payer_email=payer_email,
+            idempotency_key=uuid.uuid4().hex,
+        )
+
+
+def reusable_attempt(attempt, subscription, plan, payer_email, now):
+    if attempt.plan_id != plan.pk or attempt.payer_email.lower() != payer_email.lower():
+        return False
+    if attempt.created_at < now - timedelta(minutes=settings.CHECKOUT_REUSE_MINUTES):
+        return False
+    if not attempt.provider_reference:
+        return True  # Mercado Pago never answered: retry with the same key
+    # Answered: its link is still the subscription's pending checkout.
+    return (
+        subscription.status == Subscription.PENDING_PAYMENT
+        and subscription.provider == NAME
+        and subscription.provider_subscription_id == attempt.provider_reference
+    )
 
 
 class MercadoPagoProvider(PaymentProvider):
@@ -192,6 +288,34 @@ class MercadoPagoProvider(PaymentProvider):
         services.ensure_plan_fits(subscription, plan)
         if Subscription.PENDING_PAYMENT not in services.ALLOWED_TRANSITIONS[subscription.status]:
             raise services.InvalidTransition(f"No se puede pagar desde {subscription.status}")
+        attempt = open_checkout_attempt(subscription, plan, payer_email or "")
+        with transaction.atomic():
+            # One checkout at a time per subscription: a concurrent request waits here and then
+            # finds this attempt already answered. The lock is held while Mercado Pago answers.
+            locked = Subscription.objects.select_for_update().get(pk=subscription.pk)
+            attempt = CheckoutAttempt.objects.get(pk=attempt.pk)
+            if attempt.status != CheckoutAttempt.OPEN:
+                raise PaymentError("Otro pago reemplazó a este intento")
+            if attempt.provider_reference:
+                return CheckoutResult(redirect_url=attempt.redirect_url, message="")
+            previous = locked.provider_subscription_id if locked.provider == NAME else ""
+            data = self.client.create_preapproval(
+                self.preapproval_body(locked, plan, payer_email),
+                idempotency_key=attempt.idempotency_key,
+            )
+            if not data.get("id") or not data.get("init_point"):
+                raise PaymentError("Mercado Pago no devolvió el link de pago")
+            reference = str(data["id"])
+            attempt.provider_reference = reference
+            attempt.redirect_url = data["init_point"]
+            attempt.save(update_fields=["provider_reference", "redirect_url"])
+            locked = services.choose_plan(locked, plan)
+            services.set_provider_reference(locked, NAME, reference)
+        if previous and previous != reference:
+            self.discard(previous)
+        return CheckoutResult(redirect_url=attempt.redirect_url, message="")
+
+    def preapproval_body(self, subscription, plan, payer_email):
         now = timezone.now()
         auto_recurring = {
             "frequency": 1,
@@ -202,24 +326,14 @@ class MercadoPagoProvider(PaymentProvider):
         first_charge = services.first_charge_at(subscription, now)
         if first_charge > now + timedelta(minutes=5):
             auto_recurring["start_date"] = api_date(first_charge)
-        previous = subscription.provider_subscription_id if subscription.provider == NAME else ""
-        data = self.client.create_preapproval(
-            {
-                "reason": f"TurnoFacil {plan.name} - {subscription.business.name}"[:200],
-                "external_reference": external_reference(subscription),
-                "payer_email": payer_email,
-                "auto_recurring": auto_recurring,
-                "back_url": f"{settings.SITE_URL}{reverse('payment_return')}",
-                "status": "pending",
-            }
-        )
-        if not data.get("id") or not data.get("init_point"):
-            raise PaymentError("Mercado Pago no devolvió el link de pago")
-        subscription = services.choose_plan(subscription, plan)
-        services.set_provider_reference(subscription, NAME, str(data["id"]))
-        if previous and previous != str(data["id"]):
-            self.discard(previous)
-        return CheckoutResult(redirect_url=data["init_point"], message="")
+        return {
+            "reason": f"TurnoFacil {plan.name} - {subscription.business.name}"[:200],
+            "external_reference": external_reference(subscription),
+            "payer_email": payer_email,
+            "auto_recurring": auto_recurring,
+            "back_url": f"{settings.SITE_URL}{reverse('payment_return')}",
+            "status": "pending",
+        }
 
     def discard(self, preapproval_id):
         """Best effort: an abandoned checkout should not stay usable at Mercado Pago."""

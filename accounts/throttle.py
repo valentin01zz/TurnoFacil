@@ -1,12 +1,14 @@
 """Rate limits for public actions (QA risk R1), stored in the database so every worker shares them.
 
 Limits by account (email) cannot be dodged by changing networks; limits by IP are a second layer.
-The IP comes from X-Forwarded-For as set by the hosting proxy, so it is best effort.
+The IP comes from X-Forwarded-For as set by the hosting proxy (see CLIENT_IP_PROXY_COUNT in
+settings): a client can add fake entries to that header, so only the entry the proxy wrote counts.
 """
 
 import logging
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 
 from .models import Attempt
@@ -26,10 +28,16 @@ KEEP = timedelta(days=1)  # longer than any window
 
 
 def client_ip(request):
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()[:254]
-    return request.META.get("REMOTE_ADDR", "")[:254]
+    remote = request.META.get("REMOTE_ADDR", "")[:254]
+    proxies = settings.CLIENT_IP_PROXY_COUNT
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")
+    entries = [item.strip() for item in forwarded if item.strip()]
+    if not entries or proxies == 0:
+        return remote
+    if proxies is None:
+        return entries[0][:254]
+    # Each trusted proxy appends the address it saw: the client is the N-th from the right.
+    return entries[-proxies][:254] if len(entries) >= proxies else remote
 
 
 def is_limited(scope, key, now=None):

@@ -84,6 +84,10 @@ class Appointment(models.Model):
     def move_to(self, start_at, professional=None, now=None):
         """Move to a new start time (and professional), resetting the reminder."""
         now = now or timezone.now()
+        if professional is not None and professional.business_id != self.business_id:
+            raise ValueError(
+                f"Professional {professional.pk} is not from business {self.business_id}"
+            )
         self.professional = professional or self.professional
         reminder_due_at = start_at - timedelta(hours=settings.REMINDER_HOURS_BEFORE)
         self.start_at = start_at

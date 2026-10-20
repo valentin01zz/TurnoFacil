@@ -5,12 +5,15 @@ provider itself, that the payment or authorization is real. TurnoFacil never sto
 payment-method data. `ManualProvider` is the default when no provider is configured.
 """
 
+import logging
 from dataclasses import dataclass
 
 from django.conf import settings
 from django.utils.module_loading import import_string
 
 from . import services
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -81,11 +84,35 @@ def get_provider():
 
 def reconcile_subscriptions(now=None):
     """Scheduled upkeep: close ended cancellations, flag unconfirmed charges, sync the provider."""
+    provider = get_provider()
+    warn_about_other_providers(provider)
     return {
         "closed": services.finish_due_cancellations(now),
         "past_due": services.flag_unconfirmed_renewals(now),
-        "synced": get_provider().reconcile(now),
+        "synced": provider.reconcile(now),
     }
+
+
+def warn_about_other_providers(provider):
+    """Subscriptions paid through another provider cannot be synced: the setting is probably
+    missing in this process (for example, the scheduled job on the hosting)."""
+    from .models import Subscription
+
+    others = (
+        Subscription.objects.exclude(provider="")
+        .exclude(provider=provider.name)
+        .exclude(provider_subscription_id="")
+        .filter(
+            status__in=(Subscription.PENDING_PAYMENT, Subscription.ACTIVE, Subscription.PAST_DUE)
+        )
+        .count()
+    )
+    if others:
+        logger.error(
+            "%s subscriptions belong to another payment provider than %r: check PAYMENT_PROVIDER",
+            others,
+            provider.name,
+        )
 
 
 def confirm_payment(provider, payload):
