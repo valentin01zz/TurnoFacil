@@ -215,11 +215,14 @@ class FlexibleHoursPlansTests(TestCase):
             ("esencial", "esencial"),
             ("profesional", "profesional"),
             ("negocio", "negocio"),
+            ("piloto", "piloto"),
         ]
         for index, (label, plan) in enumerate(cases):
             with self.subTest(label):
                 business = create_business(f"{label}@example.com", f"Negocio {index}")
-                if plan:
+                if plan == "piloto":
+                    set_active(business, plan)  # granted with grant_plan: no end date
+                elif plan:
                     set_active(business, plan, timezone.now() + timedelta(days=20))
 
                 response = self.post_split_shift(business)
