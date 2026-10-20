@@ -7,12 +7,24 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from billing.catalog import PANEL_EDIT
+from billing.catalog import BOOKING_DEPOSIT, PANEL_EDIT
 from billing.decorators import requires_feature
 from bookings.models import Appointment
 
-from .forms import AgendaForm, BusinessForm, ProfessionalForm, ServiceForm, working_hours_formset
-from .models import Professional, Service
+from .forms import (
+    AgendaForm,
+    BusinessForm,
+    DepositSettingsForm,
+    ProfessionalForm,
+    ServiceForm,
+    working_hours_formset,
+)
+from .models import DepositSettings, Professional, Service
+
+DEPOSIT_NOT_IN_PLAN = (
+    "La seña por transferencia está en los planes Profesional y Negocio. "
+    "Cambiá de plan para usarla."
+)
 
 PROFESSIONAL_TINTS = ["#FFB59E", "#B9A8FF", "#8EE3D8", "#FFD98A", "#FF9EC4", "#A8D8FF"]
 WEEKDAY_INITIALS = ["L", "M", "M", "J", "V", "S", "D"]
@@ -149,6 +161,34 @@ def business_edit(request):
 
 
 @login_required
+@requires_feature(PANEL_EDIT)
+def deposit_settings(request):
+    """Deposit by bank transfer: only plans with the feature, checked here on every request."""
+    business = request.user.business
+    allowed = request.access.can(BOOKING_DEPOSIT)
+    deposit = DepositSettings.objects.filter(business=business).first()
+    deposit = deposit or DepositSettings(business=business)
+    if not allowed:
+        if request.method == "POST":
+            messages.error(request, DEPOSIT_NOT_IN_PLAN)
+            return redirect("deposit_settings")
+        return render(
+            request, "businesses/deposit_settings.html", {"allowed": False, "deposit": deposit}
+        )
+    form = DepositSettingsForm(request.POST or None, instance=deposit)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Listo, guardamos los cambios.")
+        return redirect("deposit_settings")
+    saved = DepositSettings.objects.filter(business=business).first()
+    return render(
+        request,
+        "businesses/deposit_settings.html",
+        {"allowed": True, "form": form, "preview": saved if saved and saved.enabled else None},
+    )
+
+
+@login_required
 def service_list(request):
     services = request.user.business.services.all()
     return render(request, "businesses/service_list.html", {"services": services})
@@ -197,7 +237,7 @@ def professional_create(request):
 @requires_feature(PANEL_EDIT)
 def professional_edit(request, pk):
     professional = get_owned_or_404(request, Professional, pk)
-    return professional_form(request, professional, extra=2, is_new=False)
+    return professional_form(request, professional, extra=3, is_new=False)
 
 
 def limit_message(access):

@@ -1,0 +1,9 @@
+<fieldset class="hours-row" data-hours-row>
+  <legend class="sr-only">Tramo {{ number }}</legend>
+  {{ hours_form.id }}
+  {% if hours_form.non_field_errors %}<div class="full" style="grid-column: 1 / -1">{{ hours_form.non_field_errors }}</div>{% endif %}
+  <div>{{ hours_form.weekday.errors }}{{ hours_form.weekday.label_tag }} {{ hours_form.weekday }}</div>
+  <div>{{ hours_form.start_time.errors }}{{ hours_form.start_time.label_tag }} {{ hours_form.start_time }}</div>
+  <div>{{ hours_form.end_time.errors }}{{ hours_form.end_time.label_tag }} {{ hours_form.end_time }}</div>
+  <div class="hours-delete">{{ hours_form.DELETE }} {{ hours_form.DELETE.label_tag }}</div>
+</fieldset>

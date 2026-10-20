@@ -33,6 +33,7 @@
         {% elif appointment.is_confirmed %}
           <p class="notice" style="margin-top: 14px">Faltan menos de {{ change_limit_hours }} horas para el turno. Si necesitás cambiarlo, contactá a {{ appointment.business.name }}.</p>
         {% endif %}
+        {% if deposit and appointment.is_confirmed and not appointment.is_past %}{% include "bookings/_deposit.html" %}{% endif %}
       </div>
       {% if just_booked %}
         <span class="stamp" aria-hidden="true">CONFIRMADO</span>

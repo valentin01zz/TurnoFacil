@@ -132,6 +132,7 @@
         <div class="t-foot">
           <button type="submit" form="book-form" class="btn btn-primary btn-block" data-ticket-confirm{% if not slot_groups %} disabled{% endif %}>Confirmar turno {% include "_icon.html" with name="arrow" size=20 stroke=2.6 %}</button>
           <p class="fine">Podés reprogramar o cancelar hasta 2 horas antes, desde el link del email.</p>
+          {% if deposit %}<p class="fine">{{ business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia. Te mostramos los datos al confirmar.</p>{% endif %}
         </div>
       </div>
     </aside>

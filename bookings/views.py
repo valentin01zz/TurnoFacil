@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from accounts.throttle import client_ip, is_limited, record
 from billing.access import get_access
 from billing.catalog import BOOKING_ONLINE
+from businesses.deposit import public_deposit
 from businesses.models import Business
 
 from .availability import available_slots
@@ -163,6 +164,7 @@ def render_booking_page(request, business, selection, booking=None, status=200):
         {
             "business": business,
             "is_taking_bookings": is_taking_bookings,
+            "deposit": public_deposit(business) if is_taking_bookings else None,
             "selection": selection,
             "services": [
                 {
@@ -240,6 +242,8 @@ def render_appointment(request, appointment, template="bookings/appointment_deta
         "just_booked": just_booked,
         "first_name": (appointment.customer_name.split() or [""])[0],
         "confetti": confetti() if just_booked else [],
+        # Always from the appointment's own business, never from the request.
+        "deposit": public_deposit(appointment.business),
         **extra,
     }
     return render(request, template, context)

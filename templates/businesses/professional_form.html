@@ -11,22 +11,20 @@
     </div>
     <div class="card">
       <h2>Horarios de atención</h2>
-      <p>Una fila por tramo. Si un día tiene horario cortado, cargá dos filas para ese día.</p>
+      <p>Una fila por tramo. Podés repetir el mismo día para cargar un horario cortado, por ejemplo
+        el lunes de 09:00 a 13:00 y de 17:00 a 21:00. Hasta {{ formset.max_num }} tramos por profesional.</p>
       {{ formset.management_form }}
       {{ formset.non_form_errors }}
-      {% for hours_form in formset %}
-        <fieldset class="hours-row">
-          <legend class="sr-only">Tramo {{ forloop.counter }}</legend>
-          {{ hours_form.id }}
-          {% if hours_form.non_field_errors %}<div class="full" style="grid-column: 1 / -1">{{ hours_form.non_field_errors }}</div>{% endif %}
-          <div>{{ hours_form.weekday.errors }}{{ hours_form.weekday.label_tag }} {{ hours_form.weekday }}</div>
-          <div>{{ hours_form.start_time.errors }}{{ hours_form.start_time.label_tag }} {{ hours_form.start_time }}</div>
-          <div>{{ hours_form.end_time.errors }}{{ hours_form.end_time.label_tag }} {{ hours_form.end_time }}</div>
-          {% if hours_form.instance.pk %}
-            <div style="flex-direction: row; align-items: center; gap: 8px; align-self: end; padding-bottom: 12px">{{ hours_form.DELETE }} {{ hours_form.DELETE.label_tag }}</div>
-          {% endif %}
-        </fieldset>
-      {% endfor %}
+      <div data-hours-rows>
+        {% for hours_form in formset %}
+          {% include "businesses/_hours_row.html" with hours_form=hours_form number=forloop.counter %}
+        {% endfor %}
+      </div>
+      <template data-hours-template>
+        {% include "businesses/_hours_row.html" with hours_form=formset.empty_form number="nuevo" %}
+      </template>
+      <p data-hours-limit hidden>Llegaste al máximo de {{ formset.max_num }} tramos.</p>
+      <p><button class="btn" type="button" data-hours-add data-max="{{ formset.max_num }}" hidden>+ Agregar otro horario</button></p>
       <div class="actions">
         <button class="btn btn-primary" type="submit">Guardar</button>
         <a class="link-button" href="{% url 'professional_list' %}">Volver a profesionales</a>
