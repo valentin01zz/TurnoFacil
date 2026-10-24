@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "businesses",
     "bookings",
     "billing",
+    "legal",
 ]
 
 MIDDLEWARE = [
@@ -41,6 +42,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "accounts.middleware.EmailVerificationRequiredMiddleware",
+    "legal.middleware.TermsAcceptanceRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -58,6 +60,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "billing.context_processors.subscription",
+                "legal.context_processors.legal_links",
             ],
         },
     },
@@ -128,6 +131,21 @@ TRANSFER_ALIAS = os.environ.get("TRANSFER_ALIAS", "")
 TRANSFER_HOLDER = os.environ.get("TRANSFER_HOLDER", "")
 TRANSFER_CUIT = os.environ.get("TRANSFER_CUIT", "")
 BILLING_CONTACT_EMAIL = os.environ.get("BILLING_CONTACT_EMAIL", "")
+
+# Owner and contact details for the legal pages (docs/agentic/legal/OWNER_LEGAL_DATA.md). Not
+# secret, but they come from the environment so nobody writes them into the repo by mistake. The
+# contact page and its footer link only appear once LEGAL_CONTACT_EMAIL is set.
+LEGAL_OWNER_NAME = os.environ.get("LEGAL_OWNER_NAME", "")
+LEGAL_OWNER_TAX_ID = os.environ.get("LEGAL_OWNER_TAX_ID", "")
+LEGAL_OWNER_ADDRESS = os.environ.get("LEGAL_OWNER_ADDRESS", "")
+LEGAL_CONTACT_EMAIL = os.environ.get("LEGAL_CONTACT_EMAIL", "")
+LEGAL_PRIVACY_EMAIL = os.environ.get("LEGAL_PRIVACY_EMAIL", "")
+LEGAL_CONTACT_PHONE = os.environ.get("LEGAL_CONTACT_PHONE", "")
+LEGAL_SUPPORT_HOURS = os.environ.get("LEGAL_SUPPORT_HOURS", "")
+# Days a past appointment is kept before `purge_old_data` deletes it. Empty: never (the Founder has
+# not decided the period yet; see docs/agentic/legal/OWNER_LEGAL_DATA.md).
+_retention = os.environ.get("APPOINTMENT_RETENTION_DAYS", "").strip()
+APPOINTMENT_RETENTION_DAYS = int(_retention) if _retention else None
 
 # Base URL for links in emails sent outside a request (reminders).
 SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000").rstrip("/")

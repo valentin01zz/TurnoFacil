@@ -1,0 +1,3 @@
+{# Seña conditions shared by the booking summary, the appointment page and the cancellation page. #}
+{% if deposit.conditions %}<p><strong>Condiciones de {{ deposit.business.name }}:</strong> {{ deposit.conditions }}</p>{% else %}<p>{{ deposit.business.name }} no cargó condiciones para la seña. Consultalas antes de transferir.</p>{% endif %}
+<p class="fine" style="text-align: left">La seña la recibe directamente {{ deposit.business.name }}. TurnoFacil no recibe el dinero ni verifica el pago.</p>

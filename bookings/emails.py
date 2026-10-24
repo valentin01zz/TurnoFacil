@@ -34,6 +34,7 @@ def send_cancelled(appointment, manage_url):
         manage_url,
         subject=f"Turno cancelado en {appointment.business.name}",
         template="bookings/emails/cancelled.txt",
+        deposit=public_deposit(appointment.business),
     )
 
 

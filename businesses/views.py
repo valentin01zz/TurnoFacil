@@ -11,6 +11,7 @@ from billing.catalog import BOOKING_DEPOSIT, PANEL_EDIT
 from billing.decorators import requires_feature
 from bookings.models import Appointment
 
+from .deposit import public_deposit
 from .forms import (
     AgendaForm,
     BusinessForm,
@@ -145,6 +146,7 @@ def panel(request):
             "next_appointment": next_appointment if date == today else None,
             "first_appointment": appointments[0] if appointments else None,
             "week": week_chart(business, date, professional),
+            "asks_deposit": public_deposit(business) is not None,
         },
     )
 

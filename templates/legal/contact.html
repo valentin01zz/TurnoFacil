@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Contacto · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Contacto</h1>
+  <p class="page-lead">Consultas, reclamos y pedidos sobre tus datos personales.</p>
+  <div class="card">
+    <dl class="legal-facts">
+      {% if owner.name %}<div><dt>Titular del servicio</dt><dd>{{ owner.name }}{% if owner.tax_id %} · CUIT {{ owner.tax_id }}{% endif %}</dd></div>{% endif %}
+      {% if owner.address %}<div><dt>Domicilio</dt><dd>{{ owner.address }}</dd></div>{% endif %}
+      <div><dt>Consultas y reclamos</dt><dd><a href="mailto:{{ owner.email }}">{{ owner.email }}</a></dd></div>
+      <div><dt>Datos personales</dt><dd><a href="mailto:{{ owner.privacy_email }}">{{ owner.privacy_email }}</a></dd></div>
+      {% if owner.phone %}<div><dt>Teléfono</dt><dd>{{ owner.phone }}</dd></div>{% endif %}
+      {% if owner.hours %}<div><dt>Horario de atención</dt><dd>{{ owner.hours }}</dd></div>{% endif %}
+    </dl>
+  </div>
+  <p class="helptext">¿Querés dar de baja tu suscripción o arrepentirte de haberla contratado? Usá el <a href="{% url 'cancel_request' %}">botón de baja</a> o el <a href="{% url 'withdrawal_request' %}">botón de arrepentimiento</a>, sin iniciar sesión.</p>
+  <p class="helptext">¿Reservaste un turno en un negocio? Para cambios, cancelaciones o señas, escribile al negocio: el turno es con él.</p>
+</div>
+{% endblock %}

@@ -8,5 +8,10 @@
     {% if deposit.holder_tax_id %}<div><dt>CUIT/CUIL</dt><dd>{{ deposit.holder_tax_id }}</dd></div>{% endif %}
   </dl>
   {% if deposit.instructions %}<p>{{ deposit.instructions }}</p>{% endif %}
-  <p class="fine">La transferencia se coordina directamente con el negocio. TurnoFacil no verifica automáticamente el pago. Si tenés dudas, consultá a {{ deposit.business.name }}.</p>
+  {% if appointment.deposit_received_at %}
+    <p class="notice ok">{{ deposit.business.name }} registró que recibió tu seña.</p>
+  {% else %}
+    <p>Tu turno está confirmado. Si {{ deposit.business.name }} no recibe la seña, puede cancelarlo según sus condiciones. El pago lo confirmás con el negocio.</p>
+  {% endif %}
+  {% include "bookings/_deposit_terms.html" %}
 </section>

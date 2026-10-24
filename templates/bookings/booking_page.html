@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Reservá tu turno · {{ business.name }}{% endblock %}
 {% block header %}{% include "bookings/_business_header.html" %}{% endblock %}
+{% block site_footer %}{% include "legal/_footer.html" with for_customer=True %}{% endblock %}
 {% block content %}
 <div class="wrap">
   <section class="hero">
@@ -105,7 +106,7 @@
               <div class="full">{{ booking.customer_email.errors }}<label for="{{ booking.customer_email.id_for_label }}">Email, para la confirmación y el recordatorio</label>{{ booking.customer_email }}</div>
             </div>
             {{ booking.website }}
-            <p class="helptext" style="margin: 0">Usamos tus datos solo para gestionar este turno y avisarte por email.</p>
+            <p class="helptext" style="margin: 0">{{ business.name }} usa tus datos para gestionar este turno; TurnoFacil los procesa por su cuenta para confirmarte, recordarte y dejarte cambiar el turno. Son necesarios para reservar online.{% if legal_links.privacy %} Más información y tus derechos en la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">Política de Privacidad</a>.{% endif %}</p>
           {% else %}
             <div class="step-empty">Cuando elijas el horario te pedimos nombre, teléfono y email.</div>
           {% endif %}
@@ -130,9 +131,16 @@
         </dl>
         <div class="perf"></div>
         <div class="t-foot">
+          {% if deposit %}
+            <section class="deposit-note" aria-labelledby="deposit-note-title">
+              <h3 id="deposit-note-title">Seña de $ {{ deposit.amount|floatformat:"-2g" }}</h3>
+              <p>{{ business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia a {{ deposit.holder_name }}. Te mostramos el alias o CBU al confirmar. El pago lo confirmás con el negocio.</p>
+              {% include "bookings/_deposit_terms.html" %}
+              <p>Tu turno queda confirmado al reservar. Si {{ business.name }} no recibe la seña, puede cancelarlo según sus condiciones.</p>
+            </section>
+          {% endif %}
           <button type="submit" form="book-form" class="btn btn-primary btn-block" data-ticket-confirm{% if not slot_groups %} disabled{% endif %}>Confirmar turno {% include "_icon.html" with name="arrow" size=20 stroke=2.6 %}</button>
           <p class="fine">Podés reprogramar o cancelar hasta 2 horas antes, desde el link del email.</p>
-          {% if deposit %}<p class="fine">{{ business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia. Te mostramos los datos al confirmar.</p>{% endif %}
         </div>
       </div>
     </aside>
@@ -149,7 +157,7 @@
 {% endif %}
 <div class="wrap">
   <footer class="site-foot">
-    <span>Usamos tus datos solo para gestionar tu turno.</span>
+    <span>Tus datos los usa {{ business.name }} para gestionar tu turno.</span>
     <span style="font-weight: 700">Reservas con TurnoFacil</span>
   </footer>
 </div>

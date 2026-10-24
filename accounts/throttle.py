@@ -23,6 +23,7 @@ LIMITS = {
     "reset_ip": (10, timedelta(hours=1)),
     "signup_ip": (5, timedelta(hours=1)),  # new accounts per IP
     "booking_ip": (20, timedelta(hours=1)),  # online bookings per IP
+    "service_request_ip": (5, timedelta(hours=1)),  # public cancellation/withdrawal requests
 }
 KEEP = timedelta(days=1)  # longer than any window
 

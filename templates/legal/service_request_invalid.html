@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Link vencido · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Este link no sirve</h1>
+  <div class="card">
+    <p style="margin: 0">Venció o no es válido. Podés pedir de nuevo la <a href="{% url 'cancel_request' %}">baja</a> o el <a href="{% url 'withdrawal_request' %}">arrepentimiento</a>: te mandamos un código y un link nuevos.</p>
+  </div>
+</div>
+{% endblock %}

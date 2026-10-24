@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Confirmar solicitud · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Confirmá tu solicitud</h1>
+  <div class="card">
+    <p style="margin: 0 0 10px"><strong>{{ service_request.get_kind_display }}</strong> · código <strong class="legal-code">{{ service_request.code }}</strong></p>
+    <p style="margin: 0">Cuenta: {{ service_request.email }}{% if service_request.business %} ({{ service_request.business.name }}){% endif %}.</p>
+    <form method="post" class="actions" style="margin-top: 18px">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Confirmar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

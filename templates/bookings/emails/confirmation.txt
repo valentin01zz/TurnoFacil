@@ -15,7 +15,10 @@ Titular: {{ deposit.holder_name }}
 {% endif %}{% if deposit.cbu_cvu %}CBU/CVU: {{ deposit.cbu_cvu }}
 {% endif %}{% if deposit.holder_tax_id %}CUIT/CUIL: {{ deposit.holder_tax_id }}
 {% endif %}{% if deposit.instructions %}{{ deposit.instructions }}
-{% endif %}La transferencia se coordina directamente con el negocio. TurnoFacil no verifica automáticamente el pago.
+{% endif %}{% if deposit.conditions %}Condiciones de {{ appointment.business.name }}: {{ deposit.conditions }}
+{% else %}{{ appointment.business.name }} no cargó condiciones para la seña. Consultalas antes de transferir.
+{% endif %}Tu turno está confirmado. Si {{ appointment.business.name }} no recibe la seña, puede cancelarlo según sus condiciones. El pago lo confirmás con el negocio.
+La seña la recibe directamente {{ appointment.business.name }}. TurnoFacil no recibe el dinero ni verifica el pago.
 {% endif %}
 Para ver, reprogramar o cancelar tu turno, entrá a este link:
 {{ manage_url }}

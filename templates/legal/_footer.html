@@ -1,0 +1,15 @@
+<div class="wrap">
+  <footer class="legal-foot" aria-label="Información legal">
+    {% if not for_customer %}
+      <nav class="legal-buttons" aria-label="Baja y arrepentimiento">
+        <a class="btn btn-small" href="{% url 'cancel_request' %}">Botón de baja de servicio</a>
+        <a class="btn btn-small" href="{% url 'withdrawal_request' %}">Botón de arrepentimiento</a>
+      </nav>
+    {% endif %}
+    <nav class="legal-links" aria-label="Documentos legales">
+      {% if legal_links.terms %}<a href="{% url 'terms' %}">Términos y Condiciones</a>{% endif %}
+      {% if legal_links.privacy %}<a href="{% url 'privacy' %}">Política de Privacidad</a>{% endif %}
+      {% if legal_links.contact %}<a href="{% url 'contact' %}">Contacto y reclamos</a>{% endif %}
+    </nav>
+  </footer>
+</div>

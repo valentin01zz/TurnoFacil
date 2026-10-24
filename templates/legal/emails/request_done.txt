@@ -1,0 +1,14 @@
+{% autoescape off %}Hola,
+
+Esta es la constancia de tu solicitud en TurnoFacil.
+
+Código: {{ service_request.code }}
+Tipo: {{ service_request.get_kind_display }}
+Pedida el: {{ service_request.created_at|date:"j/m/Y H:i" }}
+Confirmada el: {{ service_request.confirmed_at|date:"j/m/Y H:i" }}
+{% if service_request.business %}Negocio: {{ service_request.business.name }}
+{% endif %}
+{% include "legal/_outcome.txt" %}
+{% if contact_email %}
+Consultas: {{ contact_email }} (mencioná el código).
+{% endif %}{% endautoescape %}

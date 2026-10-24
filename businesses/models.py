@@ -126,6 +126,12 @@ class DepositSettings(models.Model):
     cbu_cvu = models.CharField("CBU o CVU", max_length=22, blank=True)
     holder_tax_id = models.CharField("CUIT o CUIL", max_length=13, blank=True)
     instructions = models.CharField("indicaciones", max_length=300, blank=True)
+    # Set by the business and optional (Founder decision; docs/agentic/legal/LEGAL_REVIEW.md, H17).
+    conditions = models.CharField(
+        "condiciones de la seña (si cancelás, reprogramás o no transferís)",
+        max_length=500,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

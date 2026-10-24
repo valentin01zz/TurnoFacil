@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ document.get_kind_display }} · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">{{ document.get_kind_display }}</h1>
+  <p class="page-lead">Versión {{ document.version }} · vigente desde el {{ document.effective_at|date:"j \d\e F \d\e Y" }}{% if not is_current %} · <strong>esta versión ya no está vigente</strong>{% endif %}</p>
+  <article class="card legal-doc">
+    {{ body }}
+  </article>
+  {% if other_versions %}
+    <p class="helptext">Versiones anteriores:
+      {% for old in other_versions %}<a href="{% if document.kind == 'terms' %}{% url 'terms_version' old.version %}{% else %}{% url 'privacy_version' old.version %}{% endif %}">{{ old.version }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+    </p>
+  {% endif %}
+</div>
+{% endblock %}
