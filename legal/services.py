@@ -100,8 +100,9 @@ def read_confirm_token(token):
 
 
 def send_legal_email(subject, template, recipient, context):
+    """Whether the email went out: no exception and at least one message accepted."""
     try:
-        send_mail(
+        sent = send_mail(
             subject=" ".join(subject.split()),
             message=render_to_string(template, context),
             from_email=None,
@@ -110,7 +111,9 @@ def send_legal_email(subject, template, recipient, context):
     except Exception:
         logger.exception("Could not send legal email (%s)", template)
         return False
-    return True
+    if not sent:
+        logger.error("Legal email not accepted by the backend (%s)", template)
+    return bool(sent)
 
 
 def mark_sent(service_request, field):
@@ -181,7 +184,10 @@ def within_withdrawal_term(started, requested):
 
 
 def withdrawal_outcome(service_request, subscription):
-    """(outcome, refund_due). A failed cancellation stays visible: it never reads as stopped."""
+    """(outcome, refund_due). A failed cancellation stays visible: it never reads as stopped.
+
+    A free plan (the pilot, granted by an operator) has nothing to refund.
+    """
     started = contracted_at(subscription) if subscription else None
     if started is None:
         return stop_renewal(subscription), False
@@ -189,9 +195,10 @@ def withdrawal_outcome(service_request, subscription):
     if not within_withdrawal_term(started, service_request.created_at):
         out_of_term = stopped != ServiceRequest.MANUAL_REVIEW
         return (ServiceRequest.OUT_OF_TERM if out_of_term else stopped), False
+    paid = subscription.plan.monthly_price > 0
     if stopped == ServiceRequest.MANUAL_REVIEW:
-        return ServiceRequest.MANUAL_REVIEW, True
-    return ServiceRequest.REFUND_DUE, True
+        return ServiceRequest.MANUAL_REVIEW, paid
+    return (ServiceRequest.REFUND_DUE if paid else stopped), paid
 
 
 def confirm_request(service_request, now=None):
@@ -215,30 +222,58 @@ def confirm_request(service_request, now=None):
     return service_request, True
 
 
-def send_request_done(service_request, notify_operator=True):
-    """Written record of the cancellation (Ley 24.240 art. 10 ter) and, if needed, the operator."""
+def operator_email():
+    return settings.BILLING_CONTACT_EMAIL or settings.LEGAL_CONTACT_EMAIL
+
+
+def request_context(service_request):
     subscription = None
     if service_request.business is not None:
         subscription = get_access(service_request.business).subscription
-    context = {
+    return {
         "service_request": service_request,
         "subscription": subscription,
         "contact_email": settings.LEGAL_CONTACT_EMAIL or settings.BILLING_CONTACT_EMAIL,
     }
+
+
+def send_record(service_request):
+    """Written record of the cancellation (Ley 24.240 art. 10 ter). Returns whether it went out."""
     sent = send_legal_email(
         f"Constancia {service_request.code}: {service_request.get_kind_display()}",
         "legal/emails/request_done.txt",
         service_request.email,
-        context,
+        request_context(service_request),
     )
     if sent:
         mark_sent(service_request, "done_email_sent_at")
-    operator = settings.BILLING_CONTACT_EMAIL or settings.LEGAL_CONTACT_EMAIL
-    if notify_operator and service_request.needs_operator and operator:
-        send_legal_email(
-            f"Revisar solicitud {service_request.code}",
-            "legal/emails/operator_notice.txt",
-            operator,
-            context,
-        )
+    return sent
+
+
+def notify_operator(service_request):
+    """Tell the operator about a refund or a manual review. Returns whether it went out."""
+    sent = send_legal_email(
+        f"Revisar solicitud {service_request.code}",
+        "legal/emails/operator_notice.txt",
+        operator_email(),
+        request_context(service_request),
+    )
+    if sent:
+        mark_sent(service_request, "operator_notified_at")
+    return sent
+
+
+def operator_notice_due(service_request):
+    return (
+        service_request.needs_operator
+        and service_request.operator_notified_at is None
+        and bool(operator_email())
+    )
+
+
+def send_request_done(service_request):
+    """The record for the person and, if the request needs one, the notice to the operator."""
+    sent = send_record(service_request)
+    if operator_notice_due(service_request):
+        notify_operator(service_request)
     return sent

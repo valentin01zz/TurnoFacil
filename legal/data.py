@@ -5,7 +5,7 @@ Procedure: docs/agentic/legal/PROCEDIMIENTO_DERECHOS.md. Nothing here runs on it
 
 from datetime import timedelta
 
-from django.db import transaction
+from django.db import connection, transaction
 from django.utils import timezone
 
 from bookings.models import Appointment
@@ -117,13 +117,22 @@ def erase_customer(email, now=None):
 
 
 def delete_business(business):
-    """Delete a business, its owner account and everything that hangs from them."""
+    """Delete a business, its owner account and everything that hangs from them.
+
+    The only place that may delete legal acceptances: the database refuses it otherwise
+    (migration legal.0005). The permission is opened and closed inside this transaction.
+    """
     with transaction.atomic():
+        with connection.cursor() as cursor:
+            cursor.execute("SET LOCAL legal.allow_evidence_delete = 'on'")
         # Appointments protect their professional and service, so they go first.
         business.appointments.all().delete()
         owner = business.owner
         business.delete()
         owner.delete()
+        # Closed again at once, also when this runs inside an outer transaction.
+        with connection.cursor() as cursor:
+            cursor.execute("SET LOCAL legal.allow_evidence_delete = 'off'")
 
 
 def purge_appointments(days, now=None):

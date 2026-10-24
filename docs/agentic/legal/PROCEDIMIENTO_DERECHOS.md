@@ -59,7 +59,10 @@ El JSON se manda al titular por email. Nunca incluye datos de otra persona.
    arrepentimiento en plazo, también queda `reembolso pendiente`.
 7. Si un email no sale (código o constancia), la solicitud queda igual registrada, la pantalla le pide a
    la persona que guarde el código y `service_requests` la muestra con "EMAIL NO ENVIADO". Se reenvía con
-   `service_requests --resend <código>`: solo repite el email, nunca vuelve a cancelar nada.
+   `service_requests --resend <código>`: solo repite el email, nunca vuelve a cancelar nada. Si lo que
+   falló es el aviso al operador, aparece como "AVISO AL OPERADOR NO ENVIADO" y `--resend` reintenta solo
+   ese aviso.
+8. Un plan gratuito (piloto) no genera reembolso aunque la persona se arrepienta: no pagó nada.
 
 Revisar `service_requests` al menos una vez por día hábil.
 

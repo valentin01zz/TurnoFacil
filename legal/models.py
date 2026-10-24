@@ -138,6 +138,7 @@ class ServiceRequest(models.Model):
     # When each email went out; empty means it failed (or is not due yet) and the operator resends.
     received_email_sent_at = models.DateTimeField(null=True, blank=True)
     done_email_sent_at = models.DateTimeField(null=True, blank=True)
+    operator_notified_at = models.DateTimeField(null=True, blank=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
     resolution_note = models.CharField(max_length=300, blank=True)
 
@@ -155,6 +156,7 @@ class ServiceRequest(models.Model):
 
     @property
     def email_failed(self):
+        """The person's code or written record did not go out."""
         if self.received_email_sent_at is None:
             return True
         return self.confirmed_at is not None and self.done_email_sent_at is None

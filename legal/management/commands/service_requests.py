@@ -4,7 +4,12 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from legal.models import ServiceRequest
-from legal.services import send_request_done, send_request_received
+from legal.services import (
+    notify_operator,
+    operator_notice_due,
+    send_record,
+    send_request_received,
+)
 
 
 class Command(BaseCommand):
@@ -34,6 +39,7 @@ class Command(BaseCommand):
             for r in ServiceRequest.objects.select_related("business")
             if r.needs_operator
             or r.email_failed
+            or operator_notice_due(r)
             or (r.confirmed_at is None and r.created_at < day_ago)
         ]
         if not pending:
@@ -45,6 +51,8 @@ class Command(BaseCommand):
                 state += " · reembolso pendiente"
             if r.email_failed:
                 state += " · EMAIL NO ENVIADO (--resend)"
+            if r.confirmed_at and operator_notice_due(r):
+                state += " · AVISO AL OPERADOR NO ENVIADO (--resend)"
             business = r.business.slug if r.business else "-"
             created = timezone.localtime(r.created_at)
             self.stdout.write(
@@ -59,17 +67,21 @@ class Command(BaseCommand):
         return found
 
     def resend(self, code):
+        """Repeat only emails: the cancellation itself is never applied twice."""
         found = self.find(code)
         if found.confirmed_at is None:
-            sent = send_request_received(found)
-            what = "code and confirmation link"
+            jobs = [("code and confirmation link", send_request_received)]
         else:
-            # Only the email is repeated: the cancellation itself is never applied twice.
-            sent = send_request_done(found, notify_operator=False)
-            what = "written record"
-        if not sent:
-            raise CommandError(f"The {what} email failed again; check the email settings.")
-        self.stdout.write(f"Sent the {what} for {code}.")
+            jobs = []
+            # The record is resent on demand even if it went out (the person may have lost it).
+            if found.done_email_sent_at is None or not operator_notice_due(found):
+                jobs.append(("written record", send_record))
+            if operator_notice_due(found):
+                jobs.append(("operator notice", notify_operator))
+        for what, send in jobs:
+            if not send(found):
+                raise CommandError(f"The {what} email failed again; check the email settings.")
+            self.stdout.write(f"Sent the {what} for {code}.")
 
     def resolve(self, code, note):
         found = self.find(code)

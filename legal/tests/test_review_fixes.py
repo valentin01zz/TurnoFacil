@@ -13,10 +13,12 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from billing.models import SubscriptionEvent
+from billing.models import Plan, Subscription, SubscriptionEvent
+from billing.services import activate, change_active_plan, mark_past_due, transition
 from bookings.tests.helpers import create_business
+from legal.data import delete_business
 from legal.models import LegalAcceptance, LegalDocument, ServiceRequest
-from legal.services import within_withdrawal_term
+from legal.services import contracted_at, withdrawal_outcome, within_withdrawal_term
 
 from .helpers import FakeProvider, publish, renewing
 from .test_service_requests import confirm_path
@@ -156,7 +158,7 @@ class DatabaseProtectionTests(TestCase):
         self.assertRefused(lambda: LegalDocument.objects.all().delete())
         self.assertTrue(LegalDocument.objects.get().body.startswith("# Términos"))
 
-    def test_acceptances_cannot_be_changed_but_go_away_with_the_account(self):
+    def test_acceptances_cannot_be_changed_or_deleted_on_their_own(self):
         business = create_business()
         LegalAcceptance.objects.create(
             user=business.owner,
@@ -165,12 +167,32 @@ class DatabaseProtectionTests(TestCase):
             context=LegalAcceptance.SIGNUP,
         )
         self.assertRefused(lambda: LegalAcceptance.objects.update(action=LegalAcceptance.INFORMED))
-        business.appointments.all().delete()
-        owner = business.owner
-        business.delete()
-        owner.delete()
+        self.assertRefused(lambda: LegalAcceptance.objects.all().delete())
+        # Deleting the account any other way is refused too: its acceptances would go with it.
+        self.assertRefused(lambda: User.objects.filter(pk=business.owner_id).delete())
+        self.assertEqual(LegalAcceptance.objects.count(), 1)
+
+    def test_they_go_away_only_with_delete_business(self):
+        business = create_business()
+        owner_id = business.owner_id
+        LegalAcceptance.objects.create(
+            user=business.owner,
+            document=publish(),
+            action=LegalAcceptance.ACCEPTED,
+            context=LegalAcceptance.SIGNUP,
+        )
+        delete_business(business)
         self.assertFalse(LegalAcceptance.objects.exists())
-        self.assertFalse(User.objects.filter(pk=owner.pk).exists())
+        self.assertFalse(User.objects.filter(pk=owner_id).exists())
+        # The permission ended with that transaction.
+        other = create_business(email="otro@example.com", name="Otro")
+        LegalAcceptance.objects.create(
+            user=other.owner,
+            document=LegalDocument.objects.get(),
+            action=LegalAcceptance.ACCEPTED,
+            context=LegalAcceptance.SIGNUP,
+        )
+        self.assertRefused(lambda: LegalAcceptance.objects.all().delete())
 
     def test_service_requests_keep_working(self):
         request = ServiceRequest.objects.create(
@@ -179,3 +201,111 @@ class DatabaseProtectionTests(TestCase):
         ServiceRequest.objects.filter(pk=request.pk).update(resolution_note="ok")
         request.refresh_from_db()
         self.assertEqual(request.resolution_note, "ok")
+
+
+class EmailAcceptanceTests(TestCase):
+    """Second review: a send that raises nothing but delivers nothing, and the operator notice."""
+
+    def setUp(self):
+        self.business = create_business(email="luna@example.com")
+        self.provider = FakeProvider(fail=True)
+        patcher = mock.patch("legal.services.get_provider", return_value=self.provider)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_a_send_that_delivers_nothing_counts_as_failed(self):
+        with mock.patch("legal.services.send_mail", return_value=0):
+            page = self.client.post(reverse("cancel_request"), {"email": "luna@example.com"})
+        self.assertContains(page, "No pudimos mandarte el email")
+        self.assertIsNone(ServiceRequest.objects.get().received_email_sent_at)
+
+    @override_settings(BILLING_CONTACT_EMAIL="operador@turnofacil.example")
+    def test_a_failed_operator_notice_is_listed_and_resent_alone(self):
+        renewing(self.business)
+        self.client.post(reverse("cancel_request"), {"email": "luna@example.com"})
+        path = confirm_path(mail.outbox[0])
+        real_send = mail.send_mail
+
+        def operator_down(*args, recipient_list, **kwargs):
+            if recipient_list == ["operador@turnofacil.example"]:
+                raise OSError("smtp down")
+            return real_send(*args, recipient_list=recipient_list, **kwargs)
+
+        with mock.patch("legal.services.send_mail", side_effect=operator_down):
+            self.client.post(path)
+        request = ServiceRequest.objects.get()
+        self.assertEqual(request.outcome, ServiceRequest.MANUAL_REVIEW)
+        self.assertIsNotNone(request.done_email_sent_at)
+        self.assertIsNone(request.operator_notified_at)
+        self.assertIn("AVISO AL OPERADOR NO ENVIADO", run("service_requests"))
+
+        records = len([m for m in mail.outbox if "Constancia" in m.subject])
+        output = run("service_requests", "--resend", request.code)
+        self.assertIn("operator notice", output)
+        self.assertNotIn("written record", output)
+        request.refresh_from_db()
+        self.assertIsNotNone(request.operator_notified_at)
+        self.assertEqual(len([m for m in mail.outbox if "Constancia" in m.subject]), records)
+        self.assertEqual(mail.outbox[-1].to, ["operador@turnofacil.example"])
+
+
+class ContractDateTests(TestCase):
+    """When the 10 days start, through the real subscription transitions."""
+
+    def setUp(self):
+        self.business = create_business(email="luna@example.com")
+        self.subscription = Subscription.objects.get(business=self.business)
+        self.plan = Plan.objects.get(code="profesional")
+
+    def backdate_last_event(self, days):
+        event = SubscriptionEvent.objects.filter(subscription=self.subscription).latest("pk")
+        SubscriptionEvent.objects.filter(pk=event.pk).update(
+            created_at=timezone.now() - timedelta(days=days)
+        )
+
+    def pay(self, days_ago):
+        self.subscription = activate(
+            self.subscription, self.plan, timezone.now() + timedelta(days=20), "Pago"
+        )
+        self.backdate_last_event(days_ago)
+
+    def started(self):
+        return timezone.localdate(contracted_at(self.subscription))
+
+    def test_the_first_payment_starts_it(self):
+        self.pay(days_ago=3)
+        self.assertEqual(self.started(), timezone.localdate() - timedelta(days=3))
+
+    def test_a_plan_change_does_not_restart_it(self):
+        self.pay(days_ago=20)
+        change_active_plan(self.subscription, Plan.objects.get(code="negocio"))
+        self.assertEqual(self.started(), timezone.localdate() - timedelta(days=20))
+
+    def test_paying_again_after_a_failed_charge_does_not_restart_it(self):
+        self.pay(days_ago=20)
+        self.subscription = mark_past_due(self.subscription, "Falló el cobro")
+        self.pay(days_ago=0)
+        self.assertEqual(self.started(), timezone.localdate() - timedelta(days=20))
+
+    def test_coming_back_after_a_cancellation_is_a_new_contract(self):
+        self.pay(days_ago=40)
+        self.subscription = transition(self.subscription, Subscription.CANCELED, "Baja")
+        self.pay(days_ago=1)
+        self.assertEqual(self.started(), timezone.localdate() - timedelta(days=1))
+
+    def test_a_free_plan_granted_by_an_operator_has_nothing_to_refund(self):
+        run("grant_plan", self.business.slug, "piloto")
+        self.subscription.refresh_from_db()
+        request = ServiceRequest(kind=ServiceRequest.WITHDRAWAL, created_at=timezone.now())
+        outcome, refund_due = withdrawal_outcome(request, self.subscription)
+        self.assertFalse(refund_due)
+        # Granted by hand, there is no provider charge to stop: a person ends it.
+        self.assertEqual(outcome, ServiceRequest.MANUAL_REVIEW)
+
+    def test_a_paid_plan_granted_by_an_operator_is_refunded(self):
+        run("grant_plan", self.business.slug, "profesional", "--months", "1")
+        self.subscription.refresh_from_db()
+        request = ServiceRequest(kind=ServiceRequest.WITHDRAWAL, created_at=timezone.now())
+        outcome, refund_due = withdrawal_outcome(request, self.subscription)
+        self.assertTrue(refund_due)
+        self.assertEqual(outcome, ServiceRequest.MANUAL_REVIEW)

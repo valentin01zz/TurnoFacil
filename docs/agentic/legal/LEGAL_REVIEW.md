@@ -212,6 +212,17 @@ Hallazgos contrastados con el código. Corregidos en la misma rama, con tests en
 | Confirmaciones simultáneas | Ya cubierto: la fila se bloquea (`select_for_update`) y la segunda no hace nada | Test de doble confirmación existente |
 | Migraciones | Coincidimos: solo agregan | Probar `migrate` sobre una copia de la base de producción antes de desplegar (agregado a "Antes de desplegar") |
 
+Segunda revisión (sobre el commit 8b1d4bf): dio por corregidos H-01 y H-04 y marcó tres detalles, corregidos
+en el commit siguiente con tests en `test_review_fixes.py`:
+
+| Detalle | Corrección |
+|---|---|
+| Un envío que no lanza error pero no entrega nada (`send_mail` devuelve 0) se marcaba como enviado | Solo cuenta como enviado si salió al menos un mensaje |
+| El aviso al operador no tenía registro propio ni reenvío | Campo `operator_notified_at`; `service_requests` lo lista como "AVISO AL OPERADOR NO ENVIADO" y `--resend` lo reintenta sin repetir la constancia |
+| Las aceptaciones se podían borrar sueltas, sin borrar la cuenta | `legal.0005`: la base solo permite borrarlas dentro de `delete_business`, que abre y cierra el permiso en la misma transacción |
+| Fecha de contratación en otros caminos de facturación | Tests con las transiciones reales: el cambio de plan y el pago tras un impago no reinician el plazo; volver después de una baja sí. Un plan gratuito otorgado a mano (piloto) no genera reembolso; uno pago otorgado a mano sí |
+| Zona horaria | Verificado: `TIME_ZONE = "America/Argentina/Buenos_Aires"` en `config/settings.py` |
+
 **Antes de desplegar** (además de lo de la sección 12): hacer un backup de la base en Render, restaurarlo en
 una base aparte, correr `migrate` ahí y probar registro, reserva, panel, seña y planes.
 
@@ -239,7 +250,7 @@ Validaciones jurídicas: lista de la sección 10.
 | Licencias de dependencias con `importlib.metadata` en `.venv` | Django BSD-3, psycopg LGPL-3.0, gunicorn MIT, whitenoise MIT, asgiref BSD-3, sqlparse BSD, tzdata Apache-2.0 | Solo dependencias instaladas localmente |
 | Licencia de las fuentes en `github.com/google/fonts` | Bricolage Grotesque y Hanken Grotesk en `ofl/` (SIL OFL 1.1) | Se leyó el encabezado del archivo |
 | Señas: búsqueda de integraciones de pago, carga de archivos y llamadas HTTP en `bookings` y `businesses`; lectura de modelo, formulario, plantillas y emails de la seña | Sin integraciones; Mercado Pago solo en `billing` para la suscripción; hallazgos H17 a H22 | Revisión del código, no del sitio en vivo; no se revisó si algún negocio real tiene la seña activa |
-| Implementación técnica (rama `feat/legal-compliance`) | `ruff check`, `ruff format --check` y `manage.py check` sin errores; `manage.py test`: 480 tests OK (66 nuevos en `legal/tests/` y `businesses/tests/test_deposit_legal.py`, incluidas las correcciones de la revisión en `test_review_fixes.py`) | Tests en PostgreSQL local; sin desplegar |
+| Implementación técnica (rama `feat/legal-compliance`) | `ruff check`, `ruff format --check` y `manage.py check` sin errores; `manage.py test`: 489 tests OK (75 nuevos en `legal/tests/` y `businesses/tests/test_deposit_legal.py`, incluidas las correcciones de la revisión en `test_review_fixes.py`) | Tests en PostgreSQL local; sin desplegar |
 | Revisión visual en el navegador (vista de celular, servidor local) | Botones en el pie de la home, página de baja y bloque de seña antes de confirmar se ven bien | No se probó con lector de pantalla; los emails se vieron en los tests, no en un cliente de correo |
 
 ## 9. Preguntas pendientes
