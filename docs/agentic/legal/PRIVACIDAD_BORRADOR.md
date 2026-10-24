@@ -44,8 +44,7 @@ suscripción del negocio, la referencia de Mercado Pago.
 | Cloudflare (a través de Render) | Red y protección | Dirección IP y datos técnicos de la conexión | [COMPLETAR: verificar] |
 | Mercado Pago | Cobro de la suscripción del negocio (no interviene en las señas) | Email del pagador, plan y monto | [COMPLETAR: verificar]; trata los datos de pago según sus propias políticas |
 
-> Requiere: decidir si se dejan de cargar las fuentes desde Google Fonts (recomendado). Si se mantienen,
-> agregar a Google como proveedor que recibe la IP del visitante.
+Las tipografías se sirven desde nuestro propio sitio: ningún proveedor de fuentes recibe tu IP.
 
 Estados Unidos y Brasil no están en la lista de países con protección adecuada de la AAIP.
 [COMPLETAR, con el abogado: mecanismo que respalda estas transferencias (acuerdos de tratamiento de datos de

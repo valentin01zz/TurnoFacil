@@ -1,4 +1,18 @@
 /* TurnoFacil design system: "the appointment is a ticket". Accent turquoise, violet, ink on lilac. */
+/* Fonts served from this site (SIL OFL 1.1, licenses next to the files in static/fonts/), so no
+   third party receives visitors' IP addresses. Variable fonts: one file covers every weight. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../fonts/BricolageGrotesque-Variable.ttf") format("truetype");
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("../fonts/HankenGrotesk-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+}
 :root {
   --ink: #1c1530;
   --ground: #efeaf8;

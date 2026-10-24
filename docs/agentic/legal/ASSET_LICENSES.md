@@ -5,12 +5,12 @@ Fecha: 2026-10-24 · Commit revisado: `33cce4f` · Revisó: Legal & Compliance A
 ## Recursos visuales y de contenido
 | Recurso | Tipo | Ubicación | Autor o titular | Fuente | Licencia | Uso comercial | Atribución | Restricciones | Evidencia | Estado | Riesgo y acción |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| Bricolage Grotesque | Tipografía | `templates/base.html` (Google Fonts) | The Bricolage Grotesque Project Authors | Google Fonts | SIL OFL 1.1 | Sí | No en la web | No vender la fuente sola; el nombre reservado no se usa en versiones modificadas | `github.com/google/fonts/ofl/bricolagegrotesque/OFL.txt` | ACREDITADO | Bajo. Si se sirve localmente, incluir `OFL.txt` junto a los archivos |
-| Hanken Grotesk | Tipografía | `templates/base.html` (Google Fonts) | The Hanken Grotesk Project Authors | Google Fonts | SIL OFL 1.1 (directorio `ofl/` de google/fonts) | Sí | No en la web | Ídem | `github.com/google/fonts/ofl/hankengrotesk/OFL.txt` | ACREDITADO | Bajo. Ídem |
+| Bricolage Grotesque (variable) | Tipografía | `static/fonts/BricolageGrotesque-Variable.ttf` (servida desde el sitio desde 2026-10-24) | The Bricolage Grotesque Project Authors | `github.com/google/fonts`, `ofl/bricolagegrotesque` | SIL OFL 1.1 | Sí | No en la web | No vender la fuente sola; el nombre reservado no se usa en versiones modificadas (no se modificó) | `static/fonts/BricolageGrotesque-OFL.txt` | ACREDITADO | Bajo. La licencia viaja junto al archivo |
+| Hanken Grotesk (variable, sin itálica) | Tipografía | `static/fonts/HankenGrotesk-Variable.ttf` (ídem) | The Hanken Grotesk Project Authors | `github.com/google/fonts`, `ofl/hankengrotesk` | SIL OFL 1.1 | Sí | No en la web | Ídem | `static/fonts/HankenGrotesk-OFL.txt` | ACREDITADO | Bajo. Ídem |
 | Íconos SVG (calendar, star, mail, etc.) | Íconos | `templates/_icon.html` | Creados en el proyecto (trazos geométricos simples) | Propios | No aplica | Sí | No | — | Código en el repo; sin registro de autoría ni de si se generaron con IA | PENDIENTE | Bajo. Confirmar con el Founder el origen y anotarlo |
 | Logo TurnoFacil (ícono calendario + texto) | Logo/marca | `templates/base.html` | [COMPLETAR] | Propio | No aplica | — | — | — | Sin búsqueda de marca | PENDIENTE | Ver H14 del `LEGAL_REVIEW` |
 | Textos del sitio | Texto | `templates/` | Founder / agentes NEXORA | Propios | No aplica | Sí | No | — | Repo | ACREDITADO | — |
-| Fotos, videos, audios | — | No hay | — | — | — | — | — | — | `static/` solo tiene CSS y JS | N/A | — |
+| Fotos, videos, audios | — | No hay | — | — | — | — | — | — | `static/` solo tiene CSS, JS y las dos fuentes | N/A | — |
 
 Material de marketing (posts y reel): vive en `TurnoFacil/marketing`, fuera de este inventario; se inventaría
 aparte si se publica con música o imágenes de terceros.

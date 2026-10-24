@@ -185,7 +185,7 @@ Nada está en producción, así que ningún hallazgo pasa a `RESUELTO` hasta des
 | H01 | Documentos versionados e inmutables (`legal.LegalDocument`), páginas `/terminos/` y `/privacidad/`, casilla desmarcada validada en el servidor, nueva aceptación en cada versión, comando que se niega a publicar borradores | Datos del titular, texto revisado por abogado, publicar y desplegar |
 | H02 | Aviso en la reserva que nombra al negocio como responsable; aviso de privacidad en el registro (sin casilla); enlaces en el pie | Publicar la política |
 | H03 | Aviso al dueño al cargar turnos; comandos para exportar y borrar los datos de un negocio y de un cliente | Cláusula validada por abogado; plazo de borrado al cerrar una cuenta |
-| H04 | — | DPA de proveedores; fuentes locales (pendiente de tu permiso para descargar los archivos) |
+| H04 | Fuentes servidas desde el propio sitio: Google ya no recibe la IP de los visitantes (verificado en el navegador: todas las peticiones van al propio dominio) | DPA de Render, Resend y Cloudflare, o cláusulas modelo |
 | H05, H06 | `/baja/` y `/arrepentimiento/` sin login, código al instante por email, efecto al confirmar desde el email, constancia, aviso al operador para reembolsos, comando `service_requests` | Abogado: si el paso de confirmación por email cuenta como "trámite adicional" y si el pie de la home es "lugar destacado" |
 | H07 | Página `/contacto/` que aparece al cargar `LEGAL_CONTACT_EMAIL` | Cargar las variables `LEGAL_*` en Render |
 | H09 | Comandos de acceso, supresión y depuración; `PROCEDIMIENTO_DERECHOS.md` | Plazo de conservación (`APPOINTMENT_RETENTION_DAYS`) y agregar `purge_old_data` a la tarea programada |

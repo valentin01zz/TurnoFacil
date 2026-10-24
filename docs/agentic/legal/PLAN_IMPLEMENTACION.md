@@ -1,8 +1,8 @@
 # Plan de implementación legal: TurnoFacil
 
 - Estado: **aprobado e implementado en la rama `feat/legal-compliance`** (2026-10-24), sin desplegar ni
-  publicar documentos. Hechos: pasos 1, 2, 3, 4, 6 y 7. Pendiente: paso 5 (descargar las fuentes requiere
-  permiso del Founder) y paso 8 (depende del abogado). Detalle por hallazgo: sección 7.3 de `LEGAL_REVIEW.md`.
+  publicar documentos. Hechos: pasos 1 a 7 (el 5, fuentes locales, con permiso del Founder para
+  descargarlas). Pendiente: paso 8 (depende del abogado). Detalle por hallazgo: sección 7.3 de `LEGAL_REVIEW.md`.
 - Diferencias con lo planeado:
   - El comando de publicación usa `--doc-version` (`--version` choca con una opción de Django).
   - Paso 4: la solicitud se aplica cuando el dueño la confirma desde el link del email, para que nadie
