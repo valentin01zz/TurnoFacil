@@ -18,6 +18,10 @@ Disposición 954/2025).
 - **Cliente que reservó un turno:** el pedido tiene que venir del email con el que reservó, o se le responde a
   ese email. Si reservó sin email (turno cargado a mano), se le pide al negocio que confirme.
 - Nunca se responde a otro email ni por teléfono con datos.
+- **Email compartido:** `customer_data` junta los turnos de ese email en todos los negocios. Antes de
+  mandar el resultado, revisar que los nombres de los turnos coincidan con quien pide. Si aparecen turnos
+  con otro nombre (una familia que comparte el email, por ejemplo), entregar solo los de esa persona y no
+  borrar los demás con `--erase`: consultar primero con el negocio.
 
 ## 3. Quién decide
 - **Datos de la cuenta del negocio:** TurnoFacil es responsable y responde.
@@ -44,11 +48,18 @@ El JSON se manda al titular por email. Nunca incluye datos de otra persona.
 2. Si el email tiene cuenta, el mismo email trae un link para confirmar (vale 3 días). Sin confirmación no
    cambia nada: así nadie da de baja una cuenta ajena.
 3. Al confirmar, se corta la renovación en Mercado Pago y llega la constancia.
-4. Arrepentimiento dentro de los 10 días corridos desde que contrató: además queda `Reembolso pendiente` y
-   llega un aviso a `BILLING_CONTACT_EMAIL`. El operador devuelve el pago en Mercado Pago, termina el plan y
-   corre `service_requests --resolve`.
+4. Arrepentimiento dentro de los 10 días corridos desde que contrató (se cuentan fechas, no horas: si
+   contrató el día 1 a cualquier hora, el día 11 entero está en plazo): queda `reembolso pendiente` y llega
+   un aviso a `BILLING_CONTACT_EMAIL`. El operador devuelve el pago en Mercado Pago, termina el plan y corre
+   `service_requests --resolve`.
 5. Fuera de los 10 días se tramita como baja y el email lo explica.
-6. Si Mercado Pago falla, o el plan se paga por transferencia, queda `Revisión del operador`.
+6. Si Mercado Pago falla (por cualquier error), o el plan se paga por transferencia, queda
+   `Revisión del operador`. Nunca se informa como cortada una renovación que no se cortó: el email a la
+   persona lo dice y el aviso al operador marca "La renovación NO se cortó sola". Si además era un
+   arrepentimiento en plazo, también queda `reembolso pendiente`.
+7. Si un email no sale (código o constancia), la solicitud queda igual registrada, la pantalla le pide a
+   la persona que guarde el código y `service_requests` la muestra con "EMAIL NO ENVIADO". Se reenvía con
+   `service_requests --resend <código>`: solo repite el email, nunca vuelve a cancelar nada.
 
 Revisar `service_requests` al menos una vez por día hábil.
 

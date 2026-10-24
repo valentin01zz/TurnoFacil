@@ -5,7 +5,11 @@
   <h1 class="page-title">Registramos tu solicitud</h1>
   <div class="card">
     <p style="margin: 0 0 10px">Código de tu solicitud: <strong class="legal-code">{{ service_request.code }}</strong></p>
-    <p style="margin: 0">Te lo mandamos a <strong>{{ service_request.email }}</strong>. Abrí ese email y confirmá la solicitud para que se aplique. Si no lo ves, revisá el correo no deseado.</p>
+    {% if email_sent %}
+      <p style="margin: 0">Te lo mandamos a <strong>{{ service_request.email }}</strong>. Abrí ese email y confirmá la solicitud para que se aplique. Si no lo ves, revisá el correo no deseado.</p>
+    {% else %}
+      <p class="notice" style="margin: 0">No pudimos mandarte el email ahora. Tu solicitud quedó registrada con este código: guardalo. Te lo reenviamos en cuanto podamos{% if contact_email %}, o escribinos a <a href="mailto:{{ contact_email }}">{{ contact_email }}</a> mencionando el código{% endif %}.</p>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

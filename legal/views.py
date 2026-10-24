@@ -81,9 +81,17 @@ def service_request(request, kind):
         if form.is_valid():
             throttle.record("service_request_ip", ip)
             created = create_request(kind, form.cleaned_data["email"])
-            send_request_received(request, created)
+            sent = send_request_received(created)
             # The same answer whether or not the email has an account.
-            return render(request, "legal/service_request_sent.html", {"service_request": created})
+            return render(
+                request,
+                "legal/service_request_sent.html",
+                {
+                    "service_request": created,
+                    "email_sent": sent,
+                    "contact_email": settings.LEGAL_CONTACT_EMAIL or settings.BILLING_CONTACT_EMAIL,
+                },
+            )
     return render(request, "legal/service_request.html", context)
 
 

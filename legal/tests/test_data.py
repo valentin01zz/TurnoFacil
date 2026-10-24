@@ -124,6 +124,9 @@ class ServiceRequestsCommandTests(TestCase):
             email="a@example.com",
             confirmed_at=timezone.now(),
             outcome=ServiceRequest.REFUND_DUE,
+            refund_due=True,
+            received_email_sent_at=timezone.now(),
+            done_email_sent_at=timezone.now(),
         )
         self.assertIn("TF-BBBB3333", run("service_requests"))
         with self.assertRaises(CommandError):

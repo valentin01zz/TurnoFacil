@@ -113,19 +113,29 @@ def send_legal_email(subject, template, recipient, context):
     return True
 
 
-def send_request_received(request, service_request):
-    """The identification code, by the same channel, at once (the rule allows 24 hours)."""
+def mark_sent(service_request, field):
+    setattr(service_request, field, timezone.now())
+    service_request.save(update_fields=[field])
+
+
+def send_request_received(service_request):
+    """The identification code, by the same channel, at once (the rule allows 24 hours).
+
+    Whether it went out is recorded: a failed email is listed for the operator, who can resend it.
+    """
     confirm_url = None
     if service_request.business is not None:
-        confirm_url = request.build_absolute_uri(
-            reverse("service_request_confirm", args=[confirm_token(service_request)])
-        )
-    return send_legal_email(
+        path = reverse("service_request_confirm", args=[confirm_token(service_request)])
+        confirm_url = f"{settings.SITE_URL}{path}"
+    sent = send_legal_email(
         f"{service_request.get_kind_display()}: código {service_request.code}",
         "legal/emails/request_received.txt",
         service_request.email,
         {"service_request": service_request, "confirm_url": confirm_url},
     )
+    if sent:
+        mark_sent(service_request, "received_email_sent_at")
+    return sent
 
 
 def contracted_at(subscription):
@@ -149,6 +159,10 @@ def stop_renewal(subscription):
         except (InvalidTransition, PaymentError):
             logger.exception("Could not cancel subscription %s from a request", subscription.pk)
             return ServiceRequest.MANUAL_REVIEW
+        except Exception:
+            # Anything unexpected from the provider: never lose the request, hand it to a person.
+            logger.exception("Unexpected error cancelling subscription %s", subscription.pk)
+            return ServiceRequest.MANUAL_REVIEW
         return ServiceRequest.RENEWAL_STOPPED
     if subscription.status in (Subscription.ACTIVE, Subscription.PAST_DUE):
         # Paid by arrangement (no provider charge to stop): the operator ends it.
@@ -156,16 +170,28 @@ def stop_renewal(subscription):
     return ServiceRequest.NOTHING_TO_CHARGE
 
 
+def within_withdrawal_term(started, requested):
+    """Ten calendar days counted by local date, not by hours, in the consumer's favour.
+
+    The right is exercised when the request is made, not when the email is confirmed. Whether a
+    last day that falls on a holiday moves to the next working day is pending with the lawyer.
+    """
+    days = (timezone.localdate(requested) - timezone.localdate(started)).days
+    return days <= WITHDRAWAL_DAYS
+
+
 def withdrawal_outcome(service_request, subscription):
+    """(outcome, refund_due). A failed cancellation stays visible: it never reads as stopped."""
     started = contracted_at(subscription) if subscription else None
     if started is None:
-        return stop_renewal(subscription)
-    # The right is exercised when the request is made, not when the email is confirmed.
-    if service_request.created_at - started > timedelta(days=WITHDRAWAL_DAYS):
-        stopped = stop_renewal(subscription)
-        return ServiceRequest.OUT_OF_TERM if stopped != ServiceRequest.MANUAL_REVIEW else stopped
-    stop_renewal(subscription)
-    return ServiceRequest.REFUND_DUE
+        return stop_renewal(subscription), False
+    stopped = stop_renewal(subscription)
+    if not within_withdrawal_term(started, service_request.created_at):
+        out_of_term = stopped != ServiceRequest.MANUAL_REVIEW
+        return (ServiceRequest.OUT_OF_TERM if out_of_term else stopped), False
+    if stopped == ServiceRequest.MANUAL_REVIEW:
+        return ServiceRequest.MANUAL_REVIEW, True
+    return ServiceRequest.REFUND_DUE, True
 
 
 def confirm_request(service_request, now=None):
@@ -177,17 +203,19 @@ def confirm_request(service_request, now=None):
             return service_request, False
         business = service_request.business
         subscription = get_access(business).subscription if business else None
+        refund_due = False
         if service_request.kind == ServiceRequest.WITHDRAWAL:
-            outcome = withdrawal_outcome(service_request, subscription)
+            outcome, refund_due = withdrawal_outcome(service_request, subscription)
         else:
             outcome = stop_renewal(subscription)
         service_request.confirmed_at = now
         service_request.outcome = outcome
-        service_request.save(update_fields=["confirmed_at", "outcome"])
+        service_request.refund_due = refund_due
+        service_request.save(update_fields=["confirmed_at", "outcome", "refund_due"])
     return service_request, True
 
 
-def send_request_done(service_request):
+def send_request_done(service_request, notify_operator=True):
     """Written record of the cancellation (Ley 24.240 art. 10 ter) and, if needed, the operator."""
     subscription = None
     if service_request.business is not None:
@@ -197,17 +225,20 @@ def send_request_done(service_request):
         "subscription": subscription,
         "contact_email": settings.LEGAL_CONTACT_EMAIL or settings.BILLING_CONTACT_EMAIL,
     }
-    send_legal_email(
+    sent = send_legal_email(
         f"Constancia {service_request.code}: {service_request.get_kind_display()}",
         "legal/emails/request_done.txt",
         service_request.email,
         context,
     )
+    if sent:
+        mark_sent(service_request, "done_email_sent_at")
     operator = settings.BILLING_CONTACT_EMAIL or settings.LEGAL_CONTACT_EMAIL
-    if service_request.needs_operator and operator:
+    if notify_operator and service_request.needs_operator and operator:
         send_legal_email(
             f"Revisar solicitud {service_request.code}",
             "legal/emails/operator_notice.txt",
             operator,
             context,
         )
+    return sent

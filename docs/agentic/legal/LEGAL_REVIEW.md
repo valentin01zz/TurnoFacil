@@ -195,6 +195,26 @@ Nada está en producción, así que ningún hallazgo pasa a `RESUELTO` hasta des
 | H21 | Aviso al dueño en la pantalla de la seña | Publicar la política |
 | H08, H14, H15, H16, H18, H19 | — | Decisiones, abogado o contador |
 
+### 7.4 Revisión externa del PR #4 (ChatGPT, 2026-10-24) y correcciones
+Hallazgos contrastados con el código. Corregidos en la misma rama, con tests en
+`legal/tests/test_review_fixes.py`:
+
+| Hallazgo de la revisión | Evaluación | Corrección |
+|---|---|---|
+| H-01: un arrepentimiento en plazo quedaba como "reembolso pendiente" y decía "cortamos la renovación" aunque Mercado Pago hubiera fallado | Correcto, era un error | La solicitud guarda por separado el resultado de la baja y `refund_due`. Si la baja falla queda `Revisión del operador` + reembolso pendiente; el email y el aviso al operador lo dicen. Errores inesperados del proveedor también van a revisión |
+| H-02: si fallaba un email, la solicitud quedaba sin constancia ni reintento | Correcto | Se guarda cuándo salió cada email; la pantalla avisa si no salió; `service_requests` lista los fallidos y `--resend` los reenvía sin repetir la baja |
+| H-03: la inmutabilidad se podía saltear con operaciones masivas | Correcto en teoría (requiere acceso al Shell) | Triggers de PostgreSQL (`legal.0003`): los documentos no se pueden modificar ni borrar; las aceptaciones no se pueden modificar y solo se borran junto con la cuenta |
+| H-04: el plazo de 10 días | Correcto, y había un error más concreto: se contaban 240 horas | Se cuentan fechas calendario en hora de Argentina, a favor del consumidor; tests en el límite. Día inhábil: pregunta para el abogado |
+| H-05: estados de la solicitud | Cubierto por H-01 y H-02 | — |
+| H-06: borrar aceptaciones al borrar la cuenta | Decisión, no error | Pregunta para el abogado (sección 10) |
+| H-09: email compartido en `customer_data` | Correcto como riesgo operativo | Paso de verificación en `PROCEDIMIENTO_DERECHOS.md` |
+| Fallas de red de Mercado Pago | Ya cubierto: el adaptador las convierte en `PaymentError` (`billing/mercadopago.py:116`) | Además, cualquier otra excepción va a revisión manual |
+| Confirmaciones simultáneas | Ya cubierto: la fila se bloquea (`select_for_update`) y la segunda no hace nada | Test de doble confirmación existente |
+| Migraciones | Coincidimos: solo agregan | Probar `migrate` sobre una copia de la base de producción antes de desplegar (agregado a "Antes de desplegar") |
+
+**Antes de desplegar** (además de lo de la sección 12): hacer un backup de la base en Render, restaurarlo en
+una base aparte, correr `migrate` ahí y probar registro, reserva, panel, seña y planes.
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |
@@ -219,7 +239,7 @@ Validaciones jurídicas: lista de la sección 10.
 | Licencias de dependencias con `importlib.metadata` en `.venv` | Django BSD-3, psycopg LGPL-3.0, gunicorn MIT, whitenoise MIT, asgiref BSD-3, sqlparse BSD, tzdata Apache-2.0 | Solo dependencias instaladas localmente |
 | Licencia de las fuentes en `github.com/google/fonts` | Bricolage Grotesque y Hanken Grotesk en `ofl/` (SIL OFL 1.1) | Se leyó el encabezado del archivo |
 | Señas: búsqueda de integraciones de pago, carga de archivos y llamadas HTTP en `bookings` y `businesses`; lectura de modelo, formulario, plantillas y emails de la seña | Sin integraciones; Mercado Pago solo en `billing` para la suscripción; hallazgos H17 a H22 | Revisión del código, no del sitio en vivo; no se revisó si algún negocio real tiene la seña activa |
-| Implementación técnica (rama `feat/legal-compliance`) | `ruff check`, `ruff format --check` y `manage.py check` sin errores; `manage.py test`: 471 tests OK (57 nuevos en `legal/tests/` y `businesses/tests/test_deposit_legal.py`) | Tests en PostgreSQL local; sin desplegar |
+| Implementación técnica (rama `feat/legal-compliance`) | `ruff check`, `ruff format --check` y `manage.py check` sin errores; `manage.py test`: 480 tests OK (66 nuevos en `legal/tests/` y `businesses/tests/test_deposit_legal.py`, incluidas las correcciones de la revisión en `test_review_fixes.py`) | Tests en PostgreSQL local; sin desplegar |
 | Revisión visual en el navegador (vista de celular, servidor local) | Botones en el pie de la home, página de baja y bloque de seña antes de confirmar se ven bien | No se probó con lector de pantalla; los emails se vieron en los tests, no en un cliente de correo |
 
 ## 9. Preguntas pendientes
@@ -245,6 +265,8 @@ Validaciones jurídicas: lista de la sección 10.
 | Confirmar que el régimen BCRA de proveedores de servicios de pago no aplica | 7.1; certeza Baja | Baja |
 | ¿Confirmar la baja desde el email cuenta como "trámite adicional" (Disp. 954/2025 arts. 1 y 4)? Se agregó para que nadie dé de baja una cuenta ajena | H05, H06; 7.3 | Alta |
 | ¿Los botones en el pie de la home cumplen con "lugar destacado y primer acceso"? | H05, H06 | Media |
+| Plazo de arrepentimiento: ¿se corre si el día 10 es inhábil? Hoy se cuentan 10 días corridos por fecha calendario | H-04 de la revisión; 7.4 | Media |
+| ¿Cuánto tiempo hay que conservar la evidencia de aceptación de una cuenta que pide ser borrada? Hoy se borra con la cuenta | H-06 de la revisión; 7.4 | Media |
 
 ## 11. Decisiones del Founder
 | Hallazgo | Decisión (aceptar / mitigar / derivar) | Fecha |
