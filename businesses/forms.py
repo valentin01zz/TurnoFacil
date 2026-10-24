@@ -72,6 +72,7 @@ class DepositSettingsForm(forms.ModelForm):
             "cbu_cvu",
             "holder_tax_id",
             "instructions",
+            "conditions",
         ]
         labels = {"enabled": "Pedir seña al reservar", "amount": "Monto de la seña (ARS)"}
         help_texts = {
@@ -80,8 +81,16 @@ class DepositSettingsForm(forms.ModelForm):
                 "Opcional, hasta 300 caracteres. Por ejemplo, a dónde mandar el comprobante o cómo "
                 "contactarte si hay dudas."
             ),
+            "conditions": (
+                "Opcional, pero recomendado: sin condiciones, tu cliente no sabe qué pasa con "
+                "su seña. Por ejemplo, hasta cuándo se devuelve si cancela. Tienen que respetar "
+                "los derechos de tus clientes; TurnoFacil no las redacta ni las revisa."
+            ),
         }
-        widgets = {"instructions": forms.Textarea(attrs={"rows": 3, "maxlength": 300})}
+        widgets = {
+            "instructions": forms.Textarea(attrs={"rows": 3, "maxlength": 300}),
+            "conditions": forms.Textarea(attrs={"rows": 4, "maxlength": 500}),
+        }
 
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
@@ -116,6 +125,9 @@ class DepositSettingsForm(forms.ModelForm):
 
     def clean_instructions(self):
         return single_line(self.cleaned_data["instructions"])
+
+    def clean_conditions(self):
+        return single_line(self.cleaned_data["conditions"])
 
     def clean(self):
         cleaned_data = super().clean()

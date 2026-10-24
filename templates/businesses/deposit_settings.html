@@ -13,6 +13,12 @@
   {% else %}
     <div class="card">
       <p>La seña es una condición tuya: el turno queda confirmado igual. TurnoFacil no recibe ni verifica la transferencia; la coordinás vos con tu cliente.</p>
+      <ul class="helptext">
+        <li>Vos confirmás con tu cliente que recibiste el dinero. Podés marcar “Seña recibida” en cada turno de la agenda.</li>
+        <li>Si la seña no llega, podés cancelar el turno según las condiciones que informaste.</li>
+        <li>Las devoluciones las gestionás y pagás vos.</li>
+        <li>El titular, alias, CBU/CVU y CUIT/CUIL que cargues los ve cada cliente que reserva y van en su email.</li>
+      </ul>
       <form method="post" novalidate>
         {% csrf_token %}
         {{ form.as_div }}

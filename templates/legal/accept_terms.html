@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Nuevos términos · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Términos y Condiciones</h1>
+  <p class="page-lead">Para seguir usando tu panel, leé y aceptá la versión {{ terms.version }}, vigente desde el {{ terms.effective_at|date:"j \d\e F \d\e Y" }}.</p>
+  <div class="card">
+    <p style="margin: 0 0 16px"><a href="{% url 'terms' %}" target="_blank" rel="noopener">Leer los Términos y Condiciones</a> (se abre en otra pestaña).</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button class="btn btn-primary btn-block" type="submit">Continuar</button>
+    </form>
+    <p class="helptext" style="margin: 14px 0 0">Si no estás de acuerdo, podés dar de baja tu suscripción sin costo desde el <a href="{% url 'cancel_request' %}">botón de baja</a>.</p>
+  </div>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button class="link-button" type="submit">Salir</button>
+  </form>
+</div>
+{% endblock %}

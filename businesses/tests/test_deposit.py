@@ -144,7 +144,7 @@ class DepositSettingsPageTests(TestCase):
         self.assertContains(response, "Así lo ven tus clientes")
         self.assertContains(response, "$ 5.000")
         self.assertContains(response, "estetica.luna")
-        self.assertContains(response, "TurnoFacil no verifica automáticamente el pago")
+        self.assertContains(response, "TurnoFacil no recibe el dinero ni verifica el pago")
 
     def test_esencial_sees_the_plans_and_a_forged_post_saves_nothing(self):
         on_plan(self.business, "esencial")
@@ -276,7 +276,7 @@ class PublicDepositTests(TestCase):
             "estetica.luna",
             "0" * 22,
             "20-12345678-9",
-            "TurnoFacil no verifica automáticamente el pago",
+            "TurnoFacil no recibe el dinero ni verifica el pago",
         ):
             self.assertContains(response, text)
         self.assertNotContains(response, "pagada")
@@ -385,4 +385,4 @@ class PublicDepositTests(TestCase):
         )
         self.assertIn("Alias: estetica.luna", with_deposit.body)
         self.assertIn("Mandá el comprobante.", with_deposit.body)
-        self.assertIn("TurnoFacil no verifica automáticamente el pago", with_deposit.body)
+        self.assertIn("TurnoFacil no recibe el dinero ni verifica el pago", with_deposit.body)

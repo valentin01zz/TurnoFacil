@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Reprogramar turno · {{ appointment.business.name }}{% endblock %}
 {% block header %}{% with business=appointment.business %}{% include "bookings/_business_header.html" %}{% endwith %}{% endblock %}
+{% block site_footer %}{% include "legal/_footer.html" with for_customer=True %}{% endblock %}
 {% block content %}
 <div class="wrap">
   <h1 class="page-title" style="margin-top: 8px">Reprogramar turno</h1>

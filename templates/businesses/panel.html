@@ -55,9 +55,17 @@
                   <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a>
                   {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
                   {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
+                  {% if appointment.deposit_received_at %}<span class="badge ok">Seña recibida</span>{% elif asks_deposit %}<span class="badge">Seña pendiente</span>{% endif %}
                 </div>
               </div>
               {% if not access.read_only %}<div class="appt-actions">
+                {% if asks_deposit or appointment.deposit_received_at %}
+                  <form method="post" action="{% url 'appointment_deposit' appointment.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="received" value="{% if appointment.deposit_received_at %}0{% else %}1{% endif %}">
+                    <button class="btn btn-small" type="submit" title="Lo marcás vos: TurnoFacil no verifica transferencias">{% if appointment.deposit_received_at %}Desmarcar seña{% else %}{% include "_icon.html" with name="check" size=16 stroke=2.4 %}Seña recibida{% endif %}</button>
+                  </form>
+                {% endif %}
                 <a class="btn btn-small" href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=16 stroke=2.4 %}Reprogramar</a>
                 <a class="btn btn-small danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=16 stroke=2.4 %}Cancelar</a>
               </div>{% endif %}

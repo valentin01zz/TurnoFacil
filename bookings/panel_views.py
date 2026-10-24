@@ -7,6 +7,7 @@ from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from billing.catalog import PANEL_EDIT
 from billing.decorators import requires_feature
@@ -90,6 +91,19 @@ def appointment_reschedule(request, pk):
         "bookings/panel_appointment_form.html",
         {"form": form, "is_new": False, "appointment": appointment},
     )
+
+
+@login_required
+@requires_feature(PANEL_EDIT)
+@require_POST
+def appointment_deposit(request, pk):
+    """The owner records by hand that the seña arrived (or undoes it). Nothing is verified."""
+    with transaction.atomic():
+        appointment = get_owned_appointment(request, pk, for_update=True)
+        received = request.POST.get("received") == "1"
+        appointment.deposit_received_at = timezone.now() if received else None
+        appointment.save(update_fields=["deposit_received_at", "updated_at"])
+    return redirect(agenda_url(appointment))
 
 
 @login_required

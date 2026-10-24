@@ -14,6 +14,11 @@ urlpatterns = [
         panel_views.appointment_cancel,
         name="appointment_cancel",
     ),
+    path(
+        "panel/appointments/<int:pk>/deposit/",
+        panel_views.appointment_deposit,
+        name="appointment_deposit",
+    ),
     path("b/<slug:slug>/", views.booking_page, name="booking_page"),
     path("b/<slug:slug>/book/", views.book, name="book"),
     path("t/<str:token>/", views.appointment_detail, name="appointment_detail"),

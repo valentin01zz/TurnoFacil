@@ -1,0 +1,13 @@
+{% autoescape off %}Una solicitud necesita acción del operador.
+
+Código: {{ service_request.code }}
+Tipo: {{ service_request.get_kind_display }}
+Resultado: {{ service_request.get_outcome_display }}
+Email: {{ service_request.email }}
+Negocio: {% if service_request.business %}{{ service_request.business.name }} ({{ service_request.business.slug }}){% else %}-{% endif %}
+Suscripción: {% if subscription %}{{ subscription.get_status_display }}, plan {{ subscription.plan.name }}{% else %}-{% endif %}
+
+{% if service_request.outcome == "manual_review" %}La renovación NO se cortó sola: cancelarla en Mercado Pago (o terminar el plan pagado por transferencia).
+{% endif %}{% if service_request.refund_due %}Reembolso pendiente: devolver lo cobrado en Mercado Pago y terminar el plan.
+{% endif %}Al terminar: python manage.py service_requests --resolve {{ service_request.code }} --note "qué se hizo"
+{% endautoescape %}

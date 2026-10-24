@@ -4,8 +4,12 @@ from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.db import transaction
+from django.urls import reverse
+from django.utils.html import format_html
 
 from businesses.models import Business
+from legal.models import LegalDocument
+from legal.services import record_signup_documents
 
 from . import throttle
 from .identity import canonical_email
@@ -23,6 +27,24 @@ class SignupForm(forms.Form):
     business_name = forms.CharField(label="Nombre del negocio", max_length=80)
     email = forms.EmailField(label="Email")
     password = forms.CharField(label="Contraseña", widget=forms.PasswordInput, strip=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # The versions shown now are the ones recorded on save, so the evidence matches the page.
+        self.terms = LegalDocument.current(LegalDocument.TERMS)
+        self.privacy = LegalDocument.current(LegalDocument.PRIVACY)
+        if self.terms is not None:
+            # Unticked, and required only once there are terms to accept.
+            self.fields["accept_terms"] = forms.BooleanField(
+                label=format_html(
+                    'Acepto los <a href="{}" target="_blank" rel="noopener">Términos y '
+                    "Condiciones</a>",
+                    reverse("terms"),
+                ),
+                error_messages={
+                    "required": "Para crear la cuenta tenés que aceptar los Términos y Condiciones."
+                },
+            )
 
     def clean_business_name(self):
         # Collapse line breaks, tabs and repeated spaces: the name goes into email subjects.
@@ -48,6 +70,7 @@ class SignupForm(forms.Form):
         # The account starts unverified; the trial starts when the owner confirms the email.
         user = User.objects.create_user(self.cleaned_data["email"], self.cleaned_data["password"])
         Business.objects.create(owner=user, name=self.cleaned_data["business_name"])
+        record_signup_documents(user, self.terms, self.privacy)
         return user
 
 
