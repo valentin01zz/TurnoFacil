@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 staticfiles/
 .ruff_cache/
+
+# Marketing assets live only on the Founder's computer
+marketing/

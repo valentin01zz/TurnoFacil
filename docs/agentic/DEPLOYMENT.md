@@ -136,6 +136,16 @@ Cambios de la rama `fix/audit-hardening` que piden algo en Render o una verifica
     la **Shell** del servicio web,
     `python manage.py shell -c "from accounts.models import Attempt; print(set(Attempt.objects.filter(scope='login_ip').values_list('key', flat=True)))"`
     tiene que mostrar varias IPs públicas distintas, no una sola IP interna de Render.
+  - **Resultado (2026-10-21): `CLIENT_IP_PROXY_COUNT=2` en `turnofacil-web`.**
+    - [x] Con la opción A, 31 logins con `X-Forwarded-For` falso no se bloquearon: se guardaron las IPs
+          falsas. Sin encabezado falso, el intento 31 sí se bloqueó (el límite funciona).
+    - [x] Con `1` tampoco se bloquearon: se guardaban IPs de **Cloudflare** (`172.64.x`, `104.23.x`,
+          `162.158.x`, `172.71.x`), que cambian entre pedidos. Los clientes habrían compartido límites: se
+          quitó enseguida.
+    - [x] El encabezado llega como `[lo que mande el cliente], IP real, IP de Cloudflare`: el cliente es la
+          **segunda desde la derecha**. Con `2`, los 31 logins con IP falsa se bloquearon en el intento 31.
+    - Si Render o Cloudflare cambian su cadena de proxies, este número deja de servir: repetir la prueba
+      (31 logins con IP falsa) y revisar en la Shell qué IPs guarda `Attempt` para `login_ip`.
 
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy
