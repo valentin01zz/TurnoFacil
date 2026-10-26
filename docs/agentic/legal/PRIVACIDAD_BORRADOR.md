@@ -40,8 +40,8 @@ suscripción del negocio, la referencia de Mercado Pago.
 | Proveedor | Qué hace | Qué datos recibe | Dónde |
 |---|---|---|---|
 | Render | Hosting y base de datos | Todos los datos de la app | Estados Unidos (Virginia) |
-| Resend | Envío de emails | Email del destinatario y contenido del email (turno, negocio) | [COMPLETAR: verificar; dominio configurado en región São Paulo, Brasil] |
-| Cloudflare (a través de Render) | Red y protección | Dirección IP y datos técnicos de la conexión | [COMPLETAR: verificar] |
+| Resend | Envío de emails | Email del destinatario y contenido del email (turno, negocio) | Brasil (São Paulo), verificado el 2026-10-26 |
+| Cloudflare (a través de Render y Resend) | Red y protección | Dirección IP y datos técnicos de la conexión | Estados Unidos (según la lista de proveedores de Render) |
 | Mercado Pago | Cobro de la suscripción del negocio (no interviene en las señas) | Email del pagador, plan y monto | [COMPLETAR: verificar]; trata los datos de pago según sus propias políticas |
 
 Las tipografías se sirven desde nuestro propio sitio: ningún proveedor de fuentes recibe tu IP.

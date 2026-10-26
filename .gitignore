@@ -7,3 +7,6 @@ staticfiles/
 
 # Marketing assets live only on the Founder's computer
 marketing/
+
+# Owner's real legal data: the repo is public
+*.local.md

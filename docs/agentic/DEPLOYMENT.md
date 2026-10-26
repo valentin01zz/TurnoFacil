@@ -147,6 +147,20 @@ Cambios de la rama `fix/audit-hardening` que piden algo en Render o una verifica
     - Si Render o Cloudflare cambian su cadena de proxies, este número deja de servir: repetir la prueba
       (31 logins con IP falsa) y revisar en la Shell qué IPs guarda `Attempt` para `login_ip`.
 
+## Cumplimiento legal (rama `feat/legal-compliance`, PR #4)
+Qué pide en Render y en qué orden. Detalle legal en `docs/agentic/legal/LEGAL_REVIEW.md`.
+- [x] Variables `LEGAL_*` en `turnofacil-web` (2026-10-26, cargadas por el Founder con "Save only"):
+      `LEGAL_OWNER_NAME`, `LEGAL_OWNER_TAX_ID`, `LEGAL_OWNER_ADDRESS`, `LEGAL_CONTACT_EMAIL`,
+      `LEGAL_PRIVACY_EMAIL`, `LEGAL_SUPPORT_HOURS`. Los valores están en `OWNER_LEGAL_DATA.local.md` (fuera de
+      git). El cron no las usa. `main` no las lee: no cambian nada hasta desplegar el PR.
+- [ ] Backup de la base, restaurarlo aparte y correr `migrate` ahí (`legal.0003` y `0005` agregan triggers).
+- [ ] Revisión del abogado y visto bueno del Founder; merge y deploy.
+- [ ] Verificar `/contacto/`, `/baja/`, `/arrepentimiento/` y `/mis-datos/` en vivo.
+- [ ] Publicar términos y privacidad con `publish_legal_document` desde la Shell (recién ahí aparecen las
+      casillas y los enlaces del pie).
+- [ ] Más adelante: `APPOINTMENT_RETENTION_DAYS=365` en el cron, junto con agregar `purge_old_data` a su
+      `startCommand`.
+
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy
   (unos minutos). La tarea de recordatorios se revierte igual, desde su propio servicio.

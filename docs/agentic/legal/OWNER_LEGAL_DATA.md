@@ -3,6 +3,7 @@
 > Los completa el Founder, **nunca un agente**. Mientras quede un `[COMPLETAR]` obligatorio, los términos y
 > la política de privacidad no se publican y el `LEGAL_REVIEW` sigue en `BLOCKED`.
 > Plantilla: `templates/OWNER_LEGAL_DATA.md` del repo NEXORA.
+> El repo es público: los valores reales van en `OWNER_LEGAL_DATA.local.md` (en `.gitignore`), nunca acá.
 
 | Dato | Valor | Obligatorio | Público | Para qué se usa |
 |---|---|---|---|---|

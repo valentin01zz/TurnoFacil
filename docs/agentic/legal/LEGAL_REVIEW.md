@@ -248,6 +248,13 @@ de Meta ni otros scripts de terceros. Confirma que nada de esta rama está en pr
 
 Tests: `legal/tests/test_privacy_and_deletion.py`.
 
+H04, avance del 2026-10-26: el Founder guardó, fuera del repo, el DPA de Render (versión del 2024-12-19,
+aceptado con sus Términos) con su lista de proveedores, que incluye Cloudflare, y el DPA de Resend (firmado
+por Resend) con su lista de proveedores (AWS y Cloudflare). La región de Resend es São Paulo (`sa-east-1`),
+verificada en el panel. El dominio usa los DNS de DonWeb, así que Cloudflare entra solo como proveedor de
+Render y Resend. Los dos DPA respaldan las transferencias con las cláusulas de la UE y el Data Privacy Framework,
+no con las cláusulas modelo de la AAIP: H04 sigue DERIVADO al abogado.
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |
