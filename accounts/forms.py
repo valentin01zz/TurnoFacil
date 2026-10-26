@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from businesses.models import Business
+from legal.forms import privacy_consent_field
 from legal.models import LegalDocument
 from legal.services import record_signup_documents
 
@@ -45,6 +46,8 @@ class SignupForm(forms.Form):
                     "required": "Para crear la cuenta tenés que aceptar los Términos y Condiciones."
                 },
             )
+        if self.privacy is not None:
+            self.fields["accept_privacy"] = privacy_consent_field()
 
     def clean_business_name(self):
         # Collapse line breaks, tabs and repeated spaces: the name goes into email subjects.

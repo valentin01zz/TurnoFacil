@@ -7,7 +7,10 @@ Email: {{ service_request.email }}
 Negocio: {% if service_request.business %}{{ service_request.business.name }} ({{ service_request.business.slug }}){% else %}-{% endif %}
 Suscripción: {% if subscription %}{{ subscription.get_status_display }}, plan {{ subscription.plan.name }}{% else %}-{% endif %}
 
-{% if service_request.outcome == "manual_review" %}La renovación NO se cortó sola: cancelarla en Mercado Pago (o terminar el plan pagado por transferencia).
+{% if service_request.outcome == "deletion_pending" %}Borrado pedido (plazo: 5 días hábiles, Ley 25.326 art. 16). Ver docs/agentic/legal/PROCEDIMIENTO_DERECHOS.md:
+- Si tiene negocio: cortar la renovación si la hay, ofrecer export_business_data {{ service_request.business.slug|default:"<slug>" }} y correr delete_business {{ service_request.business.slug|default:"<slug>" }} --yes.
+- Si reservó turnos: customer_data {{ service_request.email }} --erase (revisar antes si el email es compartido).
+{% endif %}{% if service_request.outcome == "manual_review" %}La renovación NO se cortó sola: cancelarla en Mercado Pago (o terminar el plan pagado por transferencia).
 {% endif %}{% if service_request.refund_due %}Reembolso pendiente: devolver lo cobrado en Mercado Pago y terminar el plan.
 {% endif %}Al terminar: python manage.py service_requests --resolve {{ service_request.code }} --note "qué se hizo"
 {% endautoescape %}

@@ -14,9 +14,9 @@ from legal.services import (
 
 class Command(BaseCommand):
     help = (
-        "List cancellation and withdrawal requests that need the operator (refunds, manual review, "
-        "emails that failed, or unconfirmed for over a day), resend their email, or mark one as "
-        "resolved."
+        "List cancellation, withdrawal and data deletion requests that need the operator "
+        "(refunds, manual review, deletions, emails that failed, or unconfirmed for over a day), "
+        "resend their email, or mark one as resolved."
     )
 
     def add_arguments(self, parser):

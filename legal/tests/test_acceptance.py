@@ -44,16 +44,14 @@ class SignupAcceptanceTests(TestCase):
         self.assertFalse(User.objects.exists())
         self.assertFalse(LegalAcceptance.objects.exists())
 
-    def test_acceptance_records_the_exact_version_and_the_privacy_notice(self):
+    def test_acceptance_records_the_exact_version_of_both_documents(self):
         terms = publish()
         privacy = publish(kind=LegalDocument.PRIVACY, body="Privacidad")
-        self.signup(accept_terms="on")
+        self.signup(accept_terms="on", accept_privacy="on")
         user = User.objects.get()
-        accepted = LegalAcceptance.objects.get(user=user, action=LegalAcceptance.ACCEPTED)
-        self.assertEqual(accepted.document, terms)
-        self.assertEqual(accepted.context, LegalAcceptance.SIGNUP)
-        informed = LegalAcceptance.objects.get(user=user, action=LegalAcceptance.INFORMED)
-        self.assertEqual(informed.document, privacy)
+        accepted = LegalAcceptance.objects.filter(user=user, action=LegalAcceptance.ACCEPTED)
+        self.assertEqual({a.document for a in accepted}, {terms, privacy})
+        self.assertEqual({a.context for a in accepted}, {LegalAcceptance.SIGNUP})
 
     def test_a_failed_signup_records_nothing(self):
         publish()

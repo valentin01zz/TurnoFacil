@@ -14,6 +14,7 @@
       {% if owner.hours %}<div><dt>Horario de atención</dt><dd>{{ owner.hours }}</dd></div>{% endif %}
     </dl>
   </div>
+  <p class="helptext">¿Querés que borremos tus datos? Pedilo desde <a href="{% url 'deletion_request' %}">Eliminar mis datos</a>, sin iniciar sesión.</p>
   <p class="helptext">¿Querés dar de baja tu suscripción o arrepentirte de haberla contratado? Usá el <a href="{% url 'cancel_request' %}">botón de baja</a> o el <a href="{% url 'withdrawal_request' %}">botón de arrepentimiento</a>, sin iniciar sesión.</p>
   <p class="helptext">¿Reservaste un turno en un negocio? Para cambios, cancelaciones o señas, escribile al negocio: el turno es con él.</p>
 </div>

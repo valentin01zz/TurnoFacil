@@ -107,6 +107,7 @@
             </div>
             {{ booking.website }}
             <p class="helptext" style="margin: 0">{{ business.name }} usa tus datos para gestionar este turno; TurnoFacil los procesa por su cuenta para confirmarte, recordarte y dejarte cambiar el turno. Son necesarios para reservar online.{% if legal_links.privacy %} Más información y tus derechos en la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">Política de Privacidad</a>.{% endif %}</p>
+            {% if booking.accept_privacy %}<div class="consent">{{ booking.accept_privacy.errors }}{{ booking.accept_privacy }}<label for="{{ booking.accept_privacy.id_for_label }}">{{ booking.accept_privacy.label }}</label></div>{% endif %}
           {% else %}
             <div class="step-empty">Cuando elijas el horario te pedimos nombre, teléfono y email.</div>
           {% endif %}

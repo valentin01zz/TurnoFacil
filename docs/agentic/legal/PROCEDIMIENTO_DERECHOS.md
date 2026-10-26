@@ -66,6 +66,18 @@ El JSON se manda al titular por email. Nunca incluye datos de otra persona.
 
 Revisar `service_requests` al menos una vez por día hábil.
 
+## 5 bis. Eliminar mis datos desde el sitio
+1. La persona usa **Eliminar mis datos** (`/mis-datos/`, en el pie de todas las páginas, sin iniciar sesión)
+   y recibe el código al instante. A diferencia de la baja, el link para confirmar llega aunque el email no
+   tenga cuenta: los clientes que reservaron no tienen cuenta.
+2. Confirmar desde el email es la verificación de identidad de la sección 2. Sin confirmación no pasa nada.
+3. Al confirmar queda `Borrado pendiente`, llega la constancia y el aviso a `BILLING_CONTACT_EMAIL` con los
+   comandos. **Nada se borra solo.** El plazo de 5 días hábiles corre desde la confirmación.
+4. El operador: si es dueño, corta la renovación si la hay, ofrece `export_business_data` y corre
+   `delete_business <slug> --yes`; si reservó turnos, `customer_data <email> --erase` (revisar antes si el
+   email es compartido, sección 2). Después avisa a la persona y corre
+   `service_requests --resolve <código> --note "qué se hizo"`.
+
 ## 6. Registro
 Cada pedido por email (acceso, supresión) se anota con fecha, quién, qué se pidió, qué se hizo y fecha de
 respuesta, en un registro fuera del repo. Las bajas y arrepentimientos ya quedan registrados en la base

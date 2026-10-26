@@ -226,6 +226,28 @@ en el commit siguiente con tests en `test_review_fixes.py`:
 **Antes de desplegar** (además de lo de la sección 12): hacer un backup de la base en Render, restaurarlo en
 una base aparte, correr `migrate` ahí y probar registro, reserva, panel, seña y planes.
 
+### 7.5 Auditoría pedida por el Founder (2026-10-26)
+Lista de 8 puntos del Founder, revisada contra la rama `feat/legal-compliance` y contra el sitio en vivo
+(`turnofacil.online`, rama `main`).
+
+Sitio en vivo, verificado con `curl` el 2026-10-26: `/terminos/`, `/privacidad/`, `/contacto/`, `/baja/` y
+`/arrepentimiento/` dan 404; la home carga Google Fonts (`fonts.googleapis.com`); no hay Google Analytics, Pixel
+de Meta ni otros scripts de terceros. Confirma que nada de esta rama está en producción.
+
+| Punto | Estado en la rama | Cambio de esta auditoría |
+|---|---|---|
+| 1. Política de privacidad enlazada en pie y formularios | Pie en todas las páginas; aviso con enlace en registro y reserva | Enlace también en los formularios de baja, arrepentimiento y borrado |
+| 2. Datos personales y AAIP | Sección 3; H08 abierto | — |
+| 3. Claves expuestas | Ninguna: búsqueda de patrones de claves (Mercado Pago, Resend, AWS, GitHub, Google, URLs con contraseña, claves privadas) en el árbol, los no versionados y todo el historial de git; `static/js/app.js` sin claves; todo sale de variables de entorno (`config/settings.py`, `render.yaml` con `sync: false`) | — |
+| 4. Casilla desmarcada de privacidad | Antes: solo aviso, sin casilla (sección 8, medida 2) | **Decisión del Founder: casilla.** Desmarcada y obligatoria en el registro y en la reserva, validada en el servidor, visible solo con la política publicada. En el registro se guarda como `ACCEPTED`. No se agrega en baja, arrepentimiento ni borrado: una casilla obligatoria ahí sería un trámite adicional (Disp. 954/2025 arts. 1 y 4) y condicionaría un derecho; se deja el enlace |
+| 5. Pedir la eliminación de los datos | Solo por email y comandos del operador | **Botón "Eliminar mis datos"** (`/mis-datos/`) en el pie de todas las páginas, también las de reserva; mismo circuito que la baja (código, confirmación por email, constancia, aviso al operador). El borrado lo hace el operador (`PROCEDIMIENTO_DERECHOS.md` 5 bis) |
+| 6. Licencias | `ASSET_LICENSES.md`: fuentes OFL, sin fotos; íconos y logo PENDIENTE | — |
+| 7. Cookies | Solo esenciales; sin analítica ni píxeles, en la rama y en vivo. No corresponde banner | — |
+| 8. Términos visibles | Página versionada, enlace en el pie y casilla en el registro | — |
+| Arrepentimiento | Botón público (H06) | — |
+
+Tests: `legal/tests/test_privacy_and_deletion.py`.
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |

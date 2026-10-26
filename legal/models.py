@@ -62,8 +62,8 @@ class LegalDocument(models.Model):
 class LegalAcceptance(models.Model):
     """What an owner did with one exact document version. Created by the server, never by hand.
 
-    ACCEPTED: the owner ticked the box for that version. INFORMED: the version was linked in the
-    form the owner submitted (the privacy notice), which records notice, not consent.
+    ACCEPTED: the owner ticked the box for that version (terms and, since 2026-10-26, privacy).
+    INFORMED: the version was only linked in the form, with no box; no longer recorded at signup.
     No IP or user agent: they are not needed for this purpose (see the plan).
     """
 
@@ -99,16 +99,22 @@ class LegalAcceptance(models.Model):
 
 
 class ServiceRequest(models.Model):
-    """A cancellation (baja) or withdrawal (arrepentimiento) asked for from the public buttons.
+    """A cancellation (baja), withdrawal (arrepentimiento) or data deletion asked for in public.
 
     Saved and answered with its code before anything else happens (Disposición 954/2025, art. 5).
     It takes effect when the account's mailbox confirms it, so nobody can cancel someone else's plan
     by typing their email. Pending ones are listed for the operator (`service_requests`).
+    A deletion is never automatic: confirming it hands it to the operator (Ley 25.326 art. 16).
     """
 
     CANCEL = "cancel"
     WITHDRAWAL = "withdrawal"
-    KINDS = [(CANCEL, "Baja de servicio"), (WITHDRAWAL, "Arrepentimiento")]
+    DELETION = "deletion"
+    KINDS = [
+        (CANCEL, "Baja de servicio"),
+        (WITHDRAWAL, "Arrepentimiento"),
+        (DELETION, "Eliminación de datos"),
+    ]
 
     # What confirming did.
     RENEWAL_STOPPED = "renewal_stopped"
@@ -116,12 +122,14 @@ class ServiceRequest(models.Model):
     MANUAL_REVIEW = "manual_review"
     REFUND_DUE = "refund_due"
     OUT_OF_TERM = "out_of_term"
+    DELETION_PENDING = "deletion_pending"
     OUTCOMES = [
         (RENEWAL_STOPPED, "Se cortó la renovación"),
         (NOTHING_TO_CHARGE, "No había cobros activos"),
         (MANUAL_REVIEW, "Revisión del operador"),
         (REFUND_DUE, "Reembolso pendiente"),
         (OUT_OF_TERM, "Fuera de plazo: tramitado como baja"),
+        (DELETION_PENDING, "Borrado pendiente"),
     ]
 
     kind = models.CharField(max_length=10, choices=KINDS)
@@ -151,7 +159,8 @@ class ServiceRequest(models.Model):
     @property
     def needs_operator(self):
         return self.resolved_at is None and (
-            self.refund_due or self.outcome in (self.MANUAL_REVIEW, self.REFUND_DUE)
+            self.refund_due
+            or self.outcome in (self.MANUAL_REVIEW, self.REFUND_DUE, self.DELETION_PENDING)
         )
 
     @property

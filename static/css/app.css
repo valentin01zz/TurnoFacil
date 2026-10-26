@@ -116,7 +116,10 @@ input[type="text"], input[type="email"], input[type="password"], input[type="num
 }
 input:focus, select:focus, textarea:focus { border-color: var(--ink); box-shadow: 4px 4px 0 var(--violet); background: var(--paper); }
 input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--violet); }
-form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: center; gap: 10px; }
+form > div:has(> input[type="checkbox"]), .consent { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; }
+.consent { display: flex; margin-top: 14px; }
+form > div:has(> input[type="checkbox"]) > .errorlist, .consent > .errorlist { flex-basis: 100%; }
+input[type="checkbox"] { flex-shrink: 0; }
 .errorlist { list-style: none; margin: 0; padding: 10px 14px; border-radius: 12px; background: #fdecea; color: var(--danger); font-weight: 600; font-size: 14px; }
 .errorlist li + li { margin-top: 4px; }
 .helptext { font-size: 14px; color: var(--muted); }

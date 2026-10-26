@@ -27,6 +27,12 @@ urlpatterns = [
         name="withdrawal_request",
     ),
     path(
+        "mis-datos/",
+        views.service_request,
+        {"kind": ServiceRequest.DELETION},
+        name="deletion_request",
+    ),
+    path(
         "solicitud/<str:token>/",
         views.service_request_confirm,
         name="service_request_confirm",

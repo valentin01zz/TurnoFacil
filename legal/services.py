@@ -42,7 +42,7 @@ def record_signup_documents(user, terms, privacy):
         LegalAcceptance.objects.create(
             user=user,
             document=privacy,
-            action=LegalAcceptance.INFORMED,
+            action=LegalAcceptance.ACCEPTED,
             context=LegalAcceptance.SIGNUP,
         )
 
@@ -127,7 +127,8 @@ def send_request_received(service_request):
     Whether it went out is recorded: a failed email is listed for the operator, who can resend it.
     """
     confirm_url = None
-    if service_request.business is not None:
+    # A deletion is confirmed by any mailbox: customers who booked have no account.
+    if service_request.business is not None or service_request.kind == ServiceRequest.DELETION:
         path = reverse("service_request_confirm", args=[confirm_token(service_request)])
         confirm_url = f"{settings.SITE_URL}{path}"
     sent = send_legal_email(
@@ -211,7 +212,9 @@ def confirm_request(service_request, now=None):
         business = service_request.business
         subscription = get_access(business).subscription if business else None
         refund_due = False
-        if service_request.kind == ServiceRequest.WITHDRAWAL:
+        if service_request.kind == ServiceRequest.DELETION:
+            outcome = ServiceRequest.DELETION_PENDING
+        elif service_request.kind == ServiceRequest.WITHDRAWAL:
             outcome, refund_due = withdrawal_outcome(service_request, subscription)
         else:
             outcome = stop_renewal(subscription)
@@ -251,7 +254,10 @@ def send_record(service_request):
 
 
 def notify_operator(service_request):
-    """Tell the operator about a refund or a manual review. Returns whether it went out."""
+    """Tell the operator about a refund, a manual review or a deletion.
+
+    Returns whether it went out.
+    """
     sent = send_legal_email(
         f"Revisar solicitud {service_request.code}",
         "legal/emails/operator_notice.txt",

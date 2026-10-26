@@ -4,6 +4,9 @@ from datetime import datetime
 from django import forms
 from django.utils import timezone
 
+from legal.forms import privacy_consent_field
+from legal.models import LegalDocument
+
 from .availability import booking_window
 
 
@@ -101,6 +104,11 @@ class BookingForm(SlotForm):
     customer_email = forms.EmailField(label="Email")
     # Honeypot: hidden from people, often filled in by bots.
     website = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if LegalDocument.current(LegalDocument.PRIVACY) is not None:
+            self.fields["accept_privacy"] = privacy_consent_field()
 
     def clean_customer_phone(self):
         return clean_phone(self.cleaned_data["customer_phone"])

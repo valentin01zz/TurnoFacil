@@ -67,9 +67,20 @@ def owner_details():
 
 
 def service_request(request, kind):
-    """Public cancellation and withdrawal buttons: no login, no prior registration."""
-    form = ServiceRequestForm(request.POST if request.method == "POST" else None)
-    context = {"form": form, "kind": kind, "is_withdrawal": kind == ServiceRequest.WITHDRAWAL}
+    """Public cancellation, withdrawal and data deletion buttons.
+
+    No login and no prior registration.
+    """
+    form = ServiceRequestForm(
+        request.POST if request.method == "POST" else None,
+        deletion=kind == ServiceRequest.DELETION,
+    )
+    context = {
+        "form": form,
+        "kind": kind,
+        "is_withdrawal": kind == ServiceRequest.WITHDRAWAL,
+        "is_deletion": kind == ServiceRequest.DELETION,
+    }
     if request.method == "POST":
         ip = throttle.client_ip(request)
         if throttle.is_limited("service_request_ip", ip):

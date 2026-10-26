@@ -78,6 +78,11 @@ mostramos un aviso de consentimiento de cookies. Si eso cambia, lo vamos a pedir
 ## 7. Tus derechos
 Podés pedir acceso, rectificación, actualización o supresión de tus datos escribiendo a [COMPLETAR: email de
 datos personales], con un dato que nos permita confirmar que sos el titular.
+
+Para pedir que borremos tus datos no hace falta escribir: usá **Eliminar mis datos**, en el pie de todas las
+páginas (`/mis-datos/`). Ingresás tu email, te llega un código y un link para confirmar, y desde la
+confirmación corre el plazo de 5 días hábiles. Si tenés un turno próximo, el negocio conserva tus datos hasta
+que pase o lo canceles.
 - Acceso: respondemos dentro de los 10 días corridos (art. 14, Ley 25.326).
 - Rectificación, actualización o supresión: dentro de los 5 días hábiles (art. 16).
 - Si reservaste un turno en un negocio, el responsable es el negocio: podés pedírselo a él o a nosotros, y lo

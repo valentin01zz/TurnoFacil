@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{% if is_withdrawal %}Botón de arrepentimiento{% else %}Botón de baja de servicio{% endif %} · TurnoFacil{% endblock %}
+{% block title %}{% if is_deletion %}Eliminar mis datos{% elif is_withdrawal %}Botón de arrepentimiento{% else %}Botón de baja de servicio{% endif %} · TurnoFacil{% endblock %}
 {% block content %}
 <div class="wrap narrow">
-  <h1 class="page-title">{% if is_withdrawal %}Botón de arrepentimiento{% else %}Botón de baja de servicio{% endif %}</h1>
-  {% if is_withdrawal %}
+  <h1 class="page-title">{% if is_deletion %}Eliminar mis datos{% elif is_withdrawal %}Botón de arrepentimiento{% else %}Botón de baja de servicio{% endif %}</h1>
+  {% if is_deletion %}
+    <p class="page-lead">Pedí que borremos tus datos personales de TurnoFacil: los de tu cuenta, si tenés un negocio, o los de los turnos que reservaste. Lo hacemos dentro de los 5 días hábiles y te avisamos por email.</p>
+  {% elif is_withdrawal %}
     <p class="page-lead">Si contrataste un plan pago de TurnoFacil hace 10 días corridos o menos, podés arrepentirte sin costo y te devolvemos lo que pagaste.</p>
   {% else %}
     <p class="page-lead">Das de baja tu suscripción a TurnoFacil: dejamos de cobrarte. No tiene costo.</p>
@@ -12,10 +14,14 @@
     <form method="post" novalidate>
       {% csrf_token %}
       {{ form.as_div }}
-      <button class="btn btn-primary btn-block" type="submit">{% if is_withdrawal %}Enviar arrepentimiento{% else %}Pedir la baja{% endif %}</button>
+      <button class="btn btn-primary btn-block" type="submit">{% if is_deletion %}Pedir que borren mis datos{% elif is_withdrawal %}Enviar arrepentimiento{% else %}Pedir la baja{% endif %}</button>
     </form>
-    <p class="helptext" style="margin: 14px 0 0">Te mandamos al instante un email con el código de tu solicitud. Para que nadie pueda dar de baja una cuenta ajena, la solicitud se aplica cuando la confirmás desde ese email.</p>
+    <p class="helptext" style="margin: 14px 0 0">Te mandamos al instante un email con el código de tu solicitud. Para que nadie pueda pedirlo con un email ajeno, la solicitud se aplica cuando la confirmás desde ese email.{% if legal_links.privacy %} Usamos tu email solo para tramitarla, según la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">Política de Privacidad</a>.{% endif %}</p>
   </div>
-  <p class="helptext">¿Reservaste un turno en un negocio y querés cancelarlo? Hacelo desde el link de tu email de confirmación o escribile al negocio.</p>
+  {% if is_deletion %}
+    <p class="helptext">Si tenés un turno próximo, cancelalo antes desde el link de tu email de confirmación o con el negocio: mientras el turno no pasó, el negocio necesita tus datos para atenderte.</p>
+  {% else %}
+    <p class="helptext">¿Reservaste un turno en un negocio y querés cancelarlo? Hacelo desde el link de tu email de confirmación o escribile al negocio.</p>
+  {% endif %}
 </div>
 {% endblock %}
