@@ -29,7 +29,13 @@ Versión: 1.0 · Vigente desde: [COMPLETAR al publicar]
 No pedimos datos sensibles. Pedimos a los negocios que no los carguen (por ejemplo, diagnósticos en el nombre
 de un servicio).
 
-No usamos los datos para publicidad, no los vendemos y no hacemos perfiles.
+No usamos los datos para publicidad, no los vendemos y no hacemos perfiles. Tampoco los usamos para
+finalidades distintas ni incompatibles con las de esta tabla.
+
+**Consentimiento:** al enviar un formulario de TurnoFacil (registro o reserva) das tu consentimiento libre,
+expreso e informado para que tratemos tus datos según esta política. Darlos es voluntario, pero sin los
+marcados como obligatorios no podemos crear tu cuenta ni registrar tu turno online; en ese caso podés
+reservar comunicándote directamente con el negocio.
 
 **Señas:** la seña se transfiere directamente del cliente al negocio, por fuera de TurnoFacil. No recibimos
 ni guardamos datos de pago de los clientes (cuentas, tarjetas, comprobantes) ni sabemos si la transferencia se
@@ -46,9 +52,9 @@ suscripción del negocio, la referencia de Mercado Pago.
 
 Las tipografías se sirven desde nuestro propio sitio: ningún proveedor de fuentes recibe tu IP.
 
-Estados Unidos y Brasil no están en la lista de países con protección adecuada de la AAIP.
-[COMPLETAR, con el abogado: mecanismo que respalda estas transferencias (acuerdos de tratamiento de datos de
-cada proveedor, cláusulas modelo)]. No afirmar nada en esta sección sin el documento guardado.
+TurnoFacil guarda los datos en servidores de Render (Estados Unidos) y envía los emails a través de Resend
+(Brasil). Estos países no tienen un nivel de protección de datos equivalente al de Argentina. Al aceptar esta
+política, consentís expresamente esa transferencia.
 
 ## 4. Cuánto tiempo guardamos los datos
 > Requiere: decisión del Founder y comando de borrado (`PLAN_IMPLEMENTACION.md`, paso 6). Hasta que existan,
@@ -59,7 +65,8 @@ cada proveedor, cláusulas modelo)]. No afirmar nada en esta sección sin el doc
 - Datos de facturación: lo que exija la ley tributaria.
 
 ## 5. Seguridad
-Usamos conexión cifrada (HTTPS) en todo el sitio, contraseñas guardadas con hash, protección contra
+Adoptamos las medidas técnicas y organizativas necesarias para garantizar la seguridad y confidencialidad de
+tus datos y evitar su adulteración, pérdida, consulta o tratamiento no autorizado. Usamos conexión cifrada (HTTPS) en todo el sitio, contraseñas guardadas con hash, protección contra
 falsificación de formularios, límites de intentos y separación de datos entre negocios (cada negocio ve solo
 los suyos). Ningún sistema es infalible: si ocurre un incidente que afecte tus datos, te avisamos.
 
@@ -76,8 +83,10 @@ No usamos cookies de analítica, publicidad ni de terceros, ni almacenamiento lo
 mostramos un aviso de consentimiento de cookies. Si eso cambia, lo vamos a pedir antes de activarlas.
 
 ## 7. Tus derechos
-Podés pedir acceso, rectificación, actualización o supresión de tus datos escribiendo a [COMPLETAR: email de
-datos personales], con un dato que nos permita confirmar que sos el titular.
+De acuerdo con la Ley 25.326, podés pedir gratis el acceso, la rectificación, la actualización o la supresión
+de tus datos. Mandá tu pedido por escrito a [COMPLETAR: email de datos personales], con una copia de tu DNI
+para que podamos confirmar que sos el titular. Usamos esa copia solo para verificar tu identidad y la
+borramos al cerrar el pedido.
 
 Para pedir que borremos tus datos no hace falta escribir: usá **Eliminar mis datos**, en el pie de todas las
 páginas (`/mis-datos/`). Ingresás tu email, te llega un código y un link para confirmar, y desde la
@@ -88,11 +97,9 @@ que pase o lo canceles.
 - Si reservaste un turno en un negocio, el responsable es el negocio: podés pedírselo a él o a nosotros, y lo
   trasladamos.
 
-La Agencia de Acceso a la Información Pública (AAIP), órgano de control de la Ley 25.326, atiende denuncias
-y reclamos por incumplimiento de las normas de protección de datos personales.
-
-> Nota: el texto exacto del aviso de la AAIP que la normativa exige incluir se verifica con el abogado o en
-> el sitio de la AAIP antes de publicar; no se verificó en esta revisión.
+"La AGENCIA DE ACCESO A LA INFORMACIÓN PÚBLICA, en su carácter de Órgano de Control de la Ley N° 25.326,
+tiene la atribución de atender las denuncias y reclamos que interpongan quienes vean afectados sus derechos
+por incumplimiento de las normas vigentes en materia de protección de datos personales."
 
 ## 8. Cambios
 Si cambiamos esta política, publicamos la nueva versión con su fecha y avisamos por email a los negocios.

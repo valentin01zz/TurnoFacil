@@ -255,6 +255,12 @@ verificada en el panel. El dominio usa los DNS de DonWeb, así que Cloudflare en
 Render y Resend. Los dos DPA respaldan las transferencias con las cláusulas de la UE y el Data Privacy Framework,
 no con las cláusulas modelo de la AAIP: H04 sigue DERIVADO al abogado.
 
+H04, decisión del 2026-10-27: el abogado consideró innecesario detallar el mecanismo de las transferencias.
+Decisión del Founder: respaldarlas con el consentimiento expreso del titular (Decreto 1558/2001, anexo I,
+art. 12). La política dice dónde están los servidores (Render, EE. UU.; Resend, Brasil) y que aceptarla es
+consentir la transferencia; la casilla obligatoria "Leí y acepto la Política de Privacidad" del registro y
+la reserva recoge ese consentimiento. H04 queda MITIGADO una vez publicada la política.
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |
