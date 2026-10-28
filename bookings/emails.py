@@ -28,12 +28,14 @@ def send_rescheduled(appointment, manage_url):
     )
 
 
-def send_cancelled(appointment, manage_url):
-    send_customer_email(
+def send_cancelled(appointment, manage_url, reason=""):
+    """`reason` is the owner's note for the customer, shown as written (one line)."""
+    return send_customer_email(
         appointment,
         manage_url,
         subject=f"Turno cancelado en {appointment.business.name}",
         template="bookings/emails/cancelled.txt",
+        reason=reason,
     )
 
 
@@ -46,7 +48,7 @@ def send_reminder(appointment, manage_url):
     )
 
 
-def send_customer_email(appointment, manage_url, subject, template, deposit=None):
+def send_customer_email(appointment, manage_url, subject, template, deposit=None, reason=""):
     """Email the customer about their appointment. Returns whether it was sent; never raises."""
     if not appointment.customer_email:
         return False
@@ -55,6 +57,7 @@ def send_customer_email(appointment, manage_url, subject, template, deposit=None
         "manage_url": manage_url,
         "change_limit_hours": settings.CUSTOMER_CHANGE_LIMIT_HOURS,
         "deposit": deposit,
+        "reason": reason,
     }
     try:
         send_mail(

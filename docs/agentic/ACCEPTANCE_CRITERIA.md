@@ -169,3 +169,24 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] El operador activa el mes con `grant_plan <slug> <plan> --months 1`; si el negocio ya tenía tiempo pago,
       el mes nuevo se suma al final.
 - [ ] `grant_plan` se niega a otorgar un plan a quien ya paga con cobro automático, para no cobrarle dos veces.
+
+## HU-13: Bloquear días u horarios puntuales
+- [ ] El dueño crea un bloqueo con fecha desde, fecha hasta (opcional, por defecto la misma), horario opcional y
+      motivo opcional, para todo el negocio o para un profesional activo.
+- [ ] Sin horario, el bloqueo cubre los días completos; con horario, va desde la hora de inicio del primer día
+      hasta la hora de fin del último. Ambas horas o ninguna.
+- [ ] No se aceptan bloqueos que terminan en el pasado, que terminan antes de empezar ni de más de 366 días.
+- [ ] Mientras dura el bloqueo, la página de reservas y la reprogramación no ofrecen esos horarios; un día sin
+      ningún horario libre por bloqueos aparece deshabilitado en la tira de días.
+- [ ] El servidor rechaza una reserva en un horario bloqueado aunque se fuerce el envío del formulario.
+- [ ] Los turnos ya confirmados en ese período no se cancelan solos. Al crear el bloqueo, el dueño los ve
+      listados y elige: dejarlos o cancelar los que marque, con un motivo opcional (hasta 200 caracteres).
+- [ ] Cada cliente con email recibe el aviso de cancelación, con el motivo si se cargó; el motivo privado del
+      bloqueo nunca llega al cliente. A los turnos sin email (o si falla el envío) se le pide al dueño avisar
+      por teléfono.
+- [ ] Solo se pueden cancelar turnos confirmados de ese negocio que caen dentro del bloqueo; un turno ya
+      cancelado no se vuelve a avisar.
+- [ ] El dueño ve sus bloqueos vigentes y futuros y puede borrarlos; no ve ni borra los de otro negocio.
+- [ ] El motivo no se muestra a los clientes. Con la cuenta en solo lectura no se crean ni borran bloqueos.
+- [ ] La agenda del panel avisa cuando el día que se está viendo tiene bloqueos.
+

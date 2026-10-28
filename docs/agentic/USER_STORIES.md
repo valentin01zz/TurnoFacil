@@ -52,8 +52,7 @@
 
 ## Futuro (sin criterios todavía)
 - HU-11: Recordatorio automático por WhatsApp.
-- HU-12: Pago o seña al reservar.
-- HU-13: Bloquear días u horarios puntuales.
+- HU-12: Pago o seña al reservar (resuelta como seña por transferencia).
 - HU-14: Aviso al negocio ante cada reserva o cambio.
 - HU-15: Reservar con "cualquier profesional disponible".
 - HU-16: Suscripción y cobro a los negocios.
@@ -138,3 +137,10 @@ manejar mi suscripción sin pedírselo a nadie.
 **Como** dueño, **quiero** ver los datos para pagar por transferencia, **para** pagar sin tarjeta ni comisión.
 - Prioridad: MVP comercial
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-31)
+
+## Ampliación aprobada (2026-10-28)
+
+## HU-13: Bloquear días u horarios puntuales
+**Como** dueño, **quiero** bloquear días u horarios puntuales (feriados, vacaciones, un trámite), para todo el negocio o para un profesional, **para** que nadie reserve cuando no vamos a atender.
+- Prioridad: Ampliación
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-13)

@@ -41,10 +41,14 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | 24 | HU-30 Dar de baja o cambiar de plan pagando | HU-29 |
 | 25 | HU-31 Pago por transferencia | HU-27 |
 
+## Ampliación aprobada (2026-10-28)
+| Orden | Historia | Depende de |
+|---|---|---|
+| 26 | HU-13 Bloquear días u horarios puntuales | HU-03, HU-04 |
+
 ## Futuro
 - HU-11 Recordatorio automático por WhatsApp
-- HU-12 Pago o seña al reservar
-- HU-13 Bloquear días u horarios puntuales
+- HU-12 Pago o seña al reservar (resuelta como seña por transferencia)
 - HU-14 Aviso al negocio ante cada reserva o cambio
 - HU-15 Reservar con "cualquier profesional disponible"
 - HU-16 Suscripción y cobro a los negocios (resuelta por HU-21 a HU-31)

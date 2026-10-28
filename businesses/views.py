@@ -3,23 +3,30 @@ from datetime import datetime, timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
+from billing.access import get_access
 from billing.catalog import BOOKING_DEPOSIT, PANEL_EDIT
 from billing.decorators import requires_feature
+from bookings.emails import send_cancelled
 from bookings.models import Appointment
+from bookings.panel_views import manage_url
 
 from .forms import (
     AgendaForm,
     BusinessForm,
+    CancelAffectedForm,
     DepositSettingsForm,
     ProfessionalForm,
     ServiceForm,
+    TimeOffForm,
     working_hours_formset,
 )
-from .models import DepositSettings, Professional, Service
+from .models import DepositSettings, Professional, Service, TimeOff
 
 DEPOSIT_NOT_IN_PLAN = (
     "La seña por transferencia está en los planes Profesional y Negocio. "
@@ -114,6 +121,14 @@ def panel(request):
         appointment.ended = appointment.end_at <= now
         appointment.is_next = appointment is next_appointment
 
+    time_off = TimeOff.objects.filter(
+        business=business,
+        start_at__lt=day_start(date + timedelta(days=1)),
+        end_at__gt=day_start(date),
+    ).select_related("professional")
+    if professional:
+        time_off = time_off.filter(Q(professional=professional) | Q(professional__isnull=True))
+
     filters = [{"label": "Todos", "url": agenda_url(date), "selected": professional is None}]
     filters += [
         {
@@ -145,6 +160,7 @@ def panel(request):
             "next_appointment": next_appointment if date == today else None,
             "first_appointment": appointments[0] if appointments else None,
             "week": week_chart(business, date, professional),
+            "time_off": list(time_off),
         },
     )
 
@@ -269,4 +285,106 @@ def professional_form(request, professional, extra, is_new):
         request,
         "businesses/professional_form.html",
         {"form": form, "formset": formset, "is_new": is_new},
+    )
+
+
+def affected_appointments(time_off):
+    """Confirmed, not yet finished appointments inside a time off. They stay booked."""
+    appointments = Appointment.objects.filter(
+        business=time_off.business,
+        status=Appointment.CONFIRMED,
+        start_at__lt=time_off.end_at,
+        end_at__gt=max(time_off.start_at, timezone.now()),
+    )
+    if time_off.professional_id:
+        appointments = appointments.filter(professional_id=time_off.professional_id)
+    return appointments.select_related("service", "professional").order_by("start_at")
+
+
+@login_required
+def time_off_list(request):
+    business = request.user.business
+    can_edit = get_access(business).can(PANEL_EDIT)
+    form = TimeOffForm(request.POST or None, business=business)
+    if request.method == "POST":
+        # Same rule as requires_feature, but the list stays visible in read-only accounts.
+        if not can_edit:
+            return redirect("plans")
+        if form.is_valid():
+            time_off = form.save()
+            messages.success(request, "Listo, bloqueamos ese período: nadie puede reservar ahí.")
+            if affected_appointments(time_off).exists():
+                return redirect("time_off_appointments", pk=time_off.pk)
+            return redirect("time_off_list")
+    upcoming = list(
+        TimeOff.objects.filter(business=business, end_at__gt=timezone.now()).select_related(
+            "professional"
+        )
+    )
+    for time_off in upcoming:
+        time_off.affected_count = affected_appointments(time_off).count()
+    return render(
+        request,
+        "businesses/time_off.html",
+        {"form": form, "time_off": upcoming, "can_edit": can_edit},
+    )
+
+
+@login_required
+@require_POST
+@requires_feature(PANEL_EDIT)
+def time_off_delete(request, pk):
+    get_owned_or_404(request, TimeOff, pk).delete()
+    messages.success(
+        request, "Listo, borramos el bloqueo. Esos horarios se pueden reservar de nuevo."
+    )
+    return redirect("time_off_list")
+
+
+@login_required
+@requires_feature(PANEL_EDIT)
+def time_off_appointments(request, pk):
+    """Confirmed appointments inside a time off: keep them or cancel the chosen ones, with an
+    email to each customer that has one."""
+    time_off = get_owned_or_404(request, TimeOff, pk)
+    appointments = affected_appointments(time_off)
+    form = CancelAffectedForm(request.POST or None, appointments=appointments)
+    if request.method == "POST" and form.is_valid():
+        chosen = [appointment.pk for appointment in form.cleaned_data["appointments"]]
+        with transaction.atomic():
+            # Locked and re-read: one the customer cancelled meanwhile is skipped, not re-sent.
+            cancelled = list(
+                affected_appointments(time_off)
+                .filter(pk__in=chosen)
+                .select_for_update(of=("self",))
+            )
+            for appointment in cancelled:
+                appointment.cancel()
+        reason = form.cleaned_data["reason"]
+        emailed = sum(
+            send_cancelled(appointment, manage_url(request, appointment), reason=reason)
+            for appointment in cancelled
+        )
+        count = len(cancelled)
+        plural = "s" if count != 1 else ""
+        text = f"Cancelamos {count} turno{plural}"
+        if emailed:
+            text += f" y le avisamos por email a {emailed} cliente{'s' if emailed != 1 else ''}"
+        messages.success(request, text + ".")
+        if count > emailed:
+            missing = count - emailed
+            messages.warning(
+                request,
+                f"No pudimos mandar el email de {missing} turno{'s' if missing != 1 else ''} "
+                "(sin email o falló el envío): avisales por teléfono.",
+            )
+        return redirect("time_off_appointments", pk=time_off.pk)
+    if request.method == "GET":
+        form = CancelAffectedForm(
+            appointments=appointments, initial={"appointments": list(appointments)}
+        )
+    return render(
+        request,
+        "businesses/time_off_appointments.html",
+        {"time_off": time_off, "block": time_off, "form": form, "appointments": appointments},
     )
