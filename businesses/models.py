@@ -1,5 +1,8 @@
+from datetime import time, timedelta
+
 from django.conf import settings
 from django.db import IntegrityError, models, transaction
+from django.utils import timezone
 from django.utils.text import slugify
 
 SLUG_ATTEMPTS = 5
@@ -151,3 +154,58 @@ class DepositSettings(models.Model):
 
     def __str__(self):
         return f"Seña de {self.business}"
+
+
+class TimeOff(models.Model):
+    """A period nobody can book: the whole business (no professional) or one professional.
+
+    Confirmed appointments inside it are left alone; the owner decides what to do with them.
+    """
+
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="time_off")
+    professional = models.ForeignKey(
+        Professional,
+        on_delete=models.CASCADE,
+        related_name="time_off",
+        null=True,
+        blank=True,
+        verbose_name="profesional",
+    )
+    start_at = models.DateTimeField("desde")
+    end_at = models.DateTimeField("hasta")
+    # Only the owner sees it.
+    reason = models.CharField("motivo", max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["start_at", "end_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_at__gt=models.F("start_at")),
+                name="time_off_end_after_start",
+            ),
+        ]
+        indexes = [models.Index(fields=["business", "end_at"])]
+
+    @property
+    def is_full_days(self):
+        """Midnight to midnight: shown as days, without hours."""
+        return (
+            timezone.localtime(self.start_at).time()
+            == time()
+            == (timezone.localtime(self.end_at).time())
+        )
+
+    @property
+    def first_day(self):
+        return timezone.localdate(self.start_at)
+
+    @property
+    def last_day(self):
+        """Last day touched (a full-day block ends at midnight of the next one)."""
+        return timezone.localdate(self.end_at - timedelta(microseconds=1))
+
+    def __str__(self):
+        who = self.professional or "todo el negocio"
+        start, end = timezone.localtime(self.start_at), timezone.localtime(self.end_at)
+        return f"Bloqueo de {who}: {start:%Y-%m-%d %H:%M} a {end:%Y-%m-%d %H:%M}"

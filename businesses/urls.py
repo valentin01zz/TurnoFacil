@@ -12,4 +12,11 @@ urlpatterns = [
     path("panel/professionals/", views.professional_list, name="professional_list"),
     path("panel/professionals/new/", views.professional_create, name="professional_create"),
     path("panel/professionals/<int:pk>/edit/", views.professional_edit, name="professional_edit"),
+    path("panel/time-off/", views.time_off_list, name="time_off_list"),
+    path(
+        "panel/time-off/<int:pk>/appointments/",
+        views.time_off_appointments,
+        name="time_off_appointments",
+    ),
+    path("panel/time-off/<int:pk>/delete/", views.time_off_delete, name="time_off_delete"),
 ]

@@ -27,6 +27,14 @@
         <div class="stat"><b>{{ manual_count }}</b><span>cargado{{ manual_count|pluralize }} a mano</span></div>
       </div>
 
+      {% if time_off %}
+        <div class="notice" role="status" style="margin-bottom: 16px">
+          <strong>Día con bloqueos:</strong>
+          {% for block in time_off %}{{ block.professional.name|default:"todo el negocio" }} ({% include "businesses/_time_off_when.html" %}){% if not forloop.last %}; {% endif %}{% endfor %}.
+          Nadie puede reservar en esos horarios. <a href="{% url 'time_off_list' %}">Ver bloqueos</a>
+        </div>
+      {% endif %}
+
       <form method="get" class="date-jump" style="margin-bottom: 16px">
         <label class="sr-only" for="{{ form.date.id_for_label }}">Ir a un día</label>
         {{ form.date }}

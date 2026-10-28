@@ -1,13 +1,15 @@
 """Calendar helpers for the booking screens: Spanish labels, the month day strip and slot groups."""
 
 import calendar
+from collections import defaultdict
 from datetime import date as date_cls
+from datetime import datetime
 
 from django.utils import timezone
 
 from businesses.models import WorkingHours
 
-from .availability import booking_window
+from .availability import booking_window, is_covered, time_off_ranges
 
 WEEKDAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 WEEKDAYS_SHORT = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
@@ -32,6 +34,10 @@ def parse_month(value):
         return None
 
 
+def local_midnight(day, tz):
+    return timezone.make_aware(datetime.combine(day, datetime.min.time()), tz)
+
+
 def shift_month(first_day, months):
     index = first_day.year * 12 + first_day.month - 1 + months
     return date_cls(index // 12, index % 12 + 1, 1)
@@ -39,17 +45,32 @@ def shift_month(first_day, months):
 
 def month_strip(month, professionals, selected=None, today=None):
     """Every day of `month`, flagged as bookable when it is inside the booking window and one of
-    `professionals` works that weekday. The month is clamped to the months the window touches."""
+    `professionals` has working hours that day not fully covered by time off. The month is clamped
+    to the months the window touches."""
     today = today or timezone.localdate()
     first_day, last_day = booking_window(today)
     first_month, last_month = first_day.replace(day=1), last_day.replace(day=1)
     month = min(max(month or first_month, first_month), last_month)
+    month_end = shift_month(month, 1)
 
-    working_weekdays = set(
-        WorkingHours.objects.filter(professional__in=professionals).values_list(
-            "weekday", flat=True
-        )
-    )
+    hours_by_weekday = defaultdict(list)
+    for hours in WorkingHours.objects.filter(professional__in=professionals):
+        hours_by_weekday[(hours.professional_id, hours.weekday)].append(hours)
+    tz = timezone.get_current_timezone()
+    blocks = {
+        pro.pk: time_off_ranges(pro, local_midnight(month, tz), local_midnight(month_end, tz))
+        for pro in professionals
+    }
+
+    def is_bookable(day):
+        for pro in professionals:
+            for hours in hours_by_weekday[(pro.pk, day.weekday())]:
+                start = timezone.make_aware(datetime.combine(day, hours.start_time), tz)
+                end = timezone.make_aware(datetime.combine(day, hours.end_time), tz)
+                if not is_covered(start, end, blocks[pro.pk]):
+                    return True
+        return False
+
     days = []
     for number in range(1, calendar.monthrange(month.year, month.month)[1] + 1):
         day = month.replace(day=number)
@@ -60,7 +81,7 @@ def month_strip(month, professionals, selected=None, today=None):
                 "weekday": WEEKDAYS_SHORT[day.weekday()],
                 "number": number,
                 "long": long_date(day),
-                "enabled": first_day <= day <= last_day and day.weekday() in working_weekdays,
+                "enabled": first_day <= day <= last_day and is_bookable(day),
                 "selected": day == selected,
                 "is_today": day == today,
             }

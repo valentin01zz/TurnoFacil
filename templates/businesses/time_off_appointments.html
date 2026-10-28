@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Turnos en el bloqueo · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Turnos en el bloqueo</h1>
+  <p class="page-lead">{{ time_off.professional.name|default:"Todo el negocio" }} · {% include "businesses/_time_off_when.html" %}</p>
+  {% if appointments %}
+    <div class="card">
+      <p>Estos turnos ya estaban confirmados. Podés dejarlos como están o cancelar los que elijas: a cada cliente con email le avisamos de la cancelación. A los que no tienen email, avisales por teléfono.</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_div }}
+        <div class="actions" style="margin-top: 18px">
+          <button class="btn btn-danger" type="submit">Cancelar y avisar</button>
+          <a class="link-button" href="{% url 'time_off_list' %}">Dejarlos como están</a>
+        </div>
+      </form>
+    </div>
+  {% else %}
+    <div class="card">
+      <p>No quedan turnos confirmados en este período.</p>
+    </div>
+    <p><a class="link-button" href="{% url 'time_off_list' %}">Volver a días bloqueados</a></p>
+  {% endif %}
+</div>
+{% endblock %}
