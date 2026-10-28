@@ -212,3 +212,13 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
       seguridad (por ejemplo, sin característica), no se muestra el link.
 - [ ] El mensaje nunca incluye el link privado del cliente para gestionar su turno.
 
+## HU-33: Precio del servicio
+- [ ] El precio es opcional, en pesos, mayor a cero y con hasta dos decimales. Sin precio, todo funciona como antes.
+- [ ] Cada turno guarda el precio que tenía el servicio cuando se reservó (online o a mano). Cambiar el precio
+      después no cambia los turnos ya tomados; reprogramar tampoco lo cambia.
+- [ ] En "Mi negocio" hay una casilla "Mostrar precios a mis clientes", apagada por defecto.
+- [ ] Con la casilla prendida, la página de reservas muestra el precio de los servicios que lo tienen; apagada,
+      no muestra ninguno.
+- [ ] El dueño ve el precio en su lista de servicios y en cada turno de la agenda.
+- [ ] Revisión legal pendiente: si se muestran, que sean precios finales en pesos (Ley 24.240).
+

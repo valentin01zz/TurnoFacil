@@ -36,6 +36,7 @@
                   <span class="ic">{% include "_icon.html" with name=s.icon %}</span>
                   <span class="nm">{{ s.name }}</span>
                   <span class="dur">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ s.minutes }} min</span>
+                  {% if s.price %}<span class="dur">$ {{ s.price|floatformat:"-2g" }}</span>{% endif %}
                 </span>
               </label>
             {% endfor %}

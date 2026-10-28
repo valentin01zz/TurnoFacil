@@ -153,3 +153,17 @@ manejar mi suscripción sin pedírselo a nadie.
 **Como** dueño, **quiero** abrir mi WhatsApp con un mensaje ya escrito para el cliente (confirmación o recordatorio), **para** avisarle sin tipear y sin que TurnoFacil pague mensajes.
 - Prioridad: Ampliación (Founder, 2026-10-28: opción gratis en vez de la API paga de Meta)
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-32)
+
+## Ingresos y reportes (aprobado por el Founder, 2026-10-28)
+Orden: HU-33 precio, HU-34 asistencia, HU-35 panel de reportes (planes Profesional, Negocio y Piloto).
+Solo el dueño ve los reportes, con filtro por profesional; los usuarios propios por profesional quedan para más adelante.
+Se habla de "ingresos", no de "facturación": TurnoFacil no emite facturas.
+
+## HU-33: Precio del servicio
+**Como** dueño, **quiero** cargar el precio de cada servicio si quiero, y elegir si mis clientes lo ven al reservar, **para** tener ingresos estimados y, si me conviene, mostrar mis precios.
+- Prioridad: Ampliación
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-33)
+
+## HU-34: Marcar si el cliente vino (pendiente)
+## HU-35: Panel de ingresos y reportes (pendiente)
+
