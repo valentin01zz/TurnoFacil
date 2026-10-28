@@ -7,6 +7,7 @@ from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from billing.catalog import PANEL_EDIT
 from billing.decorators import requires_feature
@@ -109,3 +110,25 @@ def appointment_cancel(request, pk):
     if was_confirmed:
         send_cancelled(appointment, manage_url(request, appointment))
     return redirect(agenda_url(appointment))
+
+
+MARKABLE = {Appointment.NOT_MARKED, Appointment.ATTENDED, Appointment.NO_SHOW}
+
+
+@login_required
+@require_POST
+@requires_feature(PANEL_EDIT)
+def appointment_attendance(request, pk):
+    """Mark whether the customer came (HU-34). Only started, confirmed appointments."""
+    attendance = request.POST.get("attendance", "")
+    if attendance not in MARKABLE:
+        return redirect(agenda_url(get_owned_appointment(request, pk)))
+    with transaction.atomic():
+        appointment = get_owned_appointment(request, pk, for_update=True)
+        if appointment.can_mark_attendance():
+            appointment.mark_attendance(attendance)
+    url = agenda_url(appointment)
+    professional = request.POST.get("professional", "")
+    if professional.isdigit():
+        url += f"&{urlencode({'professional': professional})}"
+    return redirect(url)
