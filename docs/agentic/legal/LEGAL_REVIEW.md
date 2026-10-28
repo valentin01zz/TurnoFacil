@@ -261,6 +261,13 @@ art. 12). La política dice dónde están los servidores (Render, EE. UU.; Resen
 consentir la transferencia; la casilla obligatoria "Leí y acepto la Política de Privacidad" del registro y
 la reserva recoge ese consentimiento. H04 queda MITIGADO una vez publicada la política.
 
+H08, avance del 2026-10-28: por decisión del Founder se inscribe la base aunque el alcance del art. 21 sea
+discutido. Inscripto el responsable (persona humana) y presentada por TAD la base privada "Usuarios de
+TurnoFacil" (cuentas de los negocios; sin datos sensibles; cesiones a Render, Resend y Mercado Pago;
+transferencia a EE. UU. y Brasil). Los datos de quienes reservan no se inscriben: el responsable es cada
+negocio. Los números de trámite están en `OWNER_LEGAL_DATA.local.md`. H08 se cierra con el certificado de
+inscripción.
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |

@@ -84,9 +84,9 @@ mostramos un aviso de consentimiento de cookies. Si eso cambia, lo vamos a pedir
 
 ## 7. Tus derechos
 De acuerdo con la Ley 25.326, podés pedir gratis el acceso, la rectificación, la actualización o la supresión
-de tus datos. Mandá tu pedido por escrito a [COMPLETAR: email de datos personales], con una copia de tu DNI
-para que podamos confirmar que sos el titular. Usamos esa copia solo para verificar tu identidad y la
-borramos al cerrar el pedido.
+de tus datos. Mandá tu pedido por escrito a [COMPLETAR: email de datos personales], con una foto del frente
+de tu DNI para que podamos confirmar que sos el titular. Tapá el número de trámite y el código de barras: no
+los necesitamos. Usamos esa foto solo para verificar tu identidad y la borramos al cerrar el pedido.
 
 Para pedir que borremos tus datos no hace falta escribir: usá **Eliminar mis datos**, en el pie de todas las
 páginas (`/mis-datos/`). Ingresás tu email, te llega un código y un link para confirmar, y desde la
