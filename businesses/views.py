@@ -80,6 +80,21 @@ def week_chart(business, date, professional):
     ]
 
 
+def attendance_summary(appointments):
+    """Counts for the appointments that already started, or None if none has."""
+    started = [a for a in appointments if a.markable]
+    if not started:
+        return None
+    count = {value: 0 for value, _ in Appointment.ATTENDANCES}
+    for appointment in started:
+        count[appointment.attendance] += 1
+    return {
+        "attended": count[Appointment.ATTENDED],
+        "no_show": count[Appointment.NO_SHOW],
+        "pending": count[Appointment.NOT_MARKED],
+    }
+
+
 @login_required
 def panel(request):
     business = request.user.business
@@ -123,6 +138,7 @@ def panel(request):
         appointment.is_next = appointment is next_appointment
         appointment.business = business
         appointment.whatsapp_url = None if appointment.ended else reminder_url(appointment)
+        appointment.markable = appointment.start_at <= now
 
     time_off = TimeOff.objects.filter(
         business=business,
@@ -160,6 +176,11 @@ def panel(request):
             "filters": filters,
             "appointments": appointments,
             "manual_count": sum(1 for a in appointments if a.source == Appointment.MANUAL),
+            "attendance": attendance_summary(appointments),
+            "attendance_choices": [
+                (Appointment.ATTENDED, "Asistió"),
+                (Appointment.NO_SHOW, "No asistió"),
+            ],
             "next_appointment": next_appointment if date == today else None,
             "first_appointment": appointments[0] if appointments else None,
             "week": week_chart(business, date, professional),

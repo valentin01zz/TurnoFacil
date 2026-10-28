@@ -222,3 +222,12 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] El dueño ve el precio en su lista de servicios y en cada turno de la agenda.
 - [ ] Revisión legal pendiente: si se muestran, que sean precios finales en pesos (Ley 24.240).
 
+## HU-34: Marcar si el cliente asistió
+- [ ] En la agenda, cada turno confirmado que ya empezó tiene los botones "Asistió" y "No asistió"; un toque lo
+      marca y tocar el botón marcado lo deja otra vez sin marcar.
+- [ ] No se pueden marcar turnos futuros, cancelados ni de otro negocio, aunque se fuerce el pedido; con la
+      cuenta en solo lectura se ve la marca pero no se cambia.
+- [ ] La agenda del día muestra cuántos asistieron, cuántos no asistieron y cuántos faltan marcar.
+- [ ] Si el turno se cancela o se reprograma, la marca se borra.
+- [ ] Al cliente no se le avisa nada: es un registro interno del dueño.
+

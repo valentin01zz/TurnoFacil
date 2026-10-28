@@ -164,6 +164,10 @@ Se habla de "ingresos", no de "facturación": TurnoFacil no emite facturas.
 - Prioridad: Ampliación
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-33)
 
-## HU-34: Marcar si el cliente vino (pendiente)
+## HU-34: Marcar si el cliente asistió
+**Como** dueño, **quiero** marcar en la agenda si cada cliente asistió o no asistió, **para** que los ingresos y el ausentismo de los reportes sean reales.
+- Prioridad: Ampliación
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-34)
+
 ## HU-35: Panel de ingresos y reportes (pendiente)
 
