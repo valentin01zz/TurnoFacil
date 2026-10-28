@@ -53,7 +53,6 @@
 ## Futuro (sin criterios todavía)
 - HU-11: Recordatorio automático por WhatsApp.
 - HU-12: Pago o seña al reservar (resuelta como seña por transferencia).
-- HU-14: Aviso al negocio ante cada reserva o cambio.
 - HU-15: Reservar con "cualquier profesional disponible".
 - HU-16: Suscripción y cobro a los negocios.
 
@@ -144,3 +143,8 @@ manejar mi suscripción sin pedírselo a nadie.
 **Como** dueño, **quiero** bloquear días u horarios puntuales (feriados, vacaciones, un trámite), para todo el negocio o para un profesional, **para** que nadie reserve cuando no vamos a atender.
 - Prioridad: Ampliación
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-13)
+
+## HU-14: Aviso al negocio ante cada reserva o cambio
+**Como** dueño, **quiero** recibir un email cada vez que un cliente reserva, reprograma o cancela desde el link, **para** enterarme sin tener que mirar el panel.
+- Prioridad: Ampliación
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-14)

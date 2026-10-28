@@ -1,0 +1,15 @@
+{% autoescape off %}Hola,
+
+Tenés una reserva nueva en {{ appointment.business.name }}:
+
+Cliente: {{ appointment.customer_name }}
+Teléfono: {{ appointment.customer_phone }}
+{% if appointment.customer_email %}Email: {{ appointment.customer_email }}
+{% endif %}Servicio: {{ appointment.service.name }}
+Profesional: {{ appointment.professional.name }}
+Día: {{ appointment.start_at|date:"l j \d\e F" }}
+Hora: {{ appointment.start_at|time:"H:i" }}
+
+Mirala en tu agenda:
+{{ agenda_url }}
+{% endautoescape %}
