@@ -2,12 +2,18 @@ import secrets
 from datetime import datetime, time, timedelta
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.utils import timezone
 
 from bookings.models import Appointment
 from businesses.models import Business, Professional, Service, WorkingHours
 
 User = get_user_model()
+
+
+def sent_to(address):
+    """Emails in the test outbox for one recipient (the owner also gets notices since HU-14)."""
+    return [message for message in mail.outbox if address in message.to]
 
 
 def create_business(email="a@example.com", name="Estética Luna"):

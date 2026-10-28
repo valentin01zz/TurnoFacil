@@ -190,3 +190,13 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] El motivo no se muestra a los clientes. Con la cuenta en solo lectura no se crean ni borran bloqueos.
 - [ ] La agenda del panel avisa cuando el día que se está viendo tiene bloqueos.
 
+## HU-14: Aviso al negocio ante cada reserva o cambio
+- [ ] Cuando un cliente reserva desde la página del negocio, el dueño recibe un email con cliente, teléfono,
+      email (si lo dejó), servicio, profesional, día, hora y un link a la agenda de ese día.
+- [ ] Cuando un cliente reprograma desde su link, el email muestra el horario (y profesional) anterior y el nuevo.
+- [ ] Cuando un cliente cancela desde su link, el dueño recibe el aviso de cancelación.
+- [ ] Lo que hace el propio dueño desde el panel (cargar, reprogramar, cancelar, cancelar por bloqueo) no le
+      genera aviso.
+- [ ] El aviso va al email de la cuenta del dueño solo si está verificado.
+- [ ] Si el envío falla, la reserva, el cambio o la cancelación del cliente se guardan igual.
+

@@ -1,0 +1,16 @@
+{% autoescape off %}Hola,
+
+{{ appointment.customer_name }} reprogramó su turno en {{ appointment.business.name }}.
+
+Antes: {{ previous_start|date:"l j \d\e F" }} a las {{ previous_start|time:"H:i" }}{% if previous_professional != appointment.professional %}, con {{ previous_professional.name }}{% endif %}
+Ahora: {{ appointment.start_at|date:"l j \d\e F" }} a las {{ appointment.start_at|time:"H:i" }}{% if previous_professional != appointment.professional %}, con {{ appointment.professional.name }}{% endif %}
+
+Cliente: {{ appointment.customer_name }}
+Teléfono: {{ appointment.customer_phone }}
+{% if appointment.customer_email %}Email: {{ appointment.customer_email }}
+{% endif %}Servicio: {{ appointment.service.name }}
+{% if previous_professional == appointment.professional %}Profesional: {{ appointment.professional.name }}
+{% endif %}
+Mirala en tu agenda:
+{{ agenda_url }}
+{% endautoescape %}

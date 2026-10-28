@@ -16,6 +16,7 @@ from .helpers import (
     create_service,
     future_date,
     local_dt,
+    sent_to,
 )
 
 
@@ -45,8 +46,9 @@ class ConfirmationEmailTests(TestCase):
         response = self.book()
 
         appointment = Appointment.objects.get()
-        self.assertEqual(len(mail.outbox), 1)
-        message = mail.outbox[0]
+        customer_mail = sent_to("laura@example.com")
+        self.assertEqual(len(customer_mail), 1)
+        message = customer_mail[0]
         self.assertEqual(message.to, ["laura@example.com"])
         self.assertEqual(message.subject, "Turno confirmado en Estética Luna")
         for text in ["Laura Gómez", "Estética Luna", "Limpieza facial", "Ana", "10:00"]:
@@ -61,7 +63,8 @@ class ConfirmationEmailTests(TestCase):
         self.book(hour=10, email="laura@example.com")
         self.book(hour=11, email="marta@example.com")
 
-        links = [re.search(r"http://testserver(/t/\S+/)", m.body).group(1) for m in mail.outbox]
+        customer_mail = sent_to("laura@example.com") + sent_to("marta@example.com")
+        links = [re.search(r"http://testserver(/t/\S+/)", m.body).group(1) for m in customer_mail]
         first, second = (self.client.get(link) for link in links)
 
         self.assertNotEqual(links[0], links[1])
