@@ -200,3 +200,15 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] El aviso va al email de la cuenta del dueño solo si está verificado.
 - [ ] Si el envío falla, la reserva, el cambio o la cancelación del cliente se guardan igual.
 
+## HU-32: Escribirle al cliente por WhatsApp con un toque
+- [ ] El email de "Nueva reserva" al dueño trae un link "Confirmarle por WhatsApp" que abre el chat con el
+      cliente y un mensaje de confirmación ya escrito (negocio, servicio, profesional, día, hora y dirección).
+- [ ] En la agenda, cada turno confirmado que todavía no terminó tiene un botón de WhatsApp con un mensaje de
+      recordatorio ya escrito.
+- [ ] Nada se envía solo: el dueño revisa el mensaje y lo manda desde su propio WhatsApp. TurnoFacil no manda
+      datos a Meta ni paga mensajes.
+- [ ] Los teléfonos argentinos se pasan al formato de WhatsApp (549 + característica + número, sin 0 ni 15);
+      los que empiezan con + y otro código de país se usan tal cual. Si el número no se puede interpretar con
+      seguridad (por ejemplo, sin característica), no se muestra el link.
+- [ ] El mensaje nunca incluye el link privado del cliente para gestionar su turno.
+

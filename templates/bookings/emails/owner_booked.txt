@@ -9,7 +9,10 @@ Teléfono: {{ appointment.customer_phone }}
 Profesional: {{ appointment.professional.name }}
 Día: {{ appointment.start_at|date:"l j \d\e F" }}
 Hora: {{ appointment.start_at|time:"H:i" }}
-
+{% if whatsapp_url %}
+Si querés, confirmale por WhatsApp (se abre tu WhatsApp con el mensaje listo para enviar):
+{{ whatsapp_url }}
+{% endif %}
 Mirala en tu agenda:
 {{ agenda_url }}
 {% endautoescape %}

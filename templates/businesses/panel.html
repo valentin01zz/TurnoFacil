@@ -65,9 +65,12 @@
                   {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
                 </div>
               </div>
-              {% if not access.read_only %}<div class="appt-actions">
+              {% if appointment.whatsapp_url or not access.read_only %}<div class="appt-actions">
+                {% if appointment.whatsapp_url %}<a class="btn btn-small" href="{{ appointment.whatsapp_url }}" target="_blank" rel="noopener noreferrer" aria-label="Escribirle a {{ appointment.customer_name }} por WhatsApp">{% include "_icon.html" with name="chat" size=16 stroke=2.4 %}WhatsApp</a>{% endif %}
+                {% if not access.read_only %}
                 <a class="btn btn-small" href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=16 stroke=2.4 %}Reprogramar</a>
                 <a class="btn btn-small danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=16 stroke=2.4 %}Cancelar</a>
+                {% endif %}
               </div>{% endif %}
             </li>
           {% endfor %}
