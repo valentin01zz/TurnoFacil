@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Días bloqueados · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Días bloqueados</h1>
+  <p class="page-lead">Feriados, vacaciones o un trámite: mientras dure el bloqueo, nadie puede reservar en esos horarios. Si ya había turnos confirmados, después elegís si los dejás o los cancelás avisando a tus clientes.</p>
+  {% if can_edit %}
+    <div class="card">
+      <h2>Nuevo bloqueo</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_div }}
+        <button class="btn btn-primary" type="submit">Bloquear</button>
+      </form>
+    </div>
+  {% endif %}
+  <div class="card">
+    <h2>Próximos bloqueos</h2>
+    {% if time_off %}
+      <ul class="items">
+        {% for block in time_off %}
+          <li class="item">
+            <div>
+              <strong>{{ block.professional.name|default:"Todo el negocio" }}</strong>
+              <ul class="hours">
+                <li>{% include "businesses/_time_off_when.html" %}</li>
+                {% if block.reason %}<li>{{ block.reason }}</li>{% endif %}
+                {% if block.affected_count and can_edit %}<li><a href="{% url 'time_off_appointments' block.pk %}">{{ block.affected_count }} turno{{ block.affected_count|pluralize }} confirmado{{ block.affected_count|pluralize }} en este período</a></li>{% endif %}
+              </ul>
+            </div>
+            {% if can_edit %}
+              <form method="post" action="{% url 'time_off_delete' block.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-small danger" type="submit">Borrar</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No tenés días bloqueados. Tus clientes pueden reservar en todos tus horarios.</p>
+    {% endif %}
+  </div>
+  <p><a class="link-button" href="{% url 'professional_list' %}">Volver a profesionales</a></p>
+</div>
+{% endblock %}

@@ -6,7 +6,9 @@ Servicio: {{ appointment.service.name }}
 Profesional: {{ appointment.professional.name }}
 Día: {{ appointment.start_at|date:"l j \d\e F" }}
 Hora: {{ appointment.start_at|time:"H:i" }}
-
+{% if reason %}
+Motivo: {{ reason }}
+{% endif %}
 Si querés, podés reservar otro turno desde el link del negocio o contactarlo directamente.
 {% if deposit or appointment.deposit_received_at %}
 Si pagaste una seña, su devolución depende de {{ appointment.business.name }}{% if deposit.conditions %}: {{ deposit.conditions }}{% else %}. Consultalo con el negocio.{% endif %}

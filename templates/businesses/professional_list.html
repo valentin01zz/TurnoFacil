@@ -7,7 +7,10 @@
       <div class="eyebrow">Tu equipo</div>
       <h1>Profesionales</h1>
     </div>
+    <div class="day-nav">
+    <a class="btn btn-quiet" href="{% url 'time_off_list' %}">Bloquear días</a>
     {% if access.can_add_professional %}<a class="btn btn-primary" href="{% url 'professional_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar profesional</a>{% elif not access.read_only %}<a class="btn btn-quiet" href="{% url 'plans' %}">Llegaste al límite de tu plan</a>{% endif %}
+    </div>
   </div>
   {% if professionals %}
     <ul class="items">
