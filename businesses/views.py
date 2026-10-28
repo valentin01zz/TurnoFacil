@@ -15,6 +15,7 @@ from billing.decorators import requires_feature
 from bookings.emails import send_cancelled
 from bookings.models import Appointment
 from bookings.panel_views import manage_url
+from bookings.whatsapp import reminder_url
 
 from .forms import (
     AgendaForm,
@@ -120,6 +121,8 @@ def panel(request):
         appointment.tint = tints.get(appointment.professional_id, PROFESSIONAL_TINTS[0])
         appointment.ended = appointment.end_at <= now
         appointment.is_next = appointment is next_appointment
+        appointment.business = business
+        appointment.whatsapp_url = None if appointment.ended else reminder_url(appointment)
 
     time_off = TimeOff.objects.filter(
         business=business,

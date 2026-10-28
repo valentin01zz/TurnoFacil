@@ -51,7 +51,7 @@
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-10)
 
 ## Futuro (sin criterios todavía)
-- HU-11: Recordatorio automático por WhatsApp.
+- HU-11: Recordatorio automático por WhatsApp (pago por mensaje con la API de Meta; postergado hasta tener planes pagos, ver HU-32).
 - HU-12: Pago o seña al reservar (resuelta como seña por transferencia).
 - HU-15: Reservar con "cualquier profesional disponible".
 - HU-16: Suscripción y cobro a los negocios.
@@ -148,3 +148,8 @@ manejar mi suscripción sin pedírselo a nadie.
 **Como** dueño, **quiero** recibir un email cada vez que un cliente reserva, reprograma o cancela desde el link, **para** enterarme sin tener que mirar el panel.
 - Prioridad: Ampliación
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-14)
+
+## HU-32: Escribirle al cliente por WhatsApp con un toque
+**Como** dueño, **quiero** abrir mi WhatsApp con un mensaje ya escrito para el cliente (confirmación o recordatorio), **para** avisarle sin tipear y sin que TurnoFacil pague mensajes.
+- Prioridad: Ampliación (Founder, 2026-10-28: opción gratis en vez de la API paga de Meta)
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-32)

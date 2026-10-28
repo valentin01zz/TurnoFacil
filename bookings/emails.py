@@ -8,6 +8,8 @@ from django.utils import timezone
 
 from businesses.deposit import public_deposit
 
+from .whatsapp import confirmation_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -85,6 +87,7 @@ def notify_owner_booked(appointment):
         appointment,
         subject=f"Nueva reserva: {appointment.customer_name}",
         template="bookings/emails/owner_booked.txt",
+        whatsapp_url=confirmation_url(appointment),
     )
 
 
