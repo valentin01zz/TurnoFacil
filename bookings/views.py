@@ -98,6 +98,7 @@ def create_appointment(business, professional, service, data, source=Appointment
                 customer_email=email,
                 start_at=start_at,
                 end_at=start_at + timedelta(minutes=service.duration_minutes),
+                price=service.price,
                 source=source,
                 manage_token=secrets.token_urlsafe(32),
                 reminder_due_at=(
@@ -178,6 +179,7 @@ def render_booking_page(request, business, selection, booking=None, status=200):
                     "pk": s.pk,
                     "name": s.name,
                     "minutes": s.duration_minutes,
+                    "price": s.price if business.show_prices else None,
                     "icon": SERVICE_ICONS[i % len(SERVICE_ICONS)],
                     "checked": service is not None and s.pk == service.pk,
                 }

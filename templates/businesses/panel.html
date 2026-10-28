@@ -59,7 +59,7 @@
                 <strong>{{ appointment.customer_name }}</strong>
                 <div class="meta">
                   {% if show_professional %}<span class="av" style="background: {{ appointment.tint }}">{{ appointment.professional.name|slice:":1"|upper }}</span>{% endif %}
-                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}</span>
+                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}{% if appointment.price %} · $ {{ appointment.price|floatformat:"-2g" }}{% endif %}</span>
                   <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a>
                   {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
                   {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
