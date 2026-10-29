@@ -247,3 +247,14 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
       a "Ver planes", y la exportación no se puede bajar aunque se fuerce el pedido.
 - [ ] Se habla de "ingresos estimados": la pantalla aclara que no son comprobantes fiscales.
 
+## HU-36: Precios claros para el cliente
+- [ ] El precio del servicio es el precio final con todos los cargos incluidos (la ayuda del campo lo pide).
+- [ ] Un servicio puede tener precio variable: se muestra "Desde $..." con lo que define el precio final; para
+      marcarlo hay que cargar el precio mínimo y la aclaración.
+- [ ] Con precios visibles y seña, el cliente ve precio, seña y saldo a pagar en el local en la página de reservas,
+      en el detalle del turno y en el email de confirmación. Con precios ocultos, se aclara que la seña se descuenta
+      del precio final que informa el negocio.
+- [ ] Junto a "Exportar a Excel" se avisa que el archivo tiene datos personales y para qué se puede usar.
+- [ ] Pendiente con el abogado: si corresponde informar el precio sin impuestos nacionales según la condición
+      fiscal del negocio (Res. 4/2025).
+

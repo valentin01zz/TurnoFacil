@@ -7,6 +7,7 @@
     {% if deposit.cbu_cvu %}<div><dt>CBU/CVU</dt><dd>{{ deposit.cbu_cvu }}</dd></div>{% endif %}
     {% if deposit.holder_tax_id %}<div><dt>CUIT/CUIL</dt><dd>{{ deposit.holder_tax_id }}</dd></div>{% endif %}
   </dl>
+  {% if breakdown %}{% include "bookings/_deposit_breakdown.html" %}{% endif %}
   {% if deposit.instructions %}<p>{{ deposit.instructions }}</p>{% endif %}
   <p class="fine">La transferencia se coordina directamente con el negocio. TurnoFacil no verifica automáticamente el pago. Si tenés dudas, consultá a {{ deposit.business.name }}.</p>
 </section>

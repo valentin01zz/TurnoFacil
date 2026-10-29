@@ -9,8 +9,11 @@ Día: {{ appointment.start_at|date:"l j \d\e F" }}
 Hora: {{ appointment.start_at|time:"H:i" }}
 {% if appointment.business.address %}Dirección: {{ appointment.business.address }}
 {% endif %}{% if deposit %}
-Seña: {{ appointment.business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia.
-Titular: {{ deposit.holder_name }}
+Seña: {{ appointment.business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia, que se descuenta del total.
+{% if breakdown.price %}{% if breakdown.price.varies %}Precio desde: $ {{ breakdown.price.amount|floatformat:"-2g" }} ({{ breakdown.price.note }})
+Saldo desde{% else %}Precio final: $ {{ breakdown.price.amount|floatformat:"-2g" }}
+Saldo a pagar en el local{% endif %}: $ {{ breakdown.balance|floatformat:"-2g" }}
+{% endif %}Titular: {{ deposit.holder_name }}
 {% if deposit.transfer_alias %}Alias: {{ deposit.transfer_alias }}
 {% endif %}{% if deposit.cbu_cvu %}CBU/CVU: {{ deposit.cbu_cvu }}
 {% endif %}{% if deposit.holder_tax_id %}CUIT/CUIL: {{ deposit.holder_tax_id }}

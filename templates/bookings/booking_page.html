@@ -35,7 +35,8 @@
                 <span class="svc-body">
                   <span class="ic">{% include "_icon.html" with name=s.icon %}</span>
                   <span class="nm">{{ s.name }}</span>
-                  <span class="svc-tags"><span class="dur">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ s.minutes }} min</span>{% if s.price %}<span class="dur">$&nbsp;{{ s.price|floatformat:"-2g" }}</span>{% endif %}</span>
+                  <span class="svc-tags"><span class="dur">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ s.minutes }} min</span>{% if s.price %}<span class="dur">{% include "bookings/_price.html" with price=s.price short=True %}</span>{% endif %}</span>
+                  {% if s.price.varies %}<span class="helptext">{{ s.price.note|capfirst }}</span>{% endif %}
                 </span>
               </label>
             {% endfor %}
@@ -124,6 +125,7 @@
         </div>
         <dl class="rows">
           <div class="row"><dt>Servicio</dt><dd>{% if service %}{{ service.name }} · {{ service.duration_minutes }} min{% else %}<span class="ph"></span>{% endif %}</dd></div>
+          {% if price %}<div class="row"><dt>Precio</dt><dd>{% include "bookings/_price.html" %}</dd></div>{% endif %}
           <div class="row"><dt>Con</dt><dd>{% if professional and choose_professional %}{{ professional.name }}{% elif professional %}{{ professional.name }}{% else %}<span class="ph"></span>{% endif %}</dd></div>
           <div class="row"><dt>Día</dt><dd>{% if date %}{{ date_label }}{% else %}<span class="ph"></span>{% endif %}</dd></div>
           <div class="row"><dt>Hora</dt><dd class="big"><span data-ticket-slot{% if not checked_label %} hidden{% endif %}>{{ checked_label }}</span><span class="ph" data-ticket-slot-empty{% if checked_label %} hidden{% endif %}></span></dd></div>
@@ -132,7 +134,7 @@
         <div class="t-foot">
           <button type="submit" form="book-form" class="btn btn-primary btn-block" data-ticket-confirm{% if not slot_groups %} disabled{% endif %}>Confirmar turno {% include "_icon.html" with name="arrow" size=20 stroke=2.6 %}</button>
           <p class="fine">Podés reprogramar o cancelar hasta 2 horas antes, desde el link del email.</p>
-          {% if deposit %}<p class="fine">{{ business.name }} pide una seña de $ {{ deposit.amount|floatformat:"-2g" }} por transferencia. Te mostramos los datos al confirmar.</p>{% endif %}
+          {% if deposit %}<p class="fine">{{ business.name }} pide una seña de $&nbsp;{{ deposit.amount|floatformat:"-2g" }} por transferencia, que se descuenta del total{% if breakdown.price %}: te quedan $&nbsp;{{ breakdown.balance|floatformat:"-2g" }}{% if breakdown.price.varies %} o más{% endif %} para pagar en el local{% endif %}. Te mostramos los datos al confirmar.</p>{% endif %}
         </div>
       </div>
     </aside>

@@ -50,6 +50,7 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | 29 | HU-33 Precio del servicio | HU-02 |
 | 30 | HU-34 Marcar si el cliente asistió | HU-09 |
 | 31 | HU-35 Panel de ingresos y reportes | HU-33, HU-34 |
+| 32 | HU-36 Precios claros para el cliente | HU-33 |
 
 ## Futuro
 - HU-11 Recordatorio automático por WhatsApp (API paga de Meta: después de los planes pagos)
