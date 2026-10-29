@@ -23,7 +23,7 @@ Versión: 1.0 · Vigente desde: [COMPLETAR al publicar]
 | Dueño del negocio | Servicios, horarios, profesionales (nombres) | Mostrar la página de reservas | Relación contractual | Según lo que use |
 | Dueño del negocio (si pide seña) | Monto, titular de la cuenta, alias, CBU/CVU, CUIT/CUIL (opcional) e indicaciones | Mostrárselos a cada cliente que reserva, en la página del turno y en el email de confirmación, para que le transfiera la seña **directamente** | Relación contractual; el negocio decide publicarlos | Solo si activa la seña |
 | Dueño del negocio | Plan, estado de la suscripción, email del pagador y referencia de Mercado Pago (no la tarjeta) | Cobrar la suscripción | Relación contractual | Solo si contrata un plan pago |
-| Cliente que reserva | Nombre y apellido, teléfono, email, turno elegido | Que el negocio gestione el turno; confirmación, recordatorio y link para cambiarlo o cancelarlo | Relación con el negocio (art. 5.2 d) | Sí para reservar online |
+| Cliente que reserva | Nombre y apellido, teléfono, email, turno elegido | Que el negocio gestione el turno (aviso por email al negocio, agenda, reportes y exportación de sus turnos); confirmación, recordatorio y link para cambiarlo o cancelarlo | Relación con el negocio (art. 5.2 d) | Sí para reservar online |
 | Cualquier visitante | Dirección IP y email ingresado, en intentos de ingreso, registro, recuperación de contraseña y reservas | Prevenir abusos (límites de intentos) | Interés en la seguridad del servicio [COMPLETAR: validar base con abogado] | Automático |
 
 No pedimos datos sensibles. Pedimos a los negocios que no los carguen (por ejemplo, diagnósticos en el nombre
@@ -43,6 +43,18 @@ hizo. Los datos de pago que hay en TurnoFacil son solo los de destino que carga 
 suscripción del negocio, la referencia de Mercado Pago.
 
 ## 3. Quién más recibe datos
+**El negocio donde reservás.** Tus datos (nombre, teléfono, email y el turno) se comunican solo al negocio o
+profesional que te da el turno, para gestionarlo:
+- Le avisamos por email cada vez que reservás, reprogramás o cancelás, al email verificado de su cuenta.
+- Los ve en su panel, con acceso por usuario y contraseña. Ningún otro negocio puede verlos.
+- Puede bajar un archivo (Excel) con sus turnos para administrar su negocio. Ese archivo lo guarda el negocio,
+  que se compromete a usarlo solo para gestionar sus turnos, no compartirlo ni usarlo para publicidad, y
+  borrarlo cuando ya no lo necesite.
+- Puede escribirte desde su propio WhatsApp para confirmar o recordarte el turno. TurnoFacil no envía tus datos
+  a WhatsApp ni a Meta: solo le arma al negocio el mensaje para que lo mande él.
+
+**Proveedores de TurnoFacil:**
+
 | Proveedor | Qué hace | Qué datos recibe | Dónde |
 |---|---|---|---|
 | Render | Hosting y base de datos | Todos los datos de la app | Estados Unidos (Virginia) |

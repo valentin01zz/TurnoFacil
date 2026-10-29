@@ -268,6 +268,16 @@ transferencia a EE. UU. y Brasil). Los datos de quienes reservan no se inscriben
 negocio. Los números de trámite están en `OWNER_LEGAL_DATA.local.md`. H08 se cierra con el certificado de
 inscripción.
 
+### 7.6 Tres puntos nuevos de las funciones HU-14, HU-33 y HU-35 (2026-10-29)
+Guía recibida por el Founder (2026-10-29) aplicada al código. Las citas normativas vienen de esa guía y las
+valida el abogado.
+
+| Punto | Normativa | Medida | Dónde | Estado |
+|---|---|---|---|---|
+| Precios mostrados al cliente | Ley 24.240 art. 4; Res. SICyC 4/2025 (precio total y final) | Ayuda del campo: precio final con todos los cargos. Precio variable "Desde $..." con la aclaración obligatoria de qué define el importe final. Con seña: precio, seña y saldo en la página de reservas, el detalle del turno y el email. Con precios ocultos: la seña se descuenta del precio final que informa el negocio. Términos 9: obligación del Negocio | `main`, rama `feat/price-transparency` (HU-36) | MITIGADO; pendiente: precio sin impuestos nacionales |
+| Aviso al dueño con datos del cliente | Ley 25.326 arts. 4, 5 y 6 | Solo al email verificado de la cuenta; nunca el link privado del cliente; finalidad: gestionar el turno. Política 3: el negocio recibe los datos para gestionar la reserva. Decisión del Founder: el aviso conserva el email del cliente | Código en `main` (HU-14); textos en esta rama | MITIGADO al publicar la política |
+| Exportación con datos personales | Ley 25.326 arts. 4, 9 y 10 | Solo el dueño, solo su negocio (tests), sin links públicos, `Cache-Control: no-store`, celdas tipo fórmula escapadas, aviso junto al botón. Política 3 y Términos 9: uso solo para gestionar turnos, sin publicidad, borrado cuando no se necesite. Decisión del Founder: el archivo conserva el email | Código en `main` (HU-35, HU-36); textos en esta rama | MITIGADO al publicar la política |
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |
@@ -320,6 +330,8 @@ Validaciones jurídicas: lista de la sección 10.
 | ¿Los botones en el pie de la home cumplen con "lugar destacado y primer acceso"? | H05, H06 | Media |
 | Plazo de arrepentimiento: ¿se corre si el día 10 es inhábil? Hoy se cuentan 10 días corridos por fecha calendario | H-04 de la revisión; 7.4 | Media |
 | ¿Cuánto tiempo hay que conservar la evidencia de aceptación de una cuenta que pide ser borrada? Hoy se borra con la cuenta | H-06 de la revisión; 7.4 | Media |
+| ¿Hay que mostrar también el precio sin impuestos nacionales (Res. 4/2025)? Depende de la condición fiscal de cada negocio; TurnoFacil hoy muestra solo el precio final | 7.6 | Media |
+| ¿Alcanza con informar en la política que el negocio recibe y exporta los datos del cliente, o hace falta algo más (por ejemplo, en el formulario de reserva)? | 7.6; Ley 25.326 art. 6 | Media |
 
 ## 11. Decisiones del Founder
 | Hallazgo | Decisión (aceptar / mitigar / derivar) | Fecha |
@@ -327,6 +339,7 @@ Validaciones jurídicas: lista de la sección 10.
 | H17 | Mitigar con condiciones de la seña **opcionales** (I3). Si faltan, el cliente ve un texto neutro que le pide consultarlas. H17 sigue ABIERTO: sin condiciones, el cliente no conoce las reglas de devolución antes de transferir | 2026-10-24 |
 | H17 / H20 | Agregar marca manual "seña recibida" en el panel (I6), sin verificación por parte de TurnoFacil | 2026-10-24 |
 | H17 | Turno confirmado aunque no se transfiera: **opción B** de `PLAN_IMPLEMENTACION.md` (paso 7). Queda confirmado, con marca manual "seña recibida" (I6) y aviso al cliente (I7); si la seña no llega, el dueño cancela desde el panel según sus condiciones | 2026-10-24 |
+| 7.6 | Precio variable ("desde" con aclaración): sí. El email del cliente se mantiene en el aviso al dueño y en la exportación; la política y los términos explican su uso | 2026-10-29 |
 | H17, H20 a H22 | Contexto: el negocio piloto no pide seña hoy, así que hoy ningún cliente está expuesto. La urgencia baja; el nivel no cambia porque cualquier negocio con plan Profesional o Negocio puede activarla | 2026-10-24 |
 
 ## 12. Estado final

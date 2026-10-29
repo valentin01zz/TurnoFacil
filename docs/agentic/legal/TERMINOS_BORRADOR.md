@@ -124,6 +124,12 @@ correo del destinatario.
   cede, y los protege con medidas de seguridad razonables.
 - El Negocio se compromete a usar esos datos solo para gestionar los turnos y a atender los pedidos de sus
   clientes sobre sus datos; TurnoFacil lo ayuda cuando haga falta.
+- Los avisos por email y los archivos que el Negocio exporta desde Reportes contienen datos personales de sus
+  clientes. El Negocio los guarda de forma segura, no los comparte, no los usa para publicidad sin una base
+  legal adecuada y los borra cuando ya no los necesita.
+- Si el Negocio muestra precios, carga el **precio final**, con todos los cargos incluidos. Si el precio puede
+  variar, lo marca como "desde" e informa de qué depende el importe final. Si pide seña, sus clientes ven el
+  precio, la seña y el saldo a pagar.
 - Proveedores que intervienen (hosting, email y el cobro de la suscripción): se listan en la Política de
   Privacidad. Ninguno interviene en las señas.
 - Al cerrar la cuenta, TurnoFacil borra los datos de los clientes del Negocio dentro de [COMPLETAR] días,
