@@ -20,9 +20,11 @@
         <p class="helptext" style="margin: 6px 0 0">Del {{ report.period.first_day|date:"j/m" }} al {{ report.period.last_day|date:"j/m/Y" }}</p>
       </div>
       <div class="day-nav">
-        <a class="btn btn-quiet" href="{% url 'reports_export' %}?{{ export_query }}">{% include "_icon.html" with name="arrow" size=18 stroke=2.6 %}Exportar a Excel</a>
+        <a class="btn btn-quiet" href="{% url 'reports_export' %}?{{ export_query }}" aria-describedby="export-note">{% include "_icon.html" with name="arrow" size=18 stroke=2.6 %}Exportar a Excel</a>
       </div>
     </section>
+
+    <p class="helptext" id="export-note" style="margin: -8px 0 16px">El archivo de Excel tiene datos personales de tus clientes: usalo solo para gestionar tus turnos, no lo compartas ni lo uses para publicidad, y borralo cuando ya no lo necesites.</p>
 
     <form method="get" class="date-jump" style="margin-bottom: 18px; flex-wrap: wrap">
       <label class="sr-only" for="period">Período</label>
@@ -66,7 +68,7 @@
           <li>Por confirmar (sin marcar): $&nbsp;{{ t.income_pending|floatformat:"-2g" }}</li>
           <li>Agendado (turnos que vienen): $&nbsp;{{ t.income_upcoming|floatformat:"-2g" }} en {{ t.upcoming }} turno{{ t.upcoming|pluralize }}</li>
         </ul>
-        <p class="helptext" style="margin: 12px 0 0">Son estimaciones con el precio de cada turno al reservarse. No son comprobantes fiscales.</p>
+        <p class="helptext" style="margin: 12px 0 0">Son estimaciones con el precio de cada turno al reservarse (en los precios "desde", el mínimo). No son comprobantes fiscales.</p>
       </div>
 
       {% if not professional and report.professionals|length > 1 %}

@@ -14,6 +14,7 @@ from billing.access import get_access
 from billing.catalog import BOOKING_ONLINE
 from businesses.deposit import public_deposit
 from businesses.models import Business
+from businesses.pricing import deposit_breakdown, public_price
 
 from .availability import available_slots
 from .booking_calendar import long_date, month_strip, parse_month, slot_groups
@@ -165,6 +166,7 @@ def render_booking_page(request, business, selection, booking=None, status=200):
     )
     ticket_done = sum(bool(x) for x in (service, professional, date))
     shown_done = ticket_done + (1 if checked_label else 0)
+    deposit = public_deposit(business) if is_taking_bookings else None
 
     return render(
         request,
@@ -172,14 +174,16 @@ def render_booking_page(request, business, selection, booking=None, status=200):
         {
             "business": business,
             "is_taking_bookings": is_taking_bookings,
-            "deposit": public_deposit(business) if is_taking_bookings else None,
+            "deposit": deposit,
+            "price": public_price(service) if service else None,
+            "breakdown": deposit_breakdown(deposit, service) if service else None,
             "selection": selection,
             "services": [
                 {
                     "pk": s.pk,
                     "name": s.name,
                     "minutes": s.duration_minutes,
-                    "price": s.price if business.show_prices else None,
+                    "price": public_price(s),
                     "icon": SERVICE_ICONS[i % len(SERVICE_ICONS)],
                     "checked": service is not None and s.pk == service.pk,
                 }
@@ -241,6 +245,7 @@ def render_appointment(request, appointment, template="bookings/appointment_deta
     if appointment is None:
         return render(request, "bookings/appointment_not_found.html", status=404)
     just_booked = request.GET.get("nuevo") == "1" and appointment.is_confirmed
+    deposit = public_deposit(appointment.business)
     context = {
         "appointment": appointment,
         "date_label": long_date(timezone.localdate(appointment.start_at)),
@@ -252,7 +257,8 @@ def render_appointment(request, appointment, template="bookings/appointment_deta
         "first_name": (appointment.customer_name.split() or [""])[0],
         "confetti": confetti() if just_booked else [],
         # Always from the appointment's own business, never from the request.
-        "deposit": public_deposit(appointment.business),
+        "deposit": deposit,
+        "breakdown": deposit_breakdown(deposit, appointment.service, appointment.price),
         **extra,
     }
     return render(request, template, context)

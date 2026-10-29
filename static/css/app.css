@@ -147,6 +147,7 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
 .svc input:checked + .svc-body { background: var(--ink); color: #fff; border-color: var(--ink); transform: translateY(-4px) rotate(-1.5deg); animation: pop .35s var(--spring); }
 .svc input:checked + .svc-body .ic { background: var(--accent); color: var(--ink); border-color: var(--accent); }
 .svc input:checked + .svc-body .dur { background: #fff; color: var(--ink); }
+.svc input:checked + .svc-body .helptext { color: #d8d0f2; }
 .svc input:focus-visible + .svc-body, .pro input:focus-visible + .pro-body, .slot input:focus-visible + span { outline: 3px solid var(--violet); outline-offset: 3px; }
 
 .pros { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -435,6 +436,9 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
 .deposit-box { margin-top: 20px; padding: 18px; border: 1.5px dashed var(--ink); border-radius: 18px; background: var(--paper); text-align: left; }
 .deposit-box h2 { margin: 0 0 8px; font-size: 18px; }
 .deposit-box dl { display: grid; gap: 6px; margin: 12px 0; }
+.price-split dd { margin: 0; font-weight: 800; white-space: nowrap; }
+.price-split div:last-child { border-top: 1.5px solid var(--line); padding-top: 6px; }
 .deposit-box dl div { display: flex; flex-wrap: wrap; gap: 0 8px; }
 .deposit-box dt { font-weight: 700; }
 .deposit-box dd { margin: 0; overflow-wrap: anywhere; }
+.deposit-box .price-split div { flex-wrap: nowrap; justify-content: space-between; gap: 12px; }

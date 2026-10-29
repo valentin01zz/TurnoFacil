@@ -1,0 +1,1 @@
+{% if price.varies %}Desde {% endif %}$&nbsp;{{ price.amount|floatformat:"-2g" }}{% if price.varies and price.note and not short %} ({{ price.note }}){% endif %}

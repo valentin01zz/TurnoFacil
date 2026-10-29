@@ -42,14 +42,30 @@ class BusinessForm(forms.ModelForm):
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
-        fields = ["name", "duration_minutes", "price", "is_active"]
+        fields = ["name", "duration_minutes", "price", "price_varies", "price_note", "is_active"]
         labels = {"price": "Precio (opcional)"}
         help_texts = {
             "price": (
-                "En pesos. Si lo dejás vacío no pasa nada. "
-                "Cambiarlo no afecta los turnos ya tomados."
-            )
+                "Precio final en pesos, con todos los cargos incluidos. Si lo dejás vacío no pasa "
+                "nada. Cambiarlo no afecta los turnos ya tomados."
+            ),
+            "price_varies": 'Tus clientes ven "Desde $..." y lo que define el precio final.',
+            "price_note": 'Por ejemplo "según el largo del pelo". Hasta 80 caracteres.',
         }
+
+    def clean_price_note(self):
+        return single_line(self.cleaned_data["price_note"])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("price_varies"):
+            cleaned_data["price_note"] = ""
+            return cleaned_data
+        if cleaned_data.get("price") is None and "price" not in self.errors:
+            self.add_error("price", "Para un precio variable, cargá el precio mínimo.")
+        if not cleaned_data.get("price_note") and "price_note" not in self.errors:
+            self.add_error("price_note", "Contá de qué depende el precio final.")
+        return cleaned_data
 
     def clean_price(self):
         price = self.cleaned_data["price"]
