@@ -12,6 +12,8 @@ urlpatterns = [
     path("panel/professionals/", views.professional_list, name="professional_list"),
     path("panel/professionals/new/", views.professional_create, name="professional_create"),
     path("panel/professionals/<int:pk>/edit/", views.professional_edit, name="professional_edit"),
+    path("panel/reports/", views.reports, name="reports"),
+    path("panel/reports/export/", views.reports_export, name="reports_export"),
     path("panel/time-off/", views.time_off_list, name="time_off_list"),
     path(
         "panel/time-off/<int:pk>/appointments/",

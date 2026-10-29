@@ -17,6 +17,7 @@ from .helpers import (
     create_service,
     future_date,
     local_dt,
+    sent_to,
 )
 
 
@@ -87,8 +88,9 @@ class RescheduleTests(TestCase):
         free = available_slots(self.ana, self.service, self.date)
         self.assertIn(local_dt(self.date, 10, 0), free)
 
-        self.assertEqual(len(mail.outbox), 1)
-        message = mail.outbox[0]
+        customer_mail = sent_to("cliente@example.com")
+        self.assertEqual(len(customer_mail), 1)
+        message = customer_mail[0]
         self.assertEqual(message.subject, "Turno reprogramado en Estética Luna")
         self.assertIn("11:00", message.body)
         self.assertIn(f"{self.new_date.day} de", message.body)

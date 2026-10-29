@@ -1,20 +1,23 @@
 from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from billing.access import get_access
-from billing.catalog import BOOKING_DEPOSIT, PANEL_EDIT
+from billing.catalog import BOOKING_DEPOSIT, PANEL_EDIT, REPORTS
 from billing.decorators import requires_feature
 from bookings.emails import send_cancelled
 from bookings.models import Appointment
 from bookings.panel_views import manage_url
+from bookings.whatsapp import reminder_url
 
 from .deposit import public_deposit
 from .forms import (
@@ -28,6 +31,14 @@ from .forms import (
     working_hours_formset,
 )
 from .models import DepositSettings, Professional, Service, TimeOff
+from .reports import (
+    DEFAULT_PERIOD,
+    PERIODS,
+    appointments_in,
+    build_report,
+    period_for,
+    write_export,
+)
 
 DEPOSIT_NOT_IN_PLAN = (
     "La seña por transferencia está en los planes Profesional y Negocio. "
@@ -80,6 +91,21 @@ def week_chart(business, date, professional):
     ]
 
 
+def attendance_summary(appointments):
+    """Counts for the appointments that already started, or None if none has."""
+    started = [a for a in appointments if a.markable]
+    if not started:
+        return None
+    count = {value: 0 for value, _ in Appointment.ATTENDANCES}
+    for appointment in started:
+        count[appointment.attendance] += 1
+    return {
+        "attended": count[Appointment.ATTENDED],
+        "no_show": count[Appointment.NO_SHOW],
+        "pending": count[Appointment.NOT_MARKED],
+    }
+
+
 @login_required
 def panel(request):
     business = request.user.business
@@ -121,6 +147,9 @@ def panel(request):
         appointment.tint = tints.get(appointment.professional_id, PROFESSIONAL_TINTS[0])
         appointment.ended = appointment.end_at <= now
         appointment.is_next = appointment is next_appointment
+        appointment.business = business
+        appointment.whatsapp_url = None if appointment.ended else reminder_url(appointment)
+        appointment.markable = appointment.start_at <= now
 
     time_off = TimeOff.objects.filter(
         business=business,
@@ -158,6 +187,11 @@ def panel(request):
             "filters": filters,
             "appointments": appointments,
             "manual_count": sum(1 for a in appointments if a.source == Appointment.MANUAL),
+            "attendance": attendance_summary(appointments),
+            "attendance_choices": [
+                (Appointment.ATTENDED, "Asistió"),
+                (Appointment.NO_SHOW, "No asistió"),
+            ],
             "next_appointment": next_appointment if date == today else None,
             "first_appointment": appointments[0] if appointments else None,
             "week": week_chart(business, date, professional),
@@ -390,3 +424,61 @@ def time_off_appointments(request, pk):
         "businesses/time_off_appointments.html",
         {"time_off": time_off, "block": time_off, "form": form, "appointments": appointments},
     )
+
+
+REPORTS_NOT_IN_PLAN = (
+    "Los reportes y la exportación a Excel están en los planes Profesional y Negocio. "
+    "Cambiá de plan para usarlos."
+)
+
+
+def report_filters(request, business):
+    """Period code and professional from the query string; unknown values fall back to all."""
+    codes = {code for code, _ in PERIODS}
+    period = request.GET.get("period")
+    period = period if period in codes else DEFAULT_PERIOD
+    professional = None
+    professional_id = request.GET.get("professional", "")
+    if professional_id.isdigit():
+        professional = business.professionals.filter(pk=professional_id).first()
+    return period, professional
+
+
+@login_required
+def reports(request):
+    business = request.user.business
+    if not get_access(business).can(REPORTS):
+        return render(request, "businesses/reports.html", {"allowed": False})
+    period, professional = report_filters(request, business)
+    params = {"period": period}
+    if professional:
+        params["professional"] = professional.pk
+    return render(
+        request,
+        "businesses/reports.html",
+        {
+            "allowed": True,
+            "report": build_report(business, period, professional),
+            "periods": PERIODS,
+            "period": period,
+            "professionals": business.professionals.all(),
+            "professional": professional,
+            "export_query": urlencode(params),
+        },
+    )
+
+
+@login_required
+def reports_export(request):
+    """The period's appointments as a CSV that Excel opens in Spanish."""
+    business = request.user.business
+    if not get_access(business).can(REPORTS):
+        messages.warning(request, REPORTS_NOT_IN_PLAN)
+        return redirect("plans")
+    period, professional = report_filters(request, business)
+    current, _ = period_for(period, timezone.localdate())
+    name = f"turnofacil-{current.first_day:%Y-%m-%d}-a-{current.last_day:%Y-%m-%d}.csv"
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{name}"'
+    response["Cache-Control"] = "no-store"  # customer data: never kept by a shared cache
+    return write_export(response, appointments_in(business, current, professional))

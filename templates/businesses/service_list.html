@@ -16,6 +16,7 @@
           <div>
             <strong>{{ service.name }}</strong>
             <span class="dur" style="margin-left: 8px">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ service.duration_minutes }} min</span>
+            {% if service.price %}<span class="dur" style="margin-left: 6px">$ {{ service.price|floatformat:"-2g" }}</span>{% endif %}
             {% if not service.is_active %}<span class="badge off" style="margin-left: 6px">Inactivo</span>{% endif %}
           </div>
           {% if not access.read_only %}<a class="btn btn-small" href="{% url 'service_edit' service.pk %}">Editar</a>{% endif %}

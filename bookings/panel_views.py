@@ -123,3 +123,25 @@ def appointment_cancel(request, pk):
     if was_confirmed:
         send_cancelled(appointment, manage_url(request, appointment))
     return redirect(agenda_url(appointment))
+
+
+MARKABLE = {Appointment.NOT_MARKED, Appointment.ATTENDED, Appointment.NO_SHOW}
+
+
+@login_required
+@require_POST
+@requires_feature(PANEL_EDIT)
+def appointment_attendance(request, pk):
+    """Mark whether the customer came (HU-34). Only started, confirmed appointments."""
+    attendance = request.POST.get("attendance", "")
+    if attendance not in MARKABLE:
+        return redirect(agenda_url(get_owned_appointment(request, pk)))
+    with transaction.atomic():
+        appointment = get_owned_appointment(request, pk, for_update=True)
+        if appointment.can_mark_attendance():
+            appointment.mark_attendance(attendance)
+    url = agenda_url(appointment)
+    professional = request.POST.get("professional", "")
+    if professional.isdigit():
+        url += f"&{urlencode({'professional': professional})}"
+    return redirect(url)

@@ -23,6 +23,12 @@ class Appointment(models.Model):
     MANUAL = "manual"
     SOURCES = [(ONLINE, "Online"), (MANUAL, "Manual")]
 
+    # Marked by the owner once the appointment has started; empty means not marked yet.
+    NOT_MARKED = ""
+    ATTENDED = "attended"
+    NO_SHOW = "no_show"
+    ATTENDANCES = [(NOT_MARKED, "Sin marcar"), (ATTENDED, "Asistió"), (NO_SHOW, "No asistió")]
+
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="appointments")
     professional = models.ForeignKey(
         Professional, on_delete=models.PROTECT, related_name="appointments"
@@ -43,6 +49,13 @@ class Appointment(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     # Marked by hand by the business. TurnoFacil never checks a transfer; this only records it.
     deposit_received_at = models.DateTimeField(null=True, blank=True)
+    # The service's price when it was booked, so later price changes keep past income as it was.
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # db_default too: code still running during a deploy inserts rows without this column.
+    attendance = models.CharField(
+        max_length=10, choices=ATTENDANCES, default=NOT_MARKED, db_default=NOT_MARKED, blank=True
+    )
+    attendance_marked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["start_at"]
@@ -64,6 +77,12 @@ class Appointment(models.Model):
                 ],
                 condition=models.Q(status="confirmed"),
             ),
+            # Only confirmed appointments carry an attendance mark.
+            models.CheckConstraint(
+                condition=models.Q(attendance="")
+                | (models.Q(status="confirmed") & models.Q(attendance__in=["attended", "no_show"])),
+                name="appointment_attendance_valid",
+            ),
         ]
 
     def __str__(self):
@@ -76,6 +95,15 @@ class Appointment(models.Model):
     @property
     def is_past(self):
         return self.start_at <= timezone.now()
+
+    def can_mark_attendance(self, now=None):
+        return self.is_confirmed and self.start_at <= (now or timezone.now())
+
+    def mark_attendance(self, attendance, now=None):
+        """Set (or clear, with NOT_MARKED) whether the customer came."""
+        self.attendance = attendance
+        self.attendance_marked_at = None if attendance == self.NOT_MARKED else now or timezone.now()
+        self.save(update_fields=["attendance", "attendance_marked_at", "updated_at"])
 
     def customer_can_change(self, now=None):
         """Customers may change a confirmed appointment until the configured limit before it."""
@@ -96,6 +124,9 @@ class Appointment(models.Model):
         self.end_at = start_at + timedelta(minutes=self.service.duration_minutes)
         self.reminder_due_at = reminder_due_at if reminder_due_at > now else None
         self.reminder_sent_at = None
+        # A new time is a new visit: any attendance mark belonged to the old one.
+        self.attendance = self.NOT_MARKED
+        self.attendance_marked_at = None
         self.save(
             update_fields=[
                 "professional",
@@ -103,6 +134,8 @@ class Appointment(models.Model):
                 "end_at",
                 "reminder_due_at",
                 "reminder_sent_at",
+                "attendance",
+                "attendance_marked_at",
                 "updated_at",
             ]
         )
@@ -111,4 +144,15 @@ class Appointment(models.Model):
         self.status = self.CANCELLED
         self.cancelled_at = now or timezone.now()
         self.reminder_due_at = None
-        self.save(update_fields=["status", "cancelled_at", "reminder_due_at", "updated_at"])
+        self.attendance = self.NOT_MARKED
+        self.attendance_marked_at = None
+        self.save(
+            update_fields=[
+                "status",
+                "cancelled_at",
+                "reminder_due_at",
+                "attendance",
+                "attendance_marked_at",
+                "updated_at",
+            ]
+        )

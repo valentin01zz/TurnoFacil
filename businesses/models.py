@@ -15,6 +15,7 @@ class Business(models.Model):
     name = models.CharField("nombre del negocio", max_length=80)
     slug = models.SlugField(max_length=90, unique=True)
     address = models.CharField("dirección", max_length=200, blank=True)
+    show_prices = models.BooleanField("mostrar precios a mis clientes", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -50,6 +51,8 @@ class Service(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="services")
     name = models.CharField("nombre", max_length=80)
     duration_minutes = models.PositiveIntegerField("duración (minutos)")
+    # Optional, in Argentine pesos. Each appointment keeps a copy (Appointment.price).
+    price = models.DecimalField("precio", max_digits=10, decimal_places=2, null=True, blank=True)
     is_active = models.BooleanField("activo", default=True)
 
     class Meta:
@@ -58,6 +61,10 @@ class Service(models.Model):
             models.CheckConstraint(
                 condition=models.Q(duration_minutes__gt=0),
                 name="service_duration_positive",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price__isnull=True) | models.Q(price__gt=0),
+                name="service_price_positive",
             ),
         ]
 

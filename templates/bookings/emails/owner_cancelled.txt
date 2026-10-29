@@ -1,0 +1,15 @@
+{% autoescape off %}Hola,
+
+{{ appointment.customer_name }} canceló su turno en {{ appointment.business.name }}. Ese horario quedó libre para otra reserva.
+
+Cliente: {{ appointment.customer_name }}
+Teléfono: {{ appointment.customer_phone }}
+{% if appointment.customer_email %}Email: {{ appointment.customer_email }}
+{% endif %}Servicio: {{ appointment.service.name }}
+Profesional: {{ appointment.professional.name }}
+Día: {{ appointment.start_at|date:"l j \d\e F" }}
+Hora: {{ appointment.start_at|time:"H:i" }}
+
+Tu agenda de ese día:
+{{ agenda_url }}
+{% endautoescape %}

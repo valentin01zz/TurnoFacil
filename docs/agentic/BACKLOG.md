@@ -45,11 +45,15 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | Orden | Historia | Depende de |
 |---|---|---|
 | 26 | HU-13 Bloquear días u horarios puntuales | HU-03, HU-04 |
+| 27 | HU-14 Aviso al negocio ante cada reserva o cambio | HU-05 |
+| 28 | HU-32 Escribirle al cliente por WhatsApp con un toque | HU-14 |
+| 29 | HU-33 Precio del servicio | HU-02 |
+| 30 | HU-34 Marcar si el cliente asistió | HU-09 |
+| 31 | HU-35 Panel de ingresos y reportes | HU-33, HU-34 |
 
 ## Futuro
-- HU-11 Recordatorio automático por WhatsApp
+- HU-11 Recordatorio automático por WhatsApp (API paga de Meta: después de los planes pagos)
 - HU-12 Pago o seña al reservar (resuelta como seña por transferencia)
-- HU-14 Aviso al negocio ante cada reserva o cambio
 - HU-15 Reservar con "cualquier profesional disponible"
 - HU-16 Suscripción y cobro a los negocios (resuelta por HU-21 a HU-31)
 

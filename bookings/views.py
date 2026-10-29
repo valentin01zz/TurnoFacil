@@ -17,7 +17,13 @@ from businesses.models import Business
 
 from .availability import available_slots
 from .booking_calendar import long_date, month_strip, parse_month, slot_groups
-from .emails import send_confirmation, send_rescheduled
+from .emails import (
+    notify_owner_booked,
+    notify_owner_cancelled,
+    notify_owner_rescheduled,
+    send_confirmation,
+    send_rescheduled,
+)
 from .forms import BookingForm, RescheduleQueryForm, SlotForm, SlotQueryForm
 from .models import Appointment
 
@@ -61,6 +67,7 @@ def book(request, slug):
             record("booking_ip", ip)
             manage_path = reverse("appointment_detail", args=[appointment.manage_token])
             send_confirmation(appointment, request.build_absolute_uri(manage_path))
+            notify_owner_booked(appointment)
             return redirect(f"{manage_path}?nuevo=1")
         booking.add_error("start_at", TAKEN_MESSAGE)
     return render_booking_page(request, business, selection, booking=booking)
@@ -91,6 +98,7 @@ def create_appointment(business, professional, service, data, source=Appointment
                 customer_email=email,
                 start_at=start_at,
                 end_at=start_at + timedelta(minutes=service.duration_minutes),
+                price=service.price,
                 source=source,
                 manage_token=secrets.token_urlsafe(32),
                 reminder_due_at=(
@@ -171,6 +179,7 @@ def render_booking_page(request, business, selection, booking=None, status=200):
                     "pk": s.pk,
                     "name": s.name,
                     "minutes": s.duration_minutes,
+                    "price": s.price if business.show_prices else None,
                     "icon": SERVICE_ICONS[i % len(SERVICE_ICONS)],
                     "checked": service is not None and s.pk == service.pk,
                 }
@@ -271,6 +280,7 @@ def cancel_appointment(request, token):
         if not appointment.customer_can_change():
             return render_appointment(request, appointment)
         appointment.cancel()
+    notify_owner_cancelled(appointment)
     return redirect("appointment_detail", token=token)
 
 
@@ -371,6 +381,7 @@ def reschedule_appointment(request, token):
         slot_form = SlotForm(request.POST, slots=slots)
         if not slot_form.is_valid():
             return render_reschedule(request, appointment, query, slot_form)
+        previous_start, previous_professional = appointment.start_at, appointment.professional
         try:
             with transaction.atomic():
                 appointment.move_to(slot_form.cleaned_data["start_at"], professional=professional)
@@ -381,4 +392,5 @@ def reschedule_appointment(request, token):
 
     manage_path = reverse("appointment_detail", args=[token])
     send_rescheduled(appointment, request.build_absolute_uri(manage_path))
+    notify_owner_rescheduled(appointment, previous_start, previous_professional)
     return redirect(manage_path)

@@ -26,6 +26,9 @@
         {% endif %}
         <div class="stat"><b>{{ manual_count }}</b><span>cargado{{ manual_count|pluralize }} a mano</span></div>
       </div>
+      {% if attendance %}
+        <p class="helptext" style="margin: -4px 0 16px">Asistencia: <strong>{{ attendance.attended }}</strong> asisti{{ attendance.attended|pluralize:"ó,eron" }} · <strong>{{ attendance.no_show }}</strong> no asisti{{ attendance.no_show|pluralize:"ó,eron" }}{% if attendance.pending %} · <strong>{{ attendance.pending }}</strong> sin marcar{% endif %}</p>
+      {% endif %}
 
       {% if time_off %}
         <div class="notice" role="status" style="margin-bottom: 16px">
@@ -59,14 +62,27 @@
                 <strong>{{ appointment.customer_name }}</strong>
                 <div class="meta">
                   {% if show_professional %}<span class="av" style="background: {{ appointment.tint }}">{{ appointment.professional.name|slice:":1"|upper }}</span>{% endif %}
-                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}</span>
+                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}{% if appointment.price %} · $ {{ appointment.price|floatformat:"-2g" }}{% endif %}</span>
                   <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a>
                   {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
                   {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
+                  {% if appointment.attendance == "attended" %}<span class="badge">Asistió</span>{% elif appointment.attendance == "no_show" %}<span class="badge off">No asistió</span>{% endif %}
                   {% if appointment.deposit_received_at %}<span class="badge ok">Seña recibida</span>{% elif asks_deposit %}<span class="badge">Seña pendiente</span>{% endif %}
                 </div>
               </div>
-              {% if not access.read_only %}<div class="appt-actions">
+              {% if appointment.whatsapp_url or not access.read_only %}<div class="appt-actions">
+                {% if appointment.markable and not access.read_only %}
+                  {% for value, label in attendance_choices %}
+                    <form method="post" action="{% url 'appointment_attendance' appointment.pk %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="attendance" value="{% if appointment.attendance == value %}{% else %}{{ value }}{% endif %}">
+                      {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
+                      <button class="btn btn-small{% if appointment.attendance == value %} btn-primary{% endif %}" type="submit" aria-pressed="{% if appointment.attendance == value %}true{% else %}false{% endif %}">{{ label }}</button>
+                    </form>
+                  {% endfor %}
+                {% endif %}
+                {% if appointment.whatsapp_url %}<a class="btn btn-small" href="{{ appointment.whatsapp_url }}" target="_blank" rel="noopener noreferrer" aria-label="Escribirle a {{ appointment.customer_name }} por WhatsApp">{% include "_icon.html" with name="chat" size=16 stroke=2.4 %}WhatsApp</a>{% endif %}
+                {% if not access.read_only %}
                 {% if asks_deposit or appointment.deposit_received_at %}
                   <form method="post" action="{% url 'appointment_deposit' appointment.pk %}">
                     {% csrf_token %}
@@ -76,6 +92,7 @@
                 {% endif %}
                 <a class="btn btn-small" href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=16 stroke=2.4 %}Reprogramar</a>
                 <a class="btn btn-small danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=16 stroke=2.4 %}Cancelar</a>
+                {% endif %}
               </div>{% endif %}
             </li>
           {% endfor %}

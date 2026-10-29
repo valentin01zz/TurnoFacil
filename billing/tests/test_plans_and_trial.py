@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from accounts.models import User
 from billing.access import days_left, get_access
-from billing.catalog import ALL_FEATURES, BOOKING_DEPOSIT, BOOKING_ONLINE, PANEL_EDIT
+from billing.catalog import ALL_FEATURES, BOOKING_DEPOSIT, BOOKING_ONLINE, PANEL_EDIT, REPORTS
 from billing.models import Plan, Subscription, SubscriptionEvent
 from billing.services import start_trial
 from bookings.tests.helpers import create_business
@@ -30,7 +30,7 @@ class CatalogTests(TestCase):
         self.assertTrue(all(p.currency == "ARS" for p in plans.values()))
         self.assertEqual(set(plans["esencial"].features), set(ALL_FEATURES))
         for code in ("profesional", "negocio"):
-            self.assertEqual(set(plans[code].features), {*ALL_FEATURES, BOOKING_DEPOSIT})
+            self.assertEqual(set(plans[code].features), {*ALL_FEATURES, BOOKING_DEPOSIT, REPORTS})
 
     def test_pilot_plan_is_free_and_hidden(self):
         pilot = Plan.objects.get(code="piloto")

@@ -20,8 +20,14 @@ def single_line(value):
 class BusinessForm(forms.ModelForm):
     class Meta:
         model = Business
-        fields = ["name", "address"]
-        help_texts = {"address": "Calle, número y barrio. La ven tus clientes al reservar."}
+        fields = ["name", "address", "show_prices"]
+        help_texts = {
+            "address": "Calle, número y barrio. La ven tus clientes al reservar.",
+            "show_prices": (
+                "Tus clientes ven el precio de cada servicio que lo tenga al reservar. "
+                "Cargá el precio final, en pesos."
+            ),
+        }
 
     def clean_name(self):
         name = single_line(self.cleaned_data["name"])
@@ -36,7 +42,20 @@ class BusinessForm(forms.ModelForm):
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
-        fields = ["name", "duration_minutes", "is_active"]
+        fields = ["name", "duration_minutes", "price", "is_active"]
+        labels = {"price": "Precio (opcional)"}
+        help_texts = {
+            "price": (
+                "En pesos. Si lo dejás vacío no pasa nada. "
+                "Cambiarlo no afecta los turnos ya tomados."
+            )
+        }
+
+    def clean_price(self):
+        price = self.cleaned_data["price"]
+        if price is not None and price <= 0:
+            raise forms.ValidationError("El precio tiene que ser mayor a cero, o dejalo vacío.")
+        return price
 
     def clean_duration_minutes(self):
         duration = self.cleaned_data["duration_minutes"]

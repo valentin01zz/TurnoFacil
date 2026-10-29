@@ -190,3 +190,60 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] El motivo no se muestra a los clientes. Con la cuenta en solo lectura no se crean ni borran bloqueos.
 - [ ] La agenda del panel avisa cuando el día que se está viendo tiene bloqueos.
 
+## HU-14: Aviso al negocio ante cada reserva o cambio
+- [ ] Cuando un cliente reserva desde la página del negocio, el dueño recibe un email con cliente, teléfono,
+      email (si lo dejó), servicio, profesional, día, hora y un link a la agenda de ese día.
+- [ ] Cuando un cliente reprograma desde su link, el email muestra el horario (y profesional) anterior y el nuevo.
+- [ ] Cuando un cliente cancela desde su link, el dueño recibe el aviso de cancelación.
+- [ ] Lo que hace el propio dueño desde el panel (cargar, reprogramar, cancelar, cancelar por bloqueo) no le
+      genera aviso.
+- [ ] El aviso va al email de la cuenta del dueño solo si está verificado.
+- [ ] Si el envío falla, la reserva, el cambio o la cancelación del cliente se guardan igual.
+
+## HU-32: Escribirle al cliente por WhatsApp con un toque
+- [ ] El email de "Nueva reserva" al dueño trae un link "Confirmarle por WhatsApp" que abre el chat con el
+      cliente y un mensaje de confirmación ya escrito (negocio, servicio, profesional, día, hora y dirección).
+- [ ] En la agenda, cada turno confirmado que todavía no terminó tiene un botón de WhatsApp con un mensaje de
+      recordatorio ya escrito.
+- [ ] Nada se envía solo: el dueño revisa el mensaje y lo manda desde su propio WhatsApp. TurnoFacil no manda
+      datos a Meta ni paga mensajes.
+- [ ] Los teléfonos argentinos se pasan al formato de WhatsApp (549 + característica + número, sin 0 ni 15);
+      los que empiezan con + y otro código de país se usan tal cual. Si el número no se puede interpretar con
+      seguridad (por ejemplo, sin característica), no se muestra el link.
+- [ ] El mensaje nunca incluye el link privado del cliente para gestionar su turno.
+
+## HU-33: Precio del servicio
+- [ ] El precio es opcional, en pesos, mayor a cero y con hasta dos decimales. Sin precio, todo funciona como antes.
+- [ ] Cada turno guarda el precio que tenía el servicio cuando se reservó (online o a mano). Cambiar el precio
+      después no cambia los turnos ya tomados; reprogramar tampoco lo cambia.
+- [ ] En "Mi negocio" hay una casilla "Mostrar precios a mis clientes", apagada por defecto.
+- [ ] Con la casilla prendida, la página de reservas muestra el precio de los servicios que lo tienen; apagada,
+      no muestra ninguno.
+- [ ] El dueño ve el precio en su lista de servicios y en cada turno de la agenda.
+- [ ] Revisión legal pendiente: si se muestran, que sean precios finales en pesos (Ley 24.240).
+
+## HU-34: Marcar si el cliente asistió
+- [ ] En la agenda, cada turno confirmado que ya empezó tiene los botones "Asistió" y "No asistió"; un toque lo
+      marca y tocar el botón marcado lo deja otra vez sin marcar.
+- [ ] No se pueden marcar turnos futuros, cancelados ni de otro negocio, aunque se fuerce el pedido; con la
+      cuenta en solo lectura se ve la marca pero no se cambia.
+- [ ] La agenda del día muestra cuántos asistieron, cuántos no asistieron y cuántos faltan marcar.
+- [ ] Si el turno se cancela o se reprograma, la marca se borra.
+- [ ] Al cliente no se le avisa nada: es un registro interno del dueño.
+
+## HU-35: Panel de ingresos y reportes
+- [ ] La pestaña "Reportes" se filtra por período (esta semana, este mes, mes anterior, últimos 3 meses) y por
+      profesional, y compara con el período anterior de igual duración.
+- [ ] Ingresos separados: cobrado estimado (turnos "Asistió" × su precio guardado), por confirmar (turnos ya
+      empezados sin marcar) y agendado (turnos futuros del período). Los turnos sin precio cuentan como turnos
+      pero no suman, y se avisa cuántos servicios activos no tienen precio.
+- [ ] Turnos: asistieron, no asistieron (con su porcentaje sobre los marcados) y cancelados (con su porcentaje).
+- [ ] Ranking por profesional y por servicio; demanda por día de la semana y por hora; clientes nuevos y que
+      vuelven, reconocidos por su teléfono.
+- [ ] "Exportar a Excel" baja los turnos del período y del filtro (fecha, hora, cliente, teléfono, email,
+      servicio, profesional, precio, estado, asistencia, origen) en un CSV que Excel abre en español con doble
+      clic. Las celdas que empiezan con = + - @ se escapan para que Excel no las ejecute como fórmulas.
+- [ ] Solo el dueño ve los reportes de su negocio. En planes sin reportes, la pestaña explica qué incluye y lleva
+      a "Ver planes", y la exportación no se puede bajar aunque se fuerce el pedido.
+- [ ] Se habla de "ingresos estimados": la pantalla aclara que no son comprobantes fiscales.
+
