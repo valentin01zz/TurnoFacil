@@ -22,6 +22,7 @@
           <a href="{% url 'service_list' %}"{% if current == "service_list" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>Servicios</a>
           <a href="{% url 'professional_list' %}"{% if current == "professional_list" or current == "professional_create" or current == "professional_edit" or current == "time_off_list" %} aria-current="page"{% endif %}>Profesionales</a>
           <a href="{% url 'business_edit' %}"{% if current == "business_edit" or current == "deposit_settings" %} aria-current="page"{% endif %}>Mi negocio</a>
+          <a href="{% url 'reports' %}"{% if current == "reports" %} aria-current="page"{% endif %}>Reportes</a>
           <a href="{% url 'plans' %}"{% if current == "plans" %} aria-current="page"{% endif %}>Planes</a>
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}

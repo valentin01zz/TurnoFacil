@@ -169,5 +169,8 @@ Se habla de "ingresos", no de "facturación": TurnoFacil no emite facturas.
 - Prioridad: Ampliación
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-34)
 
-## HU-35: Panel de ingresos y reportes (pendiente)
+## HU-35: Panel de ingresos y reportes
+**Como** dueño, **quiero** ver cuánto ingresó mi negocio, cuántos clientes vinieron o faltaron y qué servicios, profesionales y horarios rinden más, y bajarlo a Excel, **para** entender cómo avanza el negocio y decidir.
+- Prioridad: Ampliación. Planes Profesional, Negocio y Piloto (también durante la prueba gratuita).
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-35)
 
