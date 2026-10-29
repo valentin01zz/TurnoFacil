@@ -231,3 +231,19 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] Si el turno se cancela o se reprograma, la marca se borra.
 - [ ] Al cliente no se le avisa nada: es un registro interno del dueño.
 
+## HU-35: Panel de ingresos y reportes
+- [ ] La pestaña "Reportes" se filtra por período (esta semana, este mes, mes anterior, últimos 3 meses) y por
+      profesional, y compara con el período anterior de igual duración.
+- [ ] Ingresos separados: cobrado estimado (turnos "Asistió" × su precio guardado), por confirmar (turnos ya
+      empezados sin marcar) y agendado (turnos futuros del período). Los turnos sin precio cuentan como turnos
+      pero no suman, y se avisa cuántos servicios activos no tienen precio.
+- [ ] Turnos: asistieron, no asistieron (con su porcentaje sobre los marcados) y cancelados (con su porcentaje).
+- [ ] Ranking por profesional y por servicio; demanda por día de la semana y por hora; clientes nuevos y que
+      vuelven, reconocidos por su teléfono.
+- [ ] "Exportar a Excel" baja los turnos del período y del filtro (fecha, hora, cliente, teléfono, email,
+      servicio, profesional, precio, estado, asistencia, origen) en un CSV que Excel abre en español con doble
+      clic. Las celdas que empiezan con = + - @ se escapan para que Excel no las ejecute como fórmulas.
+- [ ] Solo el dueño ve los reportes de su negocio. En planes sin reportes, la pestaña explica qué incluye y lleva
+      a "Ver planes", y la exportación no se puede bajar aunque se fuerce el pedido.
+- [ ] Se habla de "ingresos estimados": la pantalla aclara que no son comprobantes fiscales.
+

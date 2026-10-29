@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Reportes · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap">
+  {% if not allowed %}
+    <div class="narrow" style="margin: 0 auto">
+      <h1 class="page-title">Reportes</h1>
+      <p class="page-lead">Cuánto ingresó tu negocio, quién asistió, qué servicios y horarios rinden más, y todo para bajar a Excel.</p>
+      <div class="card">
+        <p>Los reportes están en los planes <strong>Profesional</strong> y <strong>Negocio</strong>.</p>
+        <a class="btn btn-primary" href="{% url 'plans' %}">Ver planes</a>
+      </div>
+    </div>
+  {% else %}
+    {% with t=report.totals %}
+    <section class="agenda-head">
+      <div>
+        <div class="eyebrow">Reportes{% if professional %} · {{ professional.name }}{% endif %}</div>
+        <h1>{{ report.period.label }}</h1>
+        <p class="helptext" style="margin: 6px 0 0">Del {{ report.period.first_day|date:"j/m" }} al {{ report.period.last_day|date:"j/m/Y" }}</p>
+      </div>
+      <div class="day-nav">
+        <a class="btn btn-quiet" href="{% url 'reports_export' %}?{{ export_query }}">{% include "_icon.html" with name="arrow" size=18 stroke=2.6 %}Exportar a Excel</a>
+      </div>
+    </section>
+
+    <form method="get" class="date-jump" style="margin-bottom: 18px; flex-wrap: wrap">
+      <label class="sr-only" for="period">Período</label>
+      <select id="period" name="period">
+        {% for code, label in periods %}<option value="{{ code }}"{% if code == period %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      {% if professionals|length > 1 %}
+        <label class="sr-only" for="professional">Profesional</label>
+        <select id="professional" name="professional">
+          <option value="">Todos los profesionales</option>
+          {% for pro in professionals %}<option value="{{ pro.pk }}"{% if professional and pro.pk == professional.pk %} selected{% endif %}>{{ pro.name }}</option>{% endfor %}
+        </select>
+      {% endif %}
+      <button class="btn btn-small" type="submit">Ver</button>
+    </form>
+
+    <div class="stats">
+      <div class="stat"><b>$ {{ t.income_attended|floatformat:"0g" }}</b><span>ingresos estimados (asistieron){% if report.changes.income_attended is not None %} · {% if report.changes.income_attended >= 0 %}+{% endif %}{{ report.changes.income_attended }} % vs. {{ report.previous.label }}{% endif %}</span></div>
+      <div class="stat"><b>{{ t.attended }}</b><span>asisti{{ t.attended|pluralize:"ó,eron" }}{% if report.changes.attended is not None %} · {% if report.changes.attended >= 0 %}+{% endif %}{{ report.changes.attended }} %{% endif %}</span></div>
+      <div class="stat"><b>{{ t.no_show }}</b><span>no asisti{{ t.no_show|pluralize:"ó,eron" }}{% if t.no_show_rate is not None %} · {{ t.no_show_rate }} % de los marcados{% endif %}</span></div>
+      <div class="stat"><b>{{ t.cancelled }}</b><span>cancelado{{ t.cancelled|pluralize }}{% if t.cancel_rate is not None %} · {{ t.cancel_rate }} %{% endif %}</span></div>
+    </div>
+
+    {% if t.pending %}
+      <p class="notice" role="status">Hay <strong>{{ t.pending }}</strong> turno{{ t.pending|pluralize }} que ya pasaron sin marcar (${{ t.income_pending|floatformat:"0g" }} por confirmar). Marcá la asistencia en la <a href="{% url 'panel' %}">agenda</a> para que los ingresos sean reales.</p>
+    {% endif %}
+    {% if report.unpriced_services %}
+      <p class="notice" role="status">{{ report.unpriced_services }} servicio{{ report.unpriced_services|pluralize }} activo{{ report.unpriced_services|pluralize }} no tiene{{ report.unpriced_services|pluralize:"n" }} precio: sus turnos cuentan, pero no suman ingresos. <a href="{% url 'service_list' %}">Cargar precios</a></p>
+    {% endif %}
+
+    {% if not report.has_appointments %}
+      <div class="empty-day">
+        <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">No hay turnos en este período.</p>
+        <p style="margin: 0">Elegí otro período o compartí tu link de reservas.</p>
+      </div>
+    {% else %}
+      <div class="card">
+        <h2>Ingresos</h2>
+        <ul class="hours" style="margin: 0">
+          <li>Asistieron: <strong>$ {{ t.income_attended|floatformat:"-2g" }}</strong></li>
+          <li>Por confirmar (sin marcar): $ {{ t.income_pending|floatformat:"-2g" }}</li>
+          <li>Agendado (turnos que vienen): $ {{ t.income_upcoming|floatformat:"-2g" }} en {{ t.upcoming }} turno{{ t.upcoming|pluralize }}</li>
+        </ul>
+        <p class="helptext" style="margin: 12px 0 0">Son estimaciones con el precio de cada turno al reservarse. No son comprobantes fiscales.</p>
+      </div>
+
+      {% if not professional and report.professionals|length > 1 %}
+        <div class="card">
+          <h2>Por profesional</h2>
+          {% include "businesses/_report_ranking.html" with rows=report.professionals %}
+        </div>
+      {% endif %}
+
+      <div class="card">
+        <h2>Por servicio</h2>
+        {% include "businesses/_report_ranking.html" with rows=report.services %}
+      </div>
+
+      <div class="card">
+        <h2>Días con más turnos</h2>
+        <ol class="week" aria-label="Turnos por día de la semana">
+          {% for day in report.demand.days %}
+            <li><a aria-label="{{ day.label }}: {{ day.count }} turnos"><span class="count">{{ day.count }}</span><span class="bar-wrap"><i style="height: {{ day.height }}%"></i></span>{{ day.label }}</a></li>
+          {% endfor %}
+        </ol>
+      </div>
+
+      {% if report.demand.hours %}
+        <div class="card">
+          <h2>Horarios con más turnos</h2>
+          <ol class="week" style="grid-template-columns: repeat({{ report.demand.hours|length }}, minmax(0, 1fr))" aria-label="Turnos por hora de inicio">
+            {% for hour in report.demand.hours %}
+              <li><a aria-label="{{ hour.label }} h: {{ hour.count }} turnos"><span class="count">{{ hour.count }}</span><span class="bar-wrap"><i style="height: {{ hour.height }}%"></i></span>{{ hour.label }}</a></li>
+            {% endfor %}
+          </ol>
+        </div>
+      {% endif %}
+
+      <div class="card">
+        <h2>Clientes</h2>
+        <p><strong>{{ report.customers.total }}</strong> cliente{{ report.customers.total|pluralize }} en el período: <strong>{{ report.customers.new }}</strong> nuevo{{ report.customers.new|pluralize }} y <strong>{{ report.customers.returning }}</strong> que volvi{{ report.customers.returning|pluralize:"ó,eron" }}.</p>
+        <p class="helptext" style="margin: 0">Los reconocemos por su teléfono.</p>
+      </div>
+    {% endif %}
+    {% endwith %}
+  {% endif %}
+</div>
+{% endblock %}

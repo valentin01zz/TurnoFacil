@@ -1,0 +1,11 @@
+<ul class="items">
+  {% for row in rows %}
+    <li class="item" style="display: block">
+      <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+        <strong>{{ row.name }}</strong>
+        <span>{{ row.count }} turno{{ row.count|pluralize }} · {{ row.attended }} asisti{{ row.attended|pluralize:"ó,eron" }} · <strong>$ {{ row.income|floatformat:"0g" }}</strong></span>
+      </div>
+      <div aria-hidden="true" style="height: 8px; margin-top: 8px; border-radius: 999px; background: var(--violet-soft)"><div style="height: 100%; width: {{ row.width }}%; border-radius: 999px; background: var(--violet)"></div></div>
+    </li>
+  {% endfor %}
+</ul>
