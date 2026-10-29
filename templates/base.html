@@ -16,7 +16,7 @@
     {% with current=request.resolver_match.url_name %}
     <header class="panel-bar">
       <div class="inner">
-        <a class="logo" href="{% url 'panel' %}"><span class="logo-mark">{% include "_icon.html" with name="calendar" size=20 stroke=2.6 %}</span>{{ user.business.name }}</a>
+        <a class="logo" href="{% url 'panel' %}"><span class="logo-mark">{% include "_icon.html" with name="calendar" size=20 stroke=2.6 %}</span><span class="logo-name">{{ user.business.name }}</span></a>
         <nav class="tabs" aria-label="Panel">
           <a href="{% url 'panel' %}"{% if current == "panel" or current == "appointment_create" or current == "appointment_reschedule" or current == "appointment_cancel" %} aria-current="page"{% endif %}>Agenda</a>
           <a href="{% url 'service_list' %}"{% if current == "service_list" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>Servicios</a>

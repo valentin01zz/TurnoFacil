@@ -39,15 +39,15 @@
       <button class="btn btn-small" type="submit">Ver</button>
     </form>
 
-    <div class="stats">
-      <div class="stat"><b>$ {{ t.income_attended|floatformat:"0g" }}</b><span>ingresos estimados (asistieron){% if report.changes.income_attended is not None %} · {% if report.changes.income_attended >= 0 %}+{% endif %}{{ report.changes.income_attended }} % vs. {{ report.previous.label }}{% endif %}</span></div>
+    <div class="stats two">
+      <div class="stat"><b>$&nbsp;{{ t.income_attended|floatformat:"0g" }}</b><span>ingresos estimados (asistieron){% if report.changes.income_attended is not None %} · {% if report.changes.income_attended >= 0 %}+{% endif %}{{ report.changes.income_attended }} % vs. {{ report.previous.label }}{% endif %}</span></div>
       <div class="stat"><b>{{ t.attended }}</b><span>asisti{{ t.attended|pluralize:"ó,eron" }}{% if report.changes.attended is not None %} · {% if report.changes.attended >= 0 %}+{% endif %}{{ report.changes.attended }} %{% endif %}</span></div>
       <div class="stat"><b>{{ t.no_show }}</b><span>no asisti{{ t.no_show|pluralize:"ó,eron" }}{% if t.no_show_rate is not None %} · {{ t.no_show_rate }} % de los marcados{% endif %}</span></div>
       <div class="stat"><b>{{ t.cancelled }}</b><span>cancelado{{ t.cancelled|pluralize }}{% if t.cancel_rate is not None %} · {{ t.cancel_rate }} %{% endif %}</span></div>
     </div>
 
     {% if t.pending %}
-      <p class="notice" role="status">Hay <strong>{{ t.pending }}</strong> turno{{ t.pending|pluralize }} que ya pasaron sin marcar (${{ t.income_pending|floatformat:"0g" }} por confirmar). Marcá la asistencia en la <a href="{% url 'panel' %}">agenda</a> para que los ingresos sean reales.</p>
+      <p class="notice" role="status">Hay <strong>{{ t.pending }}</strong> turno{{ t.pending|pluralize }} que ya pasaron sin marcar ($&nbsp;{{ t.income_pending|floatformat:"0g" }} por confirmar). Marcá la asistencia en la <a href="{% url 'panel' %}">agenda</a> para que los ingresos sean reales.</p>
     {% endif %}
     {% if report.unpriced_services %}
       <p class="notice" role="status">{{ report.unpriced_services }} servicio{{ report.unpriced_services|pluralize }} activo{{ report.unpriced_services|pluralize }} no tiene{{ report.unpriced_services|pluralize:"n" }} precio: sus turnos cuentan, pero no suman ingresos. <a href="{% url 'service_list' %}">Cargar precios</a></p>
@@ -62,9 +62,9 @@
       <div class="card">
         <h2>Ingresos</h2>
         <ul class="hours" style="margin: 0">
-          <li>Asistieron: <strong>$ {{ t.income_attended|floatformat:"-2g" }}</strong></li>
-          <li>Por confirmar (sin marcar): $ {{ t.income_pending|floatformat:"-2g" }}</li>
-          <li>Agendado (turnos que vienen): $ {{ t.income_upcoming|floatformat:"-2g" }} en {{ t.upcoming }} turno{{ t.upcoming|pluralize }}</li>
+          <li>Asistieron: <strong>$&nbsp;{{ t.income_attended|floatformat:"-2g" }}</strong></li>
+          <li>Por confirmar (sin marcar): $&nbsp;{{ t.income_pending|floatformat:"-2g" }}</li>
+          <li>Agendado (turnos que vienen): $&nbsp;{{ t.income_upcoming|floatformat:"-2g" }} en {{ t.upcoming }} turno{{ t.upcoming|pluralize }}</li>
         </ul>
         <p class="helptext" style="margin: 12px 0 0">Son estimaciones con el precio de cada turno al reservarse. No son comprobantes fiscales.</p>
       </div>
@@ -93,9 +93,9 @@
       {% if report.demand.hours %}
         <div class="card">
           <h2>Horarios con más turnos</h2>
-          <ol class="week" style="grid-template-columns: repeat({{ report.demand.hours|length }}, minmax(0, 1fr))" aria-label="Turnos por hora de inicio">
+          <ol class="hbars" aria-label="Turnos por hora de inicio">
             {% for hour in report.demand.hours %}
-              <li><a aria-label="{{ hour.label }} h: {{ hour.count }} turnos"><span class="count">{{ hour.count }}</span><span class="bar-wrap"><i style="height: {{ hour.height }}%"></i></span>{{ hour.label }}</a></li>
+              <li><span>{{ hour.label }}&nbsp;h</span><span class="track" aria-hidden="true"><i style="width: {% if hour.count %}{{ hour.height }}{% else %}0{% endif %}%"></i></span><span class="n">{{ hour.count }}</span></li>
             {% endfor %}
           </ol>
         </div>

@@ -255,7 +255,19 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
 .appt .who strong { font-size: 18px; }
 .appt .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 4px; color: var(--body); }
 .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); animation: pulse 1.4s ease-out infinite; }
-.appt-actions { display: flex; gap: 8px; }
+.appt-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.appt-actions form { margin: 0; }
+.svc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.hbars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hbars li { display: grid; grid-template-columns: 44px minmax(0, 1fr) 36px; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: var(--muted); }
+.hbars .track { height: 12px; border-radius: 999px; background: var(--violet-soft); overflow: hidden; }
+.hbars .track i { display: block; height: 100%; border-radius: 999px; background: var(--violet); }
+.hbars .n { text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rank-head { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
+.rank-bar { height: 8px; margin-top: 8px; border-radius: 999px; background: var(--violet-soft); }
+.rank-bar i { display: block; height: 100%; border-radius: 999px; background: var(--violet); }
+.nowrap { white-space: nowrap; }
+.logo-name { min-width: 0; }
 .empty-day { padding: 32px; border-radius: 24px; border: 1.5px dashed #c7bfdb; text-align: center; color: var(--body); background: rgba(255, 255, 255, .5); }
 .copy-row { display: flex; gap: 8px; align-items: center; }
 .copy-row input { flex: 1; min-width: 0; font-size: 14px; }
@@ -351,9 +363,27 @@ form > div:has(> input[type="checkbox"]) { flex-direction: row; align-items: cen
   .step, .card { padding: 20px; box-shadow: 4px 4px 0 var(--ink); }
   .spin-badge { display: none; }
   .stamp { font-size: 20px; padding: 8px 12px; top: 128px; left: 12px; }
+  .appt { padding: 16px; gap: 12px; }
+  .appt:hover { transform: none; }
   .appt .time { min-width: 0; }
-  .appt-actions { width: 100%; }
-  .appt-actions .btn-small { flex: 1; }
+  .appt .time b { font-size: 26px; }
+  /* Two buttons per row; the forms step aside so their buttons sit in the grid too. */
+  .appt-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .appt-actions form { display: contents; }
+  .appt-actions .btn-small { width: 100%; min-width: 0; padding: 0 8px; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .stats.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat { padding: 12px; border-radius: 16px; min-width: 0; }
+  .stat b { font-size: clamp(19px, 6.4vw, 26px); overflow-wrap: break-word; }
+  .stat span { display: block; margin-top: 4px; font-size: 13px; line-height: 1.3; }
+  /* Panel header: the business name on one line, the tabs in one row that scrolls sideways. */
+  .panel-bar .inner { padding: 10px 16px 6px; gap: 8px; }
+  .panel-bar .logo { font-size: 18px; max-width: 100%; min-width: 0; }
+  .panel-bar .tabs { flex-wrap: nowrap; overflow-x: auto; width: calc(100% + 32px); margin: 0 -16px; padding: 0 16px 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .panel-bar .tabs::-webkit-scrollbar { display: none; }
+  .panel-bar .tabs a, .panel-bar .tabs button { flex: 0 0 auto; min-height: 40px; padding: 0 12px; }
+  .date-jump { flex-wrap: wrap; }
+  .date-jump select { flex: 1 1 100%; min-width: 0; }
   .landing-hero { margin: 24px 0 48px; }
   .phone-wrap { min-height: 480px; }
   .final { padding: 36px 24px; }
