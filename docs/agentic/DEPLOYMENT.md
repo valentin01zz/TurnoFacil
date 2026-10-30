@@ -150,6 +150,14 @@ Cambios de la rama `fix/audit-hardening` que piden algo en Render o una verifica
   suscripciones ya autorizadas siguen cobrándose en Mercado Pago: darlas de baja allá si hace falta.
 - **Volver a no estar publicado:** suspender el servicio web desde **Settings > Suspend**. Los datos quedan.
 
+## Monitoreo externo
+UptimeRobot (plan gratis, alertas por email, cada 5 minutos) vigila desde el 2026-10-30:
+- `https://turnofacil.online/`: la web responde. Esta página no consulta la base.
+- [ ] `https://turnofacil.online/healthz/`: la app llega a la base (200) o no (503). Crear este monitor después
+      de desplegar este cambio, y comprobar que figure **Up**.
+
+`/healthz/` no comprueba la tarea programada, los emails ni Mercado Pago.
+
 ## Operación
 - Costo esperado: unos USD 15 por mes (servicio web, base y tarea), más el dominio. Emails: USD 0 hasta 100 por día.
 - HSTS arranca en 1 hora (`SECURE_HSTS_SECONDS=3600`). Cuando el dominio funcione estable por HTTPS durante unas

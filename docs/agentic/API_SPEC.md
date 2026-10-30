@@ -14,6 +14,7 @@ es el mismo salvo que la página se recarga al pedir horarios.
 | Método | Ruta | Qué hace | Historia |
 |---|---|---|---|
 | GET | `/` | Presentación mínima con accesos a registro e ingreso | |
+| GET, HEAD | `/healthz/` | Para el monitor externo: JSON con `status`, 200 si la app llega a la base y 503 si no. Sin sesión ni detalles | |
 | GET | `/b/<slug>/` | Página de reservas: servicio, profesional (si hay más de uno) y día. Con los parámetros `service`, `professional` y `date` muestra además los horarios libres y el formulario de datos | HU-04 |
 | POST | `/b/<slug>/book/` | Crea el turno y envía la confirmación. Redirige a `/t/<token>/` | HU-04, HU-05 |
 | GET | `/t/<token>/` | Detalle del turno con acciones de reprogramar y cancelar | HU-05 |

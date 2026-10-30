@@ -34,6 +34,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # First: the uptime monitor gets its answer without sessions or redirects.
+    "config.health.HealthCheckMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -80,6 +82,9 @@ else:
         }
     }
 DATABASES["default"]["CONN_MAX_AGE"] = 60
+# Fail fast if the database cannot be reached, so workers are not held until Gunicorn kills them
+# and /healthz/ can answer 503 instead of hanging.
+DATABASES["default"]["OPTIONS"] = {"connect_timeout": 5}
 
 AUTH_USER_MODEL = "accounts.User"
 
