@@ -17,6 +17,11 @@ class BillingConfig(AppConfig):
             if created and not raw and instance.owner.is_email_verified:
                 start_trial(instance)
 
+        # weak=False: the receiver is a local function, so a weak reference would let it be
+        # garbage collected as soon as ready() returns (it only survived when DEBUG kept it alive).
         post_save.connect(
-            start_trial_for_new_business, sender=Business, dispatch_uid="billing_start_trial"
+            start_trial_for_new_business,
+            sender=Business,
+            weak=False,
+            dispatch_uid="billing_start_trial",
         )

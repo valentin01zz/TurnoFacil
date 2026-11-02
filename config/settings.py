@@ -37,6 +37,7 @@ MIDDLEWARE = [
     # First: the uptime monitor gets its answer without sessions or redirects.
     "config.health.HealthCheckMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "config.security.SecurityHeadersMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -173,14 +174,25 @@ if not DEBUG:
     # Start low; raise to a year once HTTPS on the final domain is confirmed stable.
     SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))
 
+# Server errors (500) are also emailed here, without request data (config/error_alerts.py).
+ADMINS = [("TurnoFacil", email) for email in env_list("ERROR_ALERT_EMAIL")]
+
 # Warnings and errors (including unhandled 500s) go to the console, where the hosting keeps logs.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+        "error_email": {"()": "config.error_alerts.ErrorEmailHandler"},
+    },
     "root": {"handlers": ["console"], "level": "WARNING"},
     "loggers": {
         "django": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "django.request": {
+            "handlers": ["console", "error_email"],
+            "level": "WARNING",
+            "propagate": False,
+        },
         # Bots constantly probe with foreign Host headers; Django already answers 400.
         "django.security.DisallowedHost": {"handlers": [], "propagate": False},
     },

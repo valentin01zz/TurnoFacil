@@ -116,6 +116,78 @@ class PanelCopyButtonTests(TestCase):
             source = handle.read()
 
         self.assertContains(response, 'data-copy="booking-url"')
-        self.assertContains(response, "js/app.js")
+        self.assertContains(response, "js/app.")  # hashed name when DEBUG is off
         self.assertIn("window.isSecureContext", source)
         self.assertIn('document.execCommand("copy")', source)
+
+
+class SecurityHeadersTests(TestCase):
+    def test_pages_carry_csp_and_permissions_policy(self):
+        response = self.client.get(reverse("home"))
+        csp = response["Content-Security-Policy"]
+        self.assertIn("script-src 'self'", csp)
+        self.assertIn("frame-ancestors 'none'", csp)
+        self.assertNotIn("unsafe-eval", csp)
+        self.assertIn("camera=()", response["Permissions-Policy"])
+
+    def test_templates_have_no_inline_scripts_or_handlers(self):
+        """The CSP blocks them: keep scripts in static/js."""
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+
+        for path in Path(settings.BASE_DIR, "templates").rglob("*.html"):
+            text = path.read_text(encoding="utf-8")
+            self.assertIsNone(re.search(r"<script(?![^>]*\ssrc=)", text), path)
+            self.assertIsNone(re.search(r"\son[a-z]+=\"", text), path)
+
+
+class ErrorAlertTests(TestCase):
+    def log_error(self, handler, path="/x/"):
+        import logging
+        import sys
+
+        from django.test import RequestFactory
+
+        try:
+            raise RuntimeError("boom")
+        except RuntimeError:
+            record = logging.LogRecord(
+                "django.request",
+                logging.ERROR,
+                __file__,
+                1,
+                "Internal Server Error",
+                None,
+                sys.exc_info(),
+            )
+        record.request = RequestFactory().post(path, {"customer_phone": "11 5555 1234"})
+        handler.emit(record)
+
+    def test_emails_the_error_without_request_data_and_only_once(self):
+        from django.core import mail
+        from django.test import override_settings
+
+        from config.error_alerts import ErrorEmailHandler
+
+        handler = ErrorEmailHandler()
+        with override_settings(ADMINS=[("TurnoFacil", "ops@example.com")]):
+            self.log_error(handler)
+            self.log_error(handler)
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ["ops@example.com"])
+        self.assertIn("POST /x/", message.subject)
+        self.assertIn("RuntimeError: boom", message.body)
+        self.assertNotIn("5555", message.body)
+
+    def test_no_admins_means_no_email(self):
+        from django.core import mail
+        from django.test import override_settings
+
+        from config.error_alerts import ErrorEmailHandler
+
+        with override_settings(ADMINS=[]):
+            self.log_error(ErrorEmailHandler())
+        self.assertEqual(len(mail.outbox), 0)
