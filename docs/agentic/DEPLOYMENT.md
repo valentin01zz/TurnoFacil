@@ -158,6 +158,19 @@ UptimeRobot (plan gratis, alertas por email, cada 5 minutos) vigila desde el 202
 
 `/healthz/` no comprueba la tarea programada, los emails ni Mercado Pago.
 
+## Preparación para escalar (2026-11-02)
+- **Gunicorn con hilos** (`--workers 2 --threads 4`): una reserva que espera al servidor de email no traba al resto.
+  Si Render no tomó el cambio del Blueprint, copiar el *Start Command* de `render.yaml` a mano en el servicio web.
+- **Alertas de errores 500 por email:** cargar `ERROR_ALERT_EMAIL` en el servicio web. El email trae el error y la
+  ruta, nunca los datos del pedido, y como máximo uno por error cada 15 minutos (consume cupo de Resend).
+- **Limpieza de sesiones vencidas** en la tarea programada (`clearsessions`). Revisar su *Command* en Render.
+- **CI en GitHub** (`.github/workflows/ci.yml`): lint, `check --deploy`, migraciones, `collectstatic` y todos los
+  tests con DEBUG apagado, en cada PR y en `main`. **Dependabot** propone actualizaciones cada semana.
+- **Cabeceras de seguridad:** Content-Security-Policy y Permissions-Policy (`config/security.py`). Si se agrega un
+  script, una fuente o un formulario a otro dominio, hay que sumarlo a la política o el navegador lo bloquea.
+- **HSTS:** HTTPS funciona estable desde octubre; subir `SECURE_HSTS_SECONDS` a `31536000` en Render.
+- **Backups:** hacer uno manual en Render antes de cada migración delicada y probar restaurarlo una vez.
+
 ## Operación
 - Costo esperado: unos USD 15 por mes (servicio web, base y tarea), más el dominio. Emails: USD 0 hasta 100 por día.
 - HSTS arranca en 1 hora (`SECURE_HSTS_SECONDS=3600`). Cuando el dominio funcione estable por HTTPS durante unas

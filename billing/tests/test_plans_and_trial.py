@@ -223,3 +223,16 @@ class GrantPlanOptionsTests(TestCase):
 
         self.assertEqual(add_months(datetime(2027, 1, 31), 1), datetime(2027, 2, 28))
         self.assertEqual(add_months(datetime(2026, 11, 15), 3), datetime(2027, 2, 15))
+
+
+class TrialSignalTests(TestCase):
+    def test_trial_receiver_stays_connected_after_garbage_collection(self):
+        """It is a local function: a weak connection was dropped when DEBUG was off."""
+        import gc
+
+        from django.db.models.signals import post_save
+
+        from businesses.models import Business
+
+        gc.collect()
+        self.assertTrue(post_save.has_listeners(Business))
