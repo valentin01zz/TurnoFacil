@@ -47,6 +47,8 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
+    # Marked by hand by the business. TurnoFacil never checks a transfer; this only records it.
+    deposit_received_at = models.DateTimeField(null=True, blank=True)
     # The service's price when it was booked, so later price changes keep past income as it was.
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # db_default too: code still running during a deploy inserts rows without this column.

@@ -32,6 +32,14 @@ class BlueprintTests(SimpleTestCase):
 
         self.assertEqual(keys["turnofacil-web"] - WEB_ONLY - keys["turnofacil-reminders"], set())
 
+    def test_the_cron_deletes_old_attempts_and_appointments(self):
+        text = (settings.BASE_DIR / "render.yaml").read_text(encoding="utf-8")
+        cron = text.split("name: turnofacil-reminders")[1].split("databases:")[0]
+
+        self.assertIn("python manage.py clear_attempts", cron)
+        self.assertIn("python manage.py purge_old_data", cron)
+        self.assertIn('- key: APPOINTMENT_RETENTION_DAYS\n        value: "365"', cron)
+
     def test_secrets_are_never_written_in_the_blueprint(self):
         text = (settings.BASE_DIR / "render.yaml").read_text(encoding="utf-8")
 

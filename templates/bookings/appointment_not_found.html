@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Turno no encontrado · TurnoFacil{% endblock %}
 {% block header %}{% endblock %}
+{% block site_footer %}{% include "legal/_footer.html" with for_customer=True %}{% endblock %}
 {% block content %}
 <div class="wrap narrow">
   <section class="error-page">

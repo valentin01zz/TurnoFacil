@@ -9,6 +9,7 @@
       <form method="post" novalidate>
         {% csrf_token %}
         {{ form.as_div }}
+        {% if form.privacy %}<p class="helptext" style="margin: 0">Tratamos los datos de tu cuenta para prestarte el servicio, según la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">Política de Privacidad</a>.</p>{% endif %}
         <button class="btn btn-primary btn-block" type="submit">Crear cuenta</button>
       </form>
     </div>

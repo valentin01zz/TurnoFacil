@@ -23,6 +23,7 @@ LIMITS = {
     "reset_ip": (10, timedelta(hours=1)),
     "signup_ip": (5, timedelta(hours=1)),  # new accounts per IP
     "booking_ip": (20, timedelta(hours=1)),  # online bookings per IP
+    "service_request_ip": (5, timedelta(hours=1)),  # public cancellation/withdrawal requests
 }
 KEEP = timedelta(days=1)  # longer than any window
 
@@ -57,7 +58,14 @@ def record(scope, key, now=None):
         return
     now = now or timezone.now()
     Attempt.objects.create(scope=scope, key=key[:254], created_at=now)
-    Attempt.objects.filter(created_at__lt=now - KEEP).delete()
+    purge(now)
+
+
+def purge(now=None):
+    """Delete attempts older than KEEP. The cron runs it too, so they go even with no traffic."""
+    now = now or timezone.now()
+    deleted, _ = Attempt.objects.filter(created_at__lt=now - KEEP).delete()
+    return deleted
 
 
 def clear(scope, key):

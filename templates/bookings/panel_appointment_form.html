@@ -12,6 +12,7 @@
     <form method="post" novalidate>
       {% csrf_token %}
       {{ form.as_div }}
+      {% if is_new %}<p class="helptext" style="margin: 0">Cargá solo los datos que necesitás para el turno. Sos responsable de los datos de tus clientes: usalos solo para sus turnos y avisales que los cargás en TurnoFacil.</p>{% endif %}
       <div class="actions">
         <button class="btn btn-primary" type="submit">{% if is_new %}Guardar turno{% else %}Guardar cambio{% endif %}</button>
         <a class="link-button" href="{% url 'panel' %}">Volver a la agenda</a>

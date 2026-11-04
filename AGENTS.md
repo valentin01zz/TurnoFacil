@@ -17,6 +17,7 @@ para lo específico del proyecto y NEXORA para las reglas generales.
   - Servidor local: `.venv\Scripts\python manage.py runserver`
   - Recordatorios: `.venv\Scripts\python manage.py send_reminders` (en producción, cada 15 minutos con el programador del hosting).
   - Planes (ADR-0004): `run_billing_tasks` (vence pruebas y envía avisos; corre junto con los recordatorios), `set_plan <código> --price N --max-professionals N` (cambia precio o límite) y `grant_plan <slug> <plan> [--months N]` (solo operadores: activa un plan sin cobro online; sin `--months`, sin vencimiento, solo para `piloto`).
+  - Legal (docs/agentic/legal/): `publish_legal_document terms|privacy <archivo> --doc-version X` (rechaza borradores y `[COMPLETAR]`), `service_requests [--resolve CÓDIGO --note "..."]` (bajas y arrepentimientos pendientes), `export_business_data <slug>`, `customer_data <email> [--erase]`, `delete_business <slug> --yes`, `purge_old_data` (no hace nada sin `APPOINTMENT_RETENTION_DAYS`). Procedimiento: `docs/agentic/legal/PROCEDIMIENTO_DERECHOS.md`.
 
 ## Idioma
 Documentación y comunicación con el Founder en español. Código, nombres técnicos y commits en inglés.

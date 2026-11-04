@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Solicitud confirmada · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Solicitud confirmada</h1>
+  <div class="card">
+    <p style="margin: 0 0 10px"><strong>{{ service_request.get_kind_display }}</strong> · código <strong class="legal-code">{{ service_request.code }}</strong></p>
+    {% include "legal/_outcome.txt" %}
+    <p class="helptext" style="margin: 12px 0 0">Te mandamos la constancia por email.</p>
+  </div>
+</div>
+{% endblock %}

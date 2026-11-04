@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Cancelar turno · {{ appointment.business.name }}{% endblock %}
 {% block header %}{% with business=appointment.business %}{% include "bookings/_business_header.html" %}{% endwith %}{% endblock %}
+{% block site_footer %}{% include "legal/_footer.html" with for_customer=True %}{% endblock %}
 {% block content %}
 <div class="wrap">
   <div class="ticket-page">
@@ -15,6 +16,12 @@
       {% include "bookings/_ticket_rows.html" %}
       <div class="perf"></div>
       <div class="t-foot">
+        {% if deposit or appointment.deposit_received_at %}
+          <div class="deposit-note">
+            <p>Si pagaste una seña, su devolución depende de {{ appointment.business.name }}.</p>
+            {% if deposit %}{% include "bookings/_deposit_terms.html" %}{% endif %}
+          </div>
+        {% endif %}
         <form method="post" class="stack" style="gap: 12px">
           {% csrf_token %}
           <button class="btn btn-danger btn-block" type="submit">Sí, cancelar turno</button>

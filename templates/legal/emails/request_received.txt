@@ -1,0 +1,14 @@
+{% autoescape off %}Hola,
+
+Registramos tu solicitud de {{ service_request.get_kind_display|lower }} en TurnoFacil.
+
+Código de identificación: {{ service_request.code }}
+Fecha: {{ service_request.created_at|date:"j/m/Y H:i" }}
+{% if confirm_url %}
+Para que se aplique, confirmala desde este link (vale 3 días):
+{{ confirm_url }}
+
+Si no la pediste vos, ignorá este email: sin la confirmación no cambia nada.
+{% else %}
+No encontramos una cuenta de TurnoFacil con este email, así que no hay nada para dar de baja. Si tu cuenta usa otro email, pedilo de nuevo con ese. Si creés que es un error, escribinos y mencioná el código.
+{% endif %}{% endautoescape %}

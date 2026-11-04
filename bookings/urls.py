@@ -15,6 +15,11 @@ urlpatterns = [
         name="appointment_cancel",
     ),
     path(
+        "panel/appointments/<int:pk>/deposit/",
+        panel_views.appointment_deposit,
+        name="appointment_deposit",
+    ),
+    path(
         "panel/appointments/<int:pk>/attendance/",
         panel_views.appointment_attendance,
         name="appointment_attendance",

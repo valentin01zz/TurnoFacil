@@ -95,6 +95,19 @@ def appointment_reschedule(request, pk):
 
 @login_required
 @requires_feature(PANEL_EDIT)
+@require_POST
+def appointment_deposit(request, pk):
+    """The owner records by hand that the seña arrived (or undoes it). Nothing is verified."""
+    with transaction.atomic():
+        appointment = get_owned_appointment(request, pk, for_update=True)
+        received = request.POST.get("received") == "1"
+        appointment.deposit_received_at = timezone.now() if received else None
+        appointment.save(update_fields=["deposit_received_at", "updated_at"])
+    return redirect(agenda_url(appointment))
+
+
+@login_required
+@requires_feature(PANEL_EDIT)
 def appointment_cancel(request, pk):
     appointment = get_owned_appointment(request, pk)
     if request.method != "POST":

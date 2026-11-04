@@ -19,6 +19,7 @@ from bookings.models import Appointment
 from bookings.panel_views import manage_url
 from bookings.whatsapp import reminder_url
 
+from .deposit import public_deposit
 from .forms import (
     AgendaForm,
     BusinessForm,
@@ -194,6 +195,7 @@ def panel(request):
             "next_appointment": next_appointment if date == today else None,
             "first_appointment": appointments[0] if appointments else None,
             "week": week_chart(business, date, professional),
+            "asks_deposit": public_deposit(business) is not None,
             "time_off": list(time_off),
         },
     )

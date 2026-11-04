@@ -136,6 +136,37 @@ Cambios de la rama `fix/audit-hardening` que piden algo en Render o una verifica
     la **Shell** del servicio web,
     `python manage.py shell -c "from accounts.models import Attempt; print(set(Attempt.objects.filter(scope='login_ip').values_list('key', flat=True)))"`
     tiene que mostrar varias IPs públicas distintas, no una sola IP interna de Render.
+  - **Resultado (2026-10-21): `CLIENT_IP_PROXY_COUNT=2` en `turnofacil-web`.**
+    - [x] Con la opción A, 31 logins con `X-Forwarded-For` falso no se bloquearon: se guardaron las IPs
+          falsas. Sin encabezado falso, el intento 31 sí se bloqueó (el límite funciona).
+    - [x] Con `1` tampoco se bloquearon: se guardaban IPs de **Cloudflare** (`172.64.x`, `104.23.x`,
+          `162.158.x`, `172.71.x`), que cambian entre pedidos. Los clientes habrían compartido límites: se
+          quitó enseguida.
+    - [x] El encabezado llega como `[lo que mande el cliente], IP real, IP de Cloudflare`: el cliente es la
+          **segunda desde la derecha**. Con `2`, los 31 logins con IP falsa se bloquearon en el intento 31.
+    - Si Render o Cloudflare cambian su cadena de proxies, este número deja de servir: repetir la prueba
+      (31 logins con IP falsa) y revisar en la Shell qué IPs guarda `Attempt` para `login_ip`.
+
+## Cumplimiento legal (rama `feat/legal-compliance`, PR #4)
+Qué pide en Render y en qué orden. Detalle legal en `docs/agentic/legal/LEGAL_REVIEW.md`.
+- [x] Variables `LEGAL_*` en `turnofacil-web` (2026-10-26, cargadas por el Founder con "Save only"):
+      `LEGAL_OWNER_NAME`, `LEGAL_OWNER_TAX_ID`, `LEGAL_OWNER_ADDRESS`, `LEGAL_CONTACT_EMAIL`,
+      `LEGAL_PRIVACY_EMAIL`, `LEGAL_SUPPORT_HOURS`. Los valores están en `OWNER_LEGAL_DATA.local.md` (fuera de
+      git). El cron no las usa. `main` no las lee: no cambian nada hasta desplegar el PR.
+- [ ] Backup de la base, restaurarlo aparte y correr `migrate` ahí (`legal.0003` y `0005` agregan triggers).
+- [ ] Revisión del abogado y visto bueno del Founder; merge y deploy.
+- [ ] Verificar `/contacto/`, `/baja/`, `/arrepentimiento/` y `/mis-datos/` en vivo.
+- [ ] Publicar términos y privacidad con `publish_legal_document` desde la Shell (recién ahí aparecen las
+      casillas y los enlaces del pie).
+- [ ] Borrados automáticos (privacidad, sección 4): `render.yaml` agrega al cron `clear_attempts` (intentos
+      de ingreso de más de 24 horas) y `purge_old_data` (turnos de más de 12 meses, con
+      `APPOINTMENT_RETENTION_DAYS=365`). Render no siempre toma del Blueprint los cambios de un servicio
+      existente: en `turnofacil-reminders`, revisar que el *Command* termine en
+      `&& python manage.py clear_attempts && python manage.py purge_old_data` y que la variable exista; si
+      falta, cargarlos a mano. Sin la variable, `purge_old_data` no borra nada.
+- Borrar una cuenta (`delete_business`) ya no borra sus constancias de aceptación: quedan desvinculadas, con
+  la versión, la fecha y la huella SHA-256 del email (migración `legal.0007`). Para ver si un email aceptó,
+  comparar `legal.models.email_sha256("su@email")` con `subject_email_sha256`.
 
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy
