@@ -1,0 +1,7 @@
+{% if breakdown.price %}<dl class="price-split">
+  <div><dt>{% if breakdown.price.varies %}Precio desde{% else %}Precio final{% endif %}</dt><dd>$&nbsp;{{ breakdown.price.amount|floatformat:"-2g" }}</dd></div>
+  <div><dt>Seña</dt><dd>$&nbsp;{{ breakdown.deposit|floatformat:"-2g" }}</dd></div>
+  <div><dt>{% if breakdown.price.varies %}Saldo desde{% else %}Saldo a pagar en el local{% endif %}</dt><dd>$&nbsp;{{ breakdown.balance|floatformat:"-2g" }}</dd></div>
+</dl>
+{% if breakdown.price.varies %}<p class="fine" style="text-align: left">El precio final puede variar ({{ breakdown.price.note }}). La seña se descuenta del total.</p>{% endif %}
+{% else %}<p class="fine" style="text-align: left">La seña se descuenta del precio final del servicio, que te informa {{ deposit.business.name }}.</p>{% endif %}

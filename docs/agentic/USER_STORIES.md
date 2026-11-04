@@ -174,3 +174,8 @@ Se habla de "ingresos", no de "facturación": TurnoFacil no emite facturas.
 - Prioridad: Ampliación. Planes Profesional, Negocio y Piloto (también durante la prueba gratuita).
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-35)
 
+## HU-36: Precios claros para el cliente (revisión legal, 2026-10-29)
+**Como** cliente, **quiero** ver el precio final, si el precio puede variar y de qué depende, y cuánto me queda por pagar después de la seña, **para** saber cuánto voy a pagar antes de reservar.
+- Prioridad: requisito legal (Ley 24.240 art. 4; Res. SICyC 4/2025).
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-36)
+

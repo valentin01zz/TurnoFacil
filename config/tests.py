@@ -2,6 +2,7 @@ import os
 from unittest import mock
 
 from django.contrib.staticfiles import finders
+from django.db import OperationalError, connection
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
@@ -41,6 +42,52 @@ class EnvHelpersTests(SimpleTestCase):
         self.assertEqual(env_list("HOSTS_MISSING", "x,y"), ["x", "y"])
 
 
+class HealthCheckTests(TestCase):
+    def test_answers_ok_without_a_login_or_details(self):
+        response = self.client.get("/healthz/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok"})
+
+    def test_answers_a_head_request(self):
+        self.assertEqual(self.client.head("/healthz/").status_code, 200)
+
+    def test_really_queries_the_database(self):
+        with self.assertNumQueries(1):
+            self.client.get("/healthz/")
+
+    def test_fails_when_the_database_is_down(self):
+        with mock.patch(
+            "config.health.connection.cursor",
+            side_effect=OperationalError("could not connect to db.internal password=secret"),
+        ):
+            with self.assertLogs("config.health", level="ERROR") as logs:
+                response = self.client.get("/healthz/")
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json(), {"status": "fail"})
+        self.assertNotIn("secret", " ".join(logs.output))
+        self.assertNotIn("db.internal", " ".join(logs.output))
+
+    def test_database_connections_have_a_short_timeout(self):
+        self.assertEqual(connection.get_connection_params()["connect_timeout"], 5)
+
+    def test_creates_no_session_or_cookie(self):
+        response = self.client.get("/healthz/")
+
+        self.assertEqual(len(response.cookies), 0)
+
+    def test_does_not_depend_on_the_host_or_the_https_redirect(self):
+        with self.settings(SECURE_SSL_REDIRECT=True, ALLOWED_HOSTS=["turnofacil.online"]):
+            response = self.client.get("/healthz/", HTTP_HOST="10.0.0.1:10000")
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_other_paths_are_not_affected(self):
+        self.assertEqual(self.client.get("/healthz/otra/").status_code, 404)
+        self.assertEqual(self.client.get("/").status_code, 200)
+
+
 class ErrorPageTests(TestCase):
     def test_unknown_page_uses_the_spanish_404(self):
         with self.settings(DEBUG=False):
@@ -69,6 +116,78 @@ class PanelCopyButtonTests(TestCase):
             source = handle.read()
 
         self.assertContains(response, 'data-copy="booking-url"')
-        self.assertContains(response, "js/app.js")
+        self.assertContains(response, "js/app.")  # hashed name when DEBUG is off
         self.assertIn("window.isSecureContext", source)
         self.assertIn('document.execCommand("copy")', source)
+
+
+class SecurityHeadersTests(TestCase):
+    def test_pages_carry_csp_and_permissions_policy(self):
+        response = self.client.get(reverse("home"))
+        csp = response["Content-Security-Policy"]
+        self.assertIn("script-src 'self'", csp)
+        self.assertIn("frame-ancestors 'none'", csp)
+        self.assertNotIn("unsafe-eval", csp)
+        self.assertIn("camera=()", response["Permissions-Policy"])
+
+    def test_templates_have_no_inline_scripts_or_handlers(self):
+        """The CSP blocks them: keep scripts in static/js."""
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+
+        for path in Path(settings.BASE_DIR, "templates").rglob("*.html"):
+            text = path.read_text(encoding="utf-8")
+            self.assertIsNone(re.search(r"<script(?![^>]*\ssrc=)", text), path)
+            self.assertIsNone(re.search(r"\son[a-z]+=\"", text), path)
+
+
+class ErrorAlertTests(TestCase):
+    def log_error(self, handler, path="/x/"):
+        import logging
+        import sys
+
+        from django.test import RequestFactory
+
+        try:
+            raise RuntimeError("boom")
+        except RuntimeError:
+            record = logging.LogRecord(
+                "django.request",
+                logging.ERROR,
+                __file__,
+                1,
+                "Internal Server Error",
+                None,
+                sys.exc_info(),
+            )
+        record.request = RequestFactory().post(path, {"customer_phone": "11 5555 1234"})
+        handler.emit(record)
+
+    def test_emails_the_error_without_request_data_and_only_once(self):
+        from django.core import mail
+        from django.test import override_settings
+
+        from config.error_alerts import ErrorEmailHandler
+
+        handler = ErrorEmailHandler()
+        with override_settings(ADMINS=[("TurnoFacil", "ops@example.com")]):
+            self.log_error(handler)
+            self.log_error(handler)
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ["ops@example.com"])
+        self.assertIn("POST /x/", message.subject)
+        self.assertIn("RuntimeError: boom", message.body)
+        self.assertNotIn("5555", message.body)
+
+    def test_no_admins_means_no_email(self):
+        from django.core import mail
+        from django.test import override_settings
+
+        from config.error_alerts import ErrorEmailHandler
+
+        with override_settings(ADMINS=[]):
+            self.log_error(ErrorEmailHandler())
+        self.assertEqual(len(mail.outbox), 0)

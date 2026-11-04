@@ -346,7 +346,7 @@ class PublicDepositTests(TestCase):
             follow=True,
         )
 
-        self.assertContains(page, "pide una seña de $ 5.000 por transferencia")
+        self.assertContains(page, "pide una seña de $&nbsp;5.000 por transferencia")
         appointment = Appointment.objects.get()
         self.assertEqual(appointment.status, Appointment.CONFIRMED)
         self.assertContains(response, "Seña por transferencia")
@@ -381,7 +381,9 @@ class PublicDepositTests(TestCase):
         without, with_deposit = mail.outbox
         self.assertNotIn("Seña", without.body)
         self.assertIn(
-            "Seña: Estética Luna pide una seña de $ 5.000 por transferencia.", with_deposit.body
+            "Seña: Estética Luna pide una seña de $ 5.000 por transferencia, "
+            "que se descuenta del total.",
+            with_deposit.body,
         )
         self.assertIn("Alias: estetica.luna", with_deposit.body)
         self.assertIn("Mandá el comprobante.", with_deposit.body)

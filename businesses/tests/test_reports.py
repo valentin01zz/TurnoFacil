@@ -193,7 +193,7 @@ class ReportPageTests(TestCase):
     def test_trial_business_sees_the_report(self):
         response = self.client.get(reverse("reports"))
         self.assertContains(response, "ingresos estimados")
-        self.assertContains(response, "$ 12.500")
+        self.assertContains(response, "$&nbsp;12.500")
         self.assertContains(response, "No son comprobantes fiscales")
         self.assertContains(response, reverse("reports_export"))
 

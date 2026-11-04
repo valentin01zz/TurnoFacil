@@ -12,7 +12,8 @@ services:
     region: virginia
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     preDeployCommand: python manage.py migrate --noinput
-    startCommand: gunicorn config.wsgi:application --workers 2 --timeout 30
+    # Threads: a request waiting on the email server does not hold a whole worker.
+    startCommand: gunicorn config.wsgi:application --workers 2 --threads 4 --timeout 30
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
@@ -25,6 +26,9 @@ services:
           name: turnofacil-db
           property: connectionString
       - key: ALLOWED_HOSTS
+        sync: false
+      # Where server errors (500) are emailed; empty turns the alerts off.
+      - key: ERROR_ALERT_EMAIL
         sync: false
       - key: SITE_URL
         sync: false
@@ -58,7 +62,7 @@ services:
     region: virginia
     schedule: "*/15 * * * *"
     buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py send_reminders && python manage.py run_billing_tasks
+    startCommand: python manage.py send_reminders && python manage.py run_billing_tasks && python manage.py clearsessions
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"

@@ -53,6 +53,12 @@ class Service(models.Model):
     duration_minutes = models.PositiveIntegerField("duración (minutos)")
     # Optional, in Argentine pesos. Each appointment keeps a copy (Appointment.price).
     price = models.DecimalField("precio", max_digits=10, decimal_places=2, null=True, blank=True)
+    # "Desde": the price is the minimum and price_note says what sets the final amount.
+    # db_default too: code still running during a deploy inserts rows without these columns.
+    price_varies = models.BooleanField("el precio puede variar", default=False, db_default=False)
+    price_note = models.CharField(
+        "de qué depende el precio final", max_length=80, blank=True, default="", db_default=""
+    )
     is_active = models.BooleanField("activo", default=True)
 
     class Meta:

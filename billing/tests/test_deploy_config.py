@@ -5,7 +5,8 @@ from django.test import SimpleTestCase
 
 PAYMENT_VARIABLES = {"PAYMENT_PROVIDER", "MERCADOPAGO_ACCESS_TOKEN", "MERCADOPAGO_WEBHOOK_SECRET"}
 # Only the web service answers HTTP requests.
-WEB_ONLY = {"ALLOWED_HOSTS"}
+# Error alerts come from page requests (500s), which only the web service serves.
+WEB_ONLY = {"ALLOWED_HOSTS", "ERROR_ALERT_EMAIL"}
 
 
 def blueprint_keys():

@@ -102,14 +102,14 @@ class ServicePriceTests(TestCase):
         )
         self.assertEqual(Appointment.objects.get().price, Decimal("8000"))
         response = self.client.get(reverse("panel"), {"date": self.date.isoformat()})
-        self.assertContains(response, "$ 8.000")
+        self.assertContains(response, "$&nbsp;8.000")
 
     def test_service_without_price_books_without_price(self):
         service = create_service(self.business)
         appointment = create_appointment(self.ana, service, local_dt(self.date, 10))
         self.assertIsNone(appointment.price)
         response = self.client.get(reverse("panel"), {"date": self.date.isoformat()})
-        self.assertNotContains(response, "$ ")
+        self.assertNotContains(response, "$&nbsp;")
 
 
 class PublicPriceTests(TestCase):
@@ -138,7 +138,7 @@ class PublicPriceTests(TestCase):
         self.assertTrue(self.business.show_prices)
         self.client.logout()
         response = self.booking_page()
-        self.assertContains(response, "$ 12.500")
+        self.assertContains(response, "$&nbsp;12.500")
         self.assertContains(response, "Masaje")  # listed, just without a price
 
     def test_turning_it_off_hides_them_again(self):
