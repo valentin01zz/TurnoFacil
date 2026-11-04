@@ -158,8 +158,11 @@ Qué pide en Render y en qué orden. Detalle legal en `docs/agentic/legal/LEGAL_
 - [ ] Verificar `/contacto/`, `/baja/`, `/arrepentimiento/` y `/mis-datos/` en vivo.
 - [ ] Publicar términos y privacidad con `publish_legal_document` desde la Shell (recién ahí aparecen las
       casillas y los enlaces del pie).
-- [ ] Más adelante: `APPOINTMENT_RETENTION_DAYS=365` en el cron, junto con agregar `purge_old_data` a su
-      `startCommand`.
+- [ ] Borrado de turnos a los 12 meses (privacidad, sección 4): `render.yaml` ya agrega `purge_old_data` al
+      cron y `APPOINTMENT_RETENTION_DAYS=365`. Render no siempre toma del Blueprint los cambios de un servicio
+      existente: en `turnofacil-reminders`, revisar que el *Command* termine en
+      `&& python manage.py purge_old_data` y que la variable exista; si falta, cargarlos a mano. Sin la
+      variable, el comando no borra nada.
 
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy

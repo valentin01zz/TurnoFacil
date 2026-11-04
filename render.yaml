@@ -62,7 +62,7 @@ services:
     region: virginia
     schedule: "*/15 * * * *"
     buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py send_reminders && python manage.py run_billing_tasks && python manage.py clearsessions
+    startCommand: python manage.py send_reminders && python manage.py run_billing_tasks && python manage.py clearsessions && python manage.py purge_old_data
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
@@ -74,6 +74,9 @@ services:
         fromDatabase:
           name: turnofacil-db
           property: connectionString
+      # Past appointments are kept 12 months, as the privacy policy says (section 4).
+      - key: APPOINTMENT_RETENTION_DAYS
+        value: "365"
       - key: SITE_URL
         sync: false
       - key: DEFAULT_FROM_EMAIL
