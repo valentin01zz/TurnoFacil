@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from accounts.identity import canonical_email
 from businesses.models import Business
 
 
@@ -75,10 +76,17 @@ class LegalAcceptance(models.Model):
     REACCEPTANCE = "reacceptance"
     CONTEXTS = [(SIGNUP, "Registro"), (REACCEPTANCE, "Nueva versión")]
 
-    # Deleting an account (a data deletion request) deletes its evidence too.
+    # Deleting an account keeps its evidence: only `delete_business` may detach it (legal.0007).
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="legal_acceptances"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="legal_acceptances",
     )
+    # Who accepted, once the account is gone: SHA-256 of the canonical email at that moment. It
+    # answers "did this email accept?" when someone claims, without keeping the email itself.
+    subject_email_sha256 = models.CharField(max_length=64, editable=False, default="")
     document = models.ForeignKey(LegalDocument, on_delete=models.PROTECT, related_name="+")
     action = models.CharField(max_length=10, choices=ACTIONS)
     context = models.CharField(max_length=15, choices=CONTEXTS)
@@ -95,7 +103,13 @@ class LegalAcceptance(models.Model):
     def save(self, *args, **kwargs):
         if self.pk is not None:
             raise ImmutableError("An acceptance record is never edited.")
+        self.subject_email_sha256 = email_sha256(self.user.email)
         return super().save(*args, **kwargs)
+
+
+def email_sha256(email):
+    """The fingerprint kept in an acceptance: the same for every alias of one mailbox."""
+    return hashlib.sha256(canonical_email(email).encode()).hexdigest()
 
 
 class ServiceRequest(models.Model):

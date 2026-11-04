@@ -119,12 +119,13 @@ def erase_customer(email, now=None):
 def delete_business(business):
     """Delete a business, its owner account and everything that hangs from them.
 
-    The only place that may delete legal acceptances: the database refuses it otherwise
-    (migration legal.0005). The permission is opened and closed inside this transaction.
+    Its legal acceptances stay, detached from the deleted account: they keep the document version,
+    the date and the email fingerprint. The only place that may detach them: the database refuses
+    it otherwise (migration legal.0007). The permission opens and closes inside this transaction.
     """
     with transaction.atomic():
         with connection.cursor() as cursor:
-            cursor.execute("SET LOCAL legal.allow_evidence_delete = 'on'")
+            cursor.execute("SET LOCAL legal.allow_evidence_detach = 'on'")
         # Appointments protect their professional and service, so they go first.
         business.appointments.all().delete()
         owner = business.owner
@@ -132,7 +133,7 @@ def delete_business(business):
         owner.delete()
         # Closed again at once, also when this runs inside an outer transaction.
         with connection.cursor() as cursor:
-            cursor.execute("SET LOCAL legal.allow_evidence_delete = 'off'")
+            cursor.execute("SET LOCAL legal.allow_evidence_detach = 'off'")
 
 
 def purge_appointments(days, now=None):

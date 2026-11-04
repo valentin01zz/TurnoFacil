@@ -62,7 +62,7 @@ services:
     region: virginia
     schedule: "*/15 * * * *"
     buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py send_reminders && python manage.py run_billing_tasks && python manage.py clearsessions && python manage.py purge_old_data
+    startCommand: python manage.py send_reminders && python manage.py run_billing_tasks && python manage.py clearsessions && python manage.py clear_attempts && python manage.py purge_old_data
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"

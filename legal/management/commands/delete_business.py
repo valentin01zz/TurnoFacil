@@ -7,7 +7,8 @@ from legal.data import delete_business
 class Command(BaseCommand):
     help = (
         "Delete a business, its owner account and all its data (services, professionals, "
-        "appointments with their customers' details, subscription, acceptances). Irreversible: "
+        "appointments with their customers' details, subscription). Its legal acceptances stay, "
+        "detached from the account, as evidence. Irreversible: "
         "export it first with export_business_data if the owner wants a copy."
     )
 

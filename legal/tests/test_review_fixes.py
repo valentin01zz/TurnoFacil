@@ -8,7 +8,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.management import call_command
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError, connection, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -17,7 +17,7 @@ from billing.models import Plan, Subscription, SubscriptionEvent
 from billing.services import activate, change_active_plan, mark_past_due, transition
 from bookings.tests.helpers import create_business
 from legal.data import delete_business
-from legal.models import LegalAcceptance, LegalDocument, ServiceRequest
+from legal.models import LegalAcceptance, LegalDocument, ServiceRequest, email_sha256
 from legal.services import contracted_at, withdrawal_outcome, within_withdrawal_term
 
 from .helpers import FakeProvider, publish, renewing
@@ -168,31 +168,63 @@ class DatabaseProtectionTests(TestCase):
         )
         self.assertRefused(lambda: LegalAcceptance.objects.update(action=LegalAcceptance.INFORMED))
         self.assertRefused(lambda: LegalAcceptance.objects.all().delete())
-        # Deleting the account any other way is refused too: its acceptances would go with it.
+        # Deleting the account any other way is refused too: it would detach its acceptances.
         self.assertRefused(lambda: User.objects.filter(pk=business.owner_id).delete())
         self.assertEqual(LegalAcceptance.objects.count(), 1)
 
-    def test_they_go_away_only_with_delete_business(self):
-        business = create_business()
+    def test_delete_business_keeps_them_detached_from_the_deleted_account(self):
+        business = create_business(email="Ana.Perez+tf@gmail.com")
         owner_id = business.owner_id
+        document = publish()
+        accepted = LegalAcceptance.objects.create(
+            user=business.owner,
+            document=document,
+            action=LegalAcceptance.ACCEPTED,
+            context=LegalAcceptance.SIGNUP,
+        )
+
+        delete_business(business)
+
+        self.assertFalse(User.objects.filter(pk=owner_id).exists())
+        kept = LegalAcceptance.objects.get()
+        self.assertIsNone(kept.user_id)
+        self.assertEqual(kept.document, document)
+        self.assertEqual(kept.action, LegalAcceptance.ACCEPTED)
+        self.assertEqual(kept.created_at, accepted.created_at)
+        # Any alias of the same mailbox matches; the email itself is not kept.
+        self.assertEqual(kept.subject_email_sha256, email_sha256("anaperez@gmail.com"))
+        self.assertNotIn("anaperez", kept.subject_email_sha256)
+
+    def test_the_detach_permission_ends_with_delete_business(self):
+        delete_business(create_business())
+        other = create_business(email="otro@example.com", name="Otro")
+        LegalAcceptance.objects.create(
+            user=other.owner,
+            document=publish(),
+            action=LegalAcceptance.ACCEPTED,
+            context=LegalAcceptance.SIGNUP,
+        )
+
+        self.assertRefused(lambda: LegalAcceptance.objects.update(user=None))
+        self.assertRefused(lambda: LegalAcceptance.objects.all().delete())
+        self.assertRefused(lambda: User.objects.filter(pk=other.owner_id).delete())
+
+    def test_even_with_the_permission_only_the_account_link_can_change(self):
+        business = create_business()
         LegalAcceptance.objects.create(
             user=business.owner,
             document=publish(),
             action=LegalAcceptance.ACCEPTED,
             context=LegalAcceptance.SIGNUP,
         )
-        delete_business(business)
-        self.assertFalse(LegalAcceptance.objects.exists())
-        self.assertFalse(User.objects.filter(pk=owner_id).exists())
-        # The permission ended with that transaction.
-        other = create_business(email="otro@example.com", name="Otro")
-        LegalAcceptance.objects.create(
-            user=other.owner,
-            document=LegalDocument.objects.get(),
-            action=LegalAcceptance.ACCEPTED,
-            context=LegalAcceptance.SIGNUP,
-        )
-        self.assertRefused(lambda: LegalAcceptance.objects.all().delete())
+
+        def tamper():
+            with connection.cursor() as cursor:
+                cursor.execute("SET LOCAL legal.allow_evidence_detach = 'on'")
+            LegalAcceptance.objects.update(user=None, action=LegalAcceptance.INFORMED)
+
+        self.assertRefused(tamper)
+        self.assertEqual(LegalAcceptance.objects.get().action, LegalAcceptance.ACCEPTED)
 
     def test_service_requests_keep_working(self):
         request = ServiceRequest.objects.create(

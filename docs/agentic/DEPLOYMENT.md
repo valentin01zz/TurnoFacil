@@ -158,11 +158,15 @@ Qué pide en Render y en qué orden. Detalle legal en `docs/agentic/legal/LEGAL_
 - [ ] Verificar `/contacto/`, `/baja/`, `/arrepentimiento/` y `/mis-datos/` en vivo.
 - [ ] Publicar términos y privacidad con `publish_legal_document` desde la Shell (recién ahí aparecen las
       casillas y los enlaces del pie).
-- [ ] Borrado de turnos a los 12 meses (privacidad, sección 4): `render.yaml` ya agrega `purge_old_data` al
-      cron y `APPOINTMENT_RETENTION_DAYS=365`. Render no siempre toma del Blueprint los cambios de un servicio
+- [ ] Borrados automáticos (privacidad, sección 4): `render.yaml` agrega al cron `clear_attempts` (intentos
+      de ingreso de más de 24 horas) y `purge_old_data` (turnos de más de 12 meses, con
+      `APPOINTMENT_RETENTION_DAYS=365`). Render no siempre toma del Blueprint los cambios de un servicio
       existente: en `turnofacil-reminders`, revisar que el *Command* termine en
-      `&& python manage.py purge_old_data` y que la variable exista; si falta, cargarlos a mano. Sin la
-      variable, el comando no borra nada.
+      `&& python manage.py clear_attempts && python manage.py purge_old_data` y que la variable exista; si
+      falta, cargarlos a mano. Sin la variable, `purge_old_data` no borra nada.
+- Borrar una cuenta (`delete_business`) ya no borra sus constancias de aceptación: quedan desvinculadas, con
+  la versión, la fecha y la huella SHA-256 del email (migración `legal.0007`). Para ver si un email aceptó,
+  comparar `legal.models.email_sha256("su@email")` con `subject_email_sha256`.
 
 ## Rollback
 - **Código:** en el servicio web, **Events**, elegir el deploy anterior y **Rollback**. Tarda lo que un deploy

@@ -1,6 +1,8 @@
 from datetime import timedelta
+from io import StringIO
 
 from django.core import mail
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -40,6 +42,18 @@ class ThrottleTests(TestCase):
         throttle.record("reset", "ana@example.com", now=now)
 
         self.assertEqual(Attempt.objects.count(), 1)
+
+    def test_the_cron_command_cleans_up_without_new_traffic(self):
+        now = timezone.now()
+        old = now - timedelta(days=2)
+        Attempt.objects.create(scope="login_ip", key="200.1.1.1", created_at=old)
+        Attempt.objects.create(scope="login_ip", key="200.1.1.1", created_at=now)
+        out = StringIO()
+
+        call_command("clear_attempts", stdout=out)
+
+        self.assertEqual(Attempt.objects.count(), 1)
+        self.assertIn("Deleted 1 old attempt(s).", out.getvalue())
 
     def test_empty_keys_are_never_limited(self):
         throttle.record("signup_ip", "")

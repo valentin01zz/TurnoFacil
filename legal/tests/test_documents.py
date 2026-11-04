@@ -112,7 +112,14 @@ class PublishCommandTests(TestCase):
         self.assertEqual(LegalDocument.current(LegalDocument.TERMS).version, "1.0")
 
     def test_refuses_drafts_and_missing_data(self):
-        for text in ("# BORRADOR. NO PUBLICAR.", "Titular: [COMPLETAR]", "> Nota: revisar"):
+        for text in (
+            "# BORRADOR. NO PUBLICAR.",
+            "Titular: [COMPLETAR]",
+            "> Nota: revisar",
+            "Vigente desde: [FECHA DE VIGENCIA]",
+            "Plazo: [PENDIENTE: definir]",
+            "[PENDIENTE DE VALIDACIÓN JURÍDICA: mecanismo]",
+        ):
             with self.subTest(text=text), self.assertRaises(CommandError):
                 self.run_publish(text, "--doc-version", "1.0")
         self.assertFalse(LegalDocument.objects.exists())

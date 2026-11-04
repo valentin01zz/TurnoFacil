@@ -7,7 +7,15 @@ from django.utils.dateparse import parse_datetime
 from legal.models import LegalDocument
 
 # A text with any of these is a draft or still has data to fill in: it must never be published.
-FORBIDDEN = ["[COMPLETAR", "BORRADOR", "NO PUBLICAR", "> Nota:", "> Requiere:"]
+FORBIDDEN = [
+    "[COMPLETAR",
+    "[PENDIENTE",
+    "[FECHA DE VIGENCIA",
+    "BORRADOR",
+    "NO PUBLICAR",
+    "> Nota:",
+    "> Requiere:",
+]
 
 
 class Command(BaseCommand):
