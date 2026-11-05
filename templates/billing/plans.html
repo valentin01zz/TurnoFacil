@@ -41,10 +41,12 @@
       {% endif %}
     </section>
 
-    <section class="trial-box" aria-label="Prueba gratis">
-      <span class="icon-box">{% include "_icon.html" with name="star" size=26 %}</span>
-      <p>Probá gratis durante {{ trial_days }} días. Sin tarjeta de crédito y sin compromiso. Elegí tu plan al terminar la prueba.</p>
-    </section>
+    {% if access.in_trial %}
+      <section class="trial-box" aria-label="Prueba gratis">
+        <span class="icon-box">{% include "_icon.html" with name="star" size=26 %}</span>
+        <p>Probá gratis durante {{ trial_days }} días. Sin tarjeta de crédito y sin compromiso. Elegí tu plan al terminar la prueba.</p>
+      </section>
+    {% endif %}
   </div>
 
   <div class="plan-grid">

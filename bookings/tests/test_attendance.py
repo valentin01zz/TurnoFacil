@@ -134,5 +134,5 @@ class AttendanceTests(TestCase):
         self.past.mark_attendance(Appointment.ATTENDED)
         end_trial(self.business)
         response = self.agenda(self.yesterday)
-        self.assertContains(response, '<span class="badge">Asistió</span>')
+        self.assertContains(response, '<span class="badge ok">Asistió</span>')
         self.assertNotContains(response, reverse("appointment_attendance", args=[self.past.pk]))

@@ -61,7 +61,9 @@ class AgendaTests(TestCase):
     def test_day_shows_its_appointments_with_details(self):
         response = self.agenda(date=self.date.isoformat())
 
-        self.assertContains(response, "10:00–10:50")
+        # Start and end of the appointment, one under the other.
+        self.assertContains(response, "<b>10:00</b>")
+        self.assertContains(response, "<span>10:50</span>")
         self.assertContains(response, "Laura Gómez")
         self.assertContains(response, "11 5555 1234")
         self.assertContains(response, "Limpieza facial · Ana")
@@ -92,7 +94,7 @@ class AgendaTests(TestCase):
         response = self.agenda()
 
         self.assertEqual(response.context["date"], timezone.localdate())
-        self.assertContains(response, ">Hoy<")
+        self.assertContains(response, 'class="page-title">Hoy, ')
         self.assertContains(response, f'value="{timezone.localdate().isoformat()}"')
 
     def test_invalid_date_falls_back_to_today(self):

@@ -13,33 +13,32 @@
     </div>
   {% else %}
     {% with t=report.totals %}
-    <section class="agenda-head">
-      <div>
-        <div class="eyebrow">Reportes{% if professional %} · {{ professional.name }}{% endif %}</div>
-        <h1>{{ report.period.label }}</h1>
-        <p class="helptext" style="margin: 6px 0 0">Del {{ report.period.first_day|date:"j/m" }} al {{ report.period.last_day|date:"j/m/Y" }}</p>
-      </div>
-      <div class="day-nav">
-        <a class="btn btn-quiet" href="{% url 'reports_export' %}?{{ export_query }}" aria-describedby="export-note">{% include "_icon.html" with name="arrow" size=18 stroke=2.6 %}Exportar a Excel</a>
+    <section class="page-head">
+      <div class="page-head-text">
+        <p class="eyebrow">Reportes{% if professional %} · {{ professional.name }}{% endif %}</p>
+        <h1 class="page-title">{{ report.period.label }}</h1>
+        <p class="helptext">Del {{ report.period.first_day|date:"j/m" }} al {{ report.period.last_day|date:"j/m/Y" }}</p>
       </div>
     </section>
 
-    <p class="helptext" id="export-note" style="margin: -8px 0 16px">El archivo de Excel tiene datos personales de tus clientes: usalo solo para gestionar tus turnos, no lo compartas ni lo uses para publicidad, y borralo cuando ya no lo necesites.</p>
-
-    <form method="get" class="date-jump" style="margin-bottom: 18px; flex-wrap: wrap">
-      <label class="sr-only" for="period">Período</label>
-      <select id="period" name="period">
-        {% for code, label in periods %}<option value="{{ code }}"{% if code == period %} selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select>
-      {% if professionals|length > 1 %}
-        <label class="sr-only" for="professional">Profesional</label>
-        <select id="professional" name="professional">
-          <option value="">Todos los profesionales</option>
-          {% for pro in professionals %}<option value="{{ pro.pk }}"{% if professional and pro.pk == professional.pk %} selected{% endif %}>{{ pro.name }}</option>{% endfor %}
+    <div class="report-bar">
+      <form method="get" class="report-filters" data-submit-on-change>
+        <label class="sr-only" for="period">Período</label>
+        <select id="period" name="period">
+          {% for code, label in periods %}<option value="{{ code }}"{% if code == period %} selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
-      {% endif %}
-      <button class="btn btn-small" type="submit">Ver</button>
-    </form>
+        {% if professionals|length > 1 %}
+          <label class="sr-only" for="professional">Profesional</label>
+          <select id="professional" name="professional">
+            <option value="">Todos los profesionales</option>
+            {% for pro in professionals %}<option value="{{ pro.pk }}"{% if professional and pro.pk == professional.pk %} selected{% endif %}>{{ pro.name }}</option>{% endfor %}
+          </select>
+        {% endif %}
+        <button class="btn btn-small js-hide" type="submit">Ver</button>
+      </form>
+      <a class="btn" href="{% url 'reports_export' %}?{{ export_query }}" aria-describedby="export-note">{% include "_icon.html" with name="arrow" size=18 stroke=2.6 %}Exportar a Excel</a>
+    </div>
+    <p class="helptext export-note" id="export-note">El archivo de Excel tiene datos personales de tus clientes: usalo solo para gestionar tus turnos, no lo compartas ni lo uses para publicidad, y borralo cuando ya no lo necesites.</p>
 
     <div class="stats two">
       <div class="stat"><b>$&nbsp;{{ t.income_attended|floatformat:"0g" }}</b><span>ingresos estimados (asistieron){% if report.changes.income_attended is not None %} · {% if report.changes.income_attended >= 0 %}+{% endif %}{{ report.changes.income_attended }} % vs. {{ report.previous.label }}{% endif %}</span></div>

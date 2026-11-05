@@ -2,22 +2,24 @@
 {% block title %}Servicios · TurnoFacil{% endblock %}
 {% block content %}
 <div class="wrap">
-  <div class="agenda-head">
-    <div>
-      <div class="eyebrow">Tu negocio</div>
-      <h1>Servicios</h1>
+  <section class="page-head">
+    <div class="page-head-text">
+      <p class="eyebrow">Tu negocio</p>
+      <h1 class="page-title">Servicios</h1>
     </div>
-    {% if not access.read_only %}<a class="btn btn-primary" href="{% url 'service_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar servicio</a>{% endif %}
-  </div>
+    {% if not access.read_only %}<div class="toolbar"><a class="btn btn-primary" href="{% url 'service_create' %}">{% include "_icon.html" with name="plus" size=18 stroke=2.6 %}Agregar servicio</a></div>{% endif %}
+  </section>
   {% if services %}
     <ul class="items">
       {% for service in services %}
         <li class="item">
-          <div>
+          <div class="item-main">
             <strong>{{ service.name }}</strong>
-            <span class="dur" style="margin-left: 8px">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ service.duration_minutes }} min</span>
-            {% if service.price %}<span class="dur" style="margin-left: 6px">{% if service.price_varies %}Desde {% endif %}$&nbsp;{{ service.price|floatformat:"-2g" }}</span>{% endif %}
-            {% if not service.is_active %}<span class="badge off" style="margin-left: 6px">Inactivo</span>{% endif %}
+            <div class="item-meta">
+              <span class="dur">{% include "_icon.html" with name="clock" size=13 stroke=2.5 %}{{ service.duration_minutes }} min</span>
+              {% if service.price %}<span class="dur">{% if service.price_varies %}Desde {% endif %}$&nbsp;{{ service.price|floatformat:"-2g" }}</span>{% endif %}
+              {% if not service.is_active %}<span class="badge off">Inactivo</span>{% endif %}
+            </div>
           </div>
           {% if not access.read_only %}<a class="btn btn-small" href="{% url 'service_edit' service.pk %}">Editar</a>{% endif %}
         </li>
@@ -25,8 +27,8 @@
     </ul>
   {% else %}
     <div class="empty-day">
-      <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">Todavía no cargaste servicios.</p>
-      <p style="margin: 0">Agregá al menos uno para empezar a recibir reservas.</p>
+      <p class="empty-title">Todavía no cargaste servicios.</p>
+      <p>Agregá al menos uno para empezar a recibir reservas.</p>
     </div>
   {% endif %}
 </div>

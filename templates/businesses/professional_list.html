@@ -2,39 +2,43 @@
 {% block title %}Profesionales · TurnoFacil{% endblock %}
 {% block content %}
 <div class="wrap">
-  <div class="agenda-head">
-    <div>
-      <div class="eyebrow">Tu equipo</div>
-      <h1>Profesionales</h1>
+  <section class="page-head">
+    <div class="page-head-text">
+      <p class="eyebrow">Tu equipo</p>
+      <h1 class="page-title">Profesionales</h1>
     </div>
-    <div class="day-nav">
-    <a class="btn btn-quiet" href="{% url 'time_off_list' %}">Bloquear días</a>
-    {% if access.can_add_professional %}<a class="btn btn-primary" href="{% url 'professional_create' %}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Agregar profesional</a>{% elif not access.read_only %}<a class="btn btn-quiet" href="{% url 'plans' %}">Llegaste al límite de tu plan</a>{% endif %}
+    <div class="toolbar">
+      <a class="btn" href="{% url 'time_off_list' %}">Bloquear días</a>
+      {% if access.can_add_professional %}<a class="btn btn-primary" href="{% url 'professional_create' %}">{% include "_icon.html" with name="plus" size=18 stroke=2.6 %}Agregar profesional</a>{% elif not access.read_only %}<a class="btn" href="{% url 'plans' %}">Llegaste al límite de tu plan</a>{% endif %}
     </div>
-  </div>
+  </section>
   {% if professionals %}
     <ul class="items">
       {% for professional in professionals %}
         <li class="item">
-          <div>
-            <strong>{{ professional.name }}</strong>
-            {% if not professional.is_active %}<span class="badge off" style="margin-left: 6px">Inactivo</span>{% endif %}
+          <div class="item-main wide">
+            <div class="item-head">
+              <strong>{{ professional.name }}</strong>
+              {% if not professional.is_active %}<span class="badge off">Inactivo</span>{% endif %}
+              {% if not access.read_only %}<a class="btn btn-small" href="{% url 'professional_edit' professional.pk %}">Editar</a>{% endif %}
+            </div>
+            {# One line per day: "Lunes 09:00 a 13:00 · 16:00 a 20:30". #}
+            {% regroup professional.working_hours.all by get_weekday_display as days %}
             <ul class="hours">
-              {% for hours in professional.working_hours.all %}
-                <li>{{ hours.get_weekday_display }} {{ hours.start_time|time:"H:i" }} a {{ hours.end_time|time:"H:i" }}</li>
+              {% for day in days %}
+                <li>{{ day.grouper }} {% for hours in day.list %}{{ hours.start_time|time:"H:i" }} a {{ hours.end_time|time:"H:i" }}{% if not forloop.last %} · {% endif %}{% endfor %}</li>
               {% empty %}
                 <li>Sin horarios cargados</li>
               {% endfor %}
             </ul>
           </div>
-          {% if not access.read_only %}<a class="btn btn-small" href="{% url 'professional_edit' professional.pk %}">Editar</a>{% endif %}
         </li>
       {% endfor %}
     </ul>
   {% else %}
     <div class="empty-day">
-      <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">Todavía no cargaste profesionales.</p>
-      <p style="margin: 0">Si atendés solo vos, cargate como único profesional.</p>
+      <p class="empty-title">Todavía no cargaste profesionales.</p>
+      <p>Si atendés solo vos, cargate como único profesional.</p>
     </div>
   {% endif %}
 </div>

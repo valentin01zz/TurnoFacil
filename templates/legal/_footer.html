@@ -2,8 +2,8 @@
   <footer class="legal-foot" aria-label="Información legal">
     {% if not for_customer %}
       <nav class="legal-buttons" aria-label="Baja y arrepentimiento">
-        <a class="btn btn-small" href="{% url 'cancel_request' %}">Botón de baja de servicio</a>
-        <a class="btn btn-small" href="{% url 'withdrawal_request' %}">Botón de arrepentimiento</a>
+        <a class="legal-btn" href="{% url 'cancel_request' %}">Botón de baja de servicio</a>
+        <a class="legal-btn" href="{% url 'withdrawal_request' %}">Botón de arrepentimiento</a>
       </nav>
     {% endif %}
     <nav class="legal-links" aria-label="Documentos legales">

@@ -2,13 +2,41 @@
 (function () {
   document.documentElement.classList.add("js");
 
-  // On phones the panel tabs scroll sideways: bring the current one into view.
-  var currentTab = document.querySelector(".panel-bar .tabs [aria-current=page]");
-  if (currentTab) {
-    var tabs = currentTab.parentElement;
-    var offset = currentTab.getBoundingClientRect().left - tabs.getBoundingClientRect().left;
-    if (tabs.scrollWidth > tabs.clientWidth) tabs.scrollLeft += offset - 16;
-  }
+  // Menus are <details>: one open at a time, closed by a click outside or by Escape.
+  var menus = document.querySelectorAll("details.menu");
+  menus.forEach(function (menu) {
+    menu.addEventListener("toggle", function () {
+      if (!menu.open) return;
+      menus.forEach(function (other) {
+        if (other !== menu) other.open = false;
+      });
+    });
+  });
+  document.addEventListener("click", function (event) {
+    menus.forEach(function (menu) {
+      if (menu.open && !menu.contains(event.target)) menu.open = false;
+    });
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    menus.forEach(function (menu) {
+      if (menu.open) {
+        menu.open = false;
+        menu.querySelector("summary").focus();
+      }
+    });
+  });
+
+  // Filter forms (a date, a period) apply as soon as they change; without JS they keep their button.
+  document.querySelectorAll("form[data-submit-on-change]").forEach(function (form) {
+    form.addEventListener("change", function () {
+      if (form.requestSubmit) {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+    });
+  });
 
   // Selection forms submit themselves when a choice changes (the no-JS fallback is a visible button).
   document.querySelectorAll("form[data-autosubmit]").forEach(function (form) {

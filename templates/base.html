@@ -2,31 +2,46 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}TurnoFacil{% endblock %}</title>
   <link rel="preload" href="{% static 'fonts/HankenGrotesk-Variable.ttf' %}" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'js/app.js' %}" defer></script>
 </head>
-<body{% if request.GET or request.method == "POST" %} class="continuing"{% endif %}>
+<body class="{% block body_class %}{% if user.is_authenticated %}app{% endif %}{% endblock %}{% if request.GET or request.method == "POST" %} continuing{% endif %}">
 {% block header %}
   {% if user.is_authenticated %}
-    {% with current=request.resolver_match.url_name %}
-    <header class="panel-bar">
+    {% with current=request.resolver_match.url_name business=user.business %}
+    {# Daily work in the tabs (a bottom bar on phones); settings and logout in the account menu. #}
+    <header class="app-bar">
       <div class="inner">
-        <a class="logo" href="{% url 'panel' %}"><span class="logo-mark">{% include "_icon.html" with name="calendar" size=20 stroke=2.6 %}</span><span class="logo-name">{{ user.business.name }}</span></a>
-        <nav class="tabs" aria-label="Panel">
-          <a href="{% url 'panel' %}"{% if current == "panel" or current == "appointment_create" or current == "appointment_reschedule" or current == "appointment_cancel" %} aria-current="page"{% endif %}>Agenda</a>
-          <a href="{% url 'service_list' %}"{% if current == "service_list" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>Servicios</a>
-          <a href="{% url 'professional_list' %}"{% if current == "professional_list" or current == "professional_create" or current == "professional_edit" or current == "time_off_list" %} aria-current="page"{% endif %}>Profesionales</a>
-          <a href="{% url 'business_edit' %}"{% if current == "business_edit" or current == "deposit_settings" %} aria-current="page"{% endif %}>Mi negocio</a>
-          <a href="{% url 'reports' %}"{% if current == "reports" %} aria-current="page"{% endif %}>Reportes</a>
-          <a href="{% url 'plans' %}"{% if current == "plans" %} aria-current="page"{% endif %}>Planes</a>
-          <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">Salir</button>
-          </form>
+        <a class="app-brand" href="{% url 'panel' %}"><span class="logo-mark">{% include "_icon.html" with name="calendar" size=18 stroke=2.6 %}</span><span class="app-brand-name">{{ business.name }}</span></a>
+        <nav class="app-tabs" aria-label="Panel">
+          <a href="{% url 'panel' %}"{% if current == "panel" or current == "appointment_create" or current == "appointment_reschedule" or current == "appointment_cancel" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="agenda" size=22 %}<span>Agenda</span></a>
+          <a href="{% url 'service_list' %}"{% if current == "service_list" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="scissors" size=22 %}<span>Servicios</span></a>
+          <a href="{% url 'professional_list' %}"{% if current == "professional_list" or current == "professional_create" or current == "professional_edit" or current == "time_off_list" or current == "time_off_appointments" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="users" size=22 %}<span>Profesionales</span></a>
+          <a href="{% url 'reports' %}"{% if current == "reports" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="chart" size=22 %}<span>Reportes</span></a>
         </nav>
+        <details class="menu app-account">
+          <summary{% if current == "business_edit" or current == "deposit_settings" or current == "plans" or current == "checkout" or current == "cancel_subscription" %} class="is-current"{% endif %}>
+            <span class="avatar" aria-hidden="true">{{ business.name|slice:":1"|upper }}</span>
+            <span class="app-account-label">Mi cuenta</span>
+            <span class="sr-only">: menú de tu cuenta</span>
+            {% include "_icon.html" with name="down" size=16 stroke=2.6 %}
+          </summary>
+          <div class="menu-panel">
+            <p class="menu-head"><strong>{{ business.name }}</strong><span>{{ user.email }}</span></p>
+            <a href="{% url 'business_edit' %}"{% if current == "business_edit" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="home" size=18 %}Mi negocio</a>
+            <a href="{% url 'deposit_settings' %}"{% if current == "deposit_settings" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="wallet" size=18 %}Seña por transferencia</a>
+            <a href="{% url 'plans' %}"{% if current == "plans" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="card" size=18 %}Mi plan</a>
+            {% if business.slug %}<a href="{% url 'booking_page' business.slug %}" target="_blank" rel="noopener">{% include "_icon.html" with name="external" size=18 %}Ver mi página de reservas</a>{% endif %}
+            <hr>
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit">{% include "_icon.html" with name="logout" size=18 %}Salir</button>
+            </form>
+          </div>
+        </details>
       </div>
     </header>
     {% if access %}
