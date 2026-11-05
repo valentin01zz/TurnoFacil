@@ -2,16 +2,24 @@
 {% block title %}Agenda · {{ business.name }}{% endblock %}
 {% block content %}
 <div class="wrap">
-  <section class="agenda-head">
-    <div>
-      <div class="eyebrow">{% if date == today %}Hoy{% else %}Agenda{% endif %}</div>
-      <h1>{{ date|date:"l j" }}<br>de {{ date|date:"F" }}</h1>
+  <section class="page-head">
+    <div class="page-head-text">
+      <p class="eyebrow">Agenda</p>
+      <h1 class="page-title">{% if date == today %}Hoy, {{ date|date:"l j \d\e F" }}{% else %}{{ date|date:"l j \d\e F"|capfirst }}{% endif %}</h1>
     </div>
-    <div class="day-nav">
-      <a class="round" href="{{ previous_url }}" aria-label="Día anterior">{% include "_icon.html" with name="left" size=22 stroke=2.6 %}</a>
-      <a class="round" href="{{ next_url }}" aria-label="Día siguiente">{% include "_icon.html" with name="right" size=22 stroke=2.6 %}</a>
-      {% if date != today %}<a class="btn btn-quiet" href="{{ today_url }}">Hoy</a>{% endif %}
-      {% if not access.read_only %}<a class="btn btn-primary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">{% include "_icon.html" with name="plus" size=20 stroke=2.8 %}Cargar turno</a>{% endif %}
+    <div class="toolbar">
+      <div class="day-switch">
+        <a class="icon-btn" href="{{ previous_url }}" aria-label="Día anterior">{% include "_icon.html" with name="left" size=20 stroke=2.4 %}</a>
+        <form method="get" class="date-jump" data-submit-on-change>
+          <label class="sr-only" for="{{ form.date.id_for_label }}">Ir a un día</label>
+          {{ form.date }}
+          {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
+          <button class="btn btn-small js-hide" type="submit">Ir</button>
+        </form>
+        <a class="icon-btn" href="{{ next_url }}" aria-label="Día siguiente">{% include "_icon.html" with name="right" size=20 stroke=2.4 %}</a>
+      </div>
+      {% if date != today %}<a class="btn" href="{{ today_url }}">Hoy</a>{% endif %}
+      {% if not access.read_only %}<a class="btn btn-primary" href="{% url 'appointment_create' %}?date={{ date|date:'Y-m-d' }}">{% include "_icon.html" with name="plus" size=18 stroke=2.6 %}Cargar turno</a>{% endif %}
     </div>
   </section>
 
@@ -27,23 +35,16 @@
         <div class="stat"><b>{{ manual_count }}</b><span>cargado{{ manual_count|pluralize }} a mano</span></div>
       </div>
       {% if attendance %}
-        <p class="helptext" style="margin: -4px 0 16px">Asistencia: <strong>{{ attendance.attended }}</strong> asisti{{ attendance.attended|pluralize:"ó,eron" }} · <strong>{{ attendance.no_show }}</strong> no asisti{{ attendance.no_show|pluralize:"ó,eron" }}{% if attendance.pending %} · <strong>{{ attendance.pending }}</strong> sin marcar{% endif %}</p>
+        <p class="helptext summary-line">Asistencia: <strong>{{ attendance.attended }}</strong> asisti{{ attendance.attended|pluralize:"ó,eron" }} · <strong>{{ attendance.no_show }}</strong> no asisti{{ attendance.no_show|pluralize:"ó,eron" }}{% if attendance.pending %} · <strong>{{ attendance.pending }}</strong> sin marcar{% endif %}</p>
       {% endif %}
 
       {% if time_off %}
-        <div class="notice" role="status" style="margin-bottom: 16px">
+        <div class="notice" role="status">
           <strong>Día con bloqueos:</strong>
           {% for block in time_off %}{{ block.professional.name|default:"todo el negocio" }} ({% include "businesses/_time_off_when.html" %}){% if not forloop.last %}; {% endif %}{% endfor %}.
           Nadie puede reservar en esos horarios. <a href="{% url 'time_off_list' %}">Ver bloqueos</a>
         </div>
       {% endif %}
-
-      <form method="get" class="date-jump" style="margin-bottom: 16px">
-        <label class="sr-only" for="{{ form.date.id_for_label }}">Ir a un día</label>
-        {{ form.date }}
-        {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
-        <button class="btn btn-small" type="submit">Ir</button>
-      </form>
 
       {% if show_professional %}
         <nav class="filters" aria-label="Filtrar por profesional">
@@ -56,51 +57,70 @@
       {% if appointments %}
         <ul class="appts">
           {% for appointment in appointments %}
-            <li class="appt{% if appointment.is_next %} next{% elif appointment.ended %} past{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms">
-              <div class="time"><b>{{ appointment.start_at|time:"H:i" }}–{{ appointment.end_at|time:"H:i" }}</b></div>
-              <div class="who">
-                <strong>{{ appointment.customer_name }}</strong>
-                <div class="meta">
-                  {% if show_professional %}<span class="av" style="background: {{ appointment.tint }}">{{ appointment.professional.name|slice:":1"|upper }}</span>{% endif %}
-                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}{% if appointment.price %} · {% if appointment.service.price_varies %}desde {% endif %}$&nbsp;{{ appointment.price|floatformat:"-2g" }}{% endif %}</span>
-                  <a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a>
-                  {% if appointment.source == "manual" %}<span class="badge">Cargado a mano</span>{% endif %}
-                  {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
-                  {% if appointment.attendance == "attended" %}<span class="badge">Asistió</span>{% elif appointment.attendance == "no_show" %}<span class="badge off">No asistió</span>{% endif %}
-                  {% if appointment.deposit_received_at %}<span class="badge ok">Seña recibida</span>{% elif asks_deposit %}<span class="badge">Seña pendiente</span>{% endif %}
-                </div>
+            <li class="appt{% if appointment.is_next %} next{% elif appointment.ended %} past{% endif %}" style="animation-delay: {{ forloop.counter0 }}0ms">
+              <div class="appt-time">
+                <b>{{ appointment.start_at|time:"H:i" }}</b>
+                <span>{{ appointment.end_at|time:"H:i" }}</span>
               </div>
-              {% if appointment.whatsapp_url or not access.read_only %}<div class="appt-actions">
-                {% if appointment.markable and not access.read_only %}
-                  {% for value, label in attendance_choices %}
-                    <form method="post" action="{% url 'appointment_attendance' appointment.pk %}">
-                      {% csrf_token %}
-                      <input type="hidden" name="attendance" value="{% if appointment.attendance == value %}{% else %}{{ value }}{% endif %}">
-                      {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
-                      <button class="btn btn-small{% if appointment.attendance == value %} btn-primary{% endif %}" type="submit" aria-pressed="{% if appointment.attendance == value %}true{% else %}false{% endif %}">{{ label }}</button>
-                    </form>
-                  {% endfor %}
+              <div class="appt-body">
+                <p class="appt-name">
+                  <strong>{{ appointment.customer_name }}</strong>
+                  {% if appointment.is_next %}<span class="badge violet"><span class="pulse"></span>Próximo</span>{% endif %}
+                </p>
+                <p class="appt-meta">
+                  {% if show_professional %}<span class="dot" style="background: {{ appointment.tint }}" aria-hidden="true"></span>{% endif %}
+                  <span>{{ appointment.service.name }}{% if show_professional %} · {{ appointment.professional.name }}{% endif %}{% if appointment.price %} · {% if appointment.service.price_varies %}desde {% endif %}$&nbsp;{{ appointment.price|floatformat:"-2g" }}{% endif %}</span>
+                </p>
+                <p class="appt-meta"><a href="tel:{{ appointment.customer_phone }}">{{ appointment.customer_phone }}</a></p>
+                {% if appointment.source == "manual" or appointment.attendance or appointment.deposit_received_at or asks_deposit %}
+                  <div class="appt-tags">
+                    {% if appointment.attendance == "attended" %}<span class="badge ok">Asistió</span>{% elif appointment.attendance == "no_show" %}<span class="badge off">No asistió</span>{% endif %}
+                    {% if appointment.deposit_received_at %}<span class="badge ok">Seña recibida</span>{% elif asks_deposit %}<span class="badge">Seña pendiente</span>{% endif %}
+                    {% if appointment.source == "manual" %}<span class="badge off">Cargado a mano</span>{% endif %}
+                  </div>
                 {% endif %}
-                {% if appointment.whatsapp_url %}<a class="btn btn-small" href="{{ appointment.whatsapp_url }}" target="_blank" rel="noopener noreferrer" aria-label="Escribirle a {{ appointment.customer_name }} por WhatsApp">{% include "_icon.html" with name="chat" size=16 stroke=2.4 %}WhatsApp</a>{% endif %}
-                {% if not access.read_only %}
-                {% if asks_deposit or appointment.deposit_received_at %}
-                  <form method="post" action="{% url 'appointment_deposit' appointment.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="received" value="{% if appointment.deposit_received_at %}0{% else %}1{% endif %}">
-                    <button class="btn btn-small" type="submit" title="Lo marcás vos: TurnoFacil no verifica transferencias">{% if appointment.deposit_received_at %}Desmarcar seña{% else %}{% include "_icon.html" with name="check" size=16 stroke=2.4 %}Seña recibida{% endif %}</button>
-                  </form>
-                {% endif %}
-                <a class="btn btn-small" href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=16 stroke=2.4 %}Reprogramar</a>
-                <a class="btn btn-small danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=16 stroke=2.4 %}Cancelar</a>
-                {% endif %}
-              </div>{% endif %}
+              </div>
+              {% if appointment.whatsapp_url or not access.read_only %}
+                <div class="appt-actions">
+                  {% if appointment.markable and not access.read_only %}
+                    <div class="seg" role="group" aria-label="Asistencia de {{ appointment.customer_name }}">
+                      {% for value, label in attendance_choices %}
+                        <form method="post" action="{% url 'appointment_attendance' appointment.pk %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="attendance" value="{% if appointment.attendance == value %}{% else %}{{ value }}{% endif %}">
+                          {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}
+                          <button type="submit" data-value="{{ value }}" aria-pressed="{% if appointment.attendance == value %}true{% else %}false{% endif %}">{{ label }}</button>
+                        </form>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  {% if appointment.whatsapp_url %}<a class="btn btn-small btn-wa" href="{{ appointment.whatsapp_url }}" target="_blank" rel="noopener noreferrer" aria-label="Escribirle a {{ appointment.customer_name }} por WhatsApp">{% include "_icon.html" with name="chat" size=16 stroke=2.4 %}<span>WhatsApp</span></a>{% endif %}
+                  {% if not access.read_only %}
+                    <details class="menu appt-more">
+                      <summary class="btn btn-small icon-only" aria-label="Más acciones para el turno de {{ appointment.customer_name }}">{% include "_icon.html" with name="dots" size=18 stroke=2.6 %}</summary>
+                      <div class="menu-panel">
+                        {% if asks_deposit or appointment.deposit_received_at %}
+                          <form method="post" action="{% url 'appointment_deposit' appointment.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="received" value="{% if appointment.deposit_received_at %}0{% else %}1{% endif %}">
+                            <button type="submit" title="Lo marcás vos: TurnoFacil no verifica transferencias">{% include "_icon.html" with name="check" size=18 %}{% if appointment.deposit_received_at %}Desmarcar seña{% else %}Marcar seña recibida{% endif %}</button>
+                          </form>
+                        {% endif %}
+                        <a href="{% url 'appointment_reschedule' appointment.pk %}">{% include "_icon.html" with name="refresh" size=18 %}Reprogramar</a>
+                        <hr>
+                        <a class="danger" href="{% url 'appointment_cancel' appointment.pk %}">{% include "_icon.html" with name="x" size=18 %}Cancelar turno</a>
+                      </div>
+                    </details>
+                  {% endif %}
+                </div>
+              {% endif %}
             </li>
           {% endfor %}
         </ul>
       {% else %}
         <div class="empty-day">
-          <p style="font-family: var(--display); font-size: 24px; margin: 0 0 6px; color: var(--ink)">No hay turnos para este día.</p>
-          <p style="margin: 0">Compartí tu link de reservas o cargá un turno a mano.</p>
+          <p class="empty-title">No hay turnos para este día.</p>
+          <p>Compartí tu link de reservas o cargá un turno a mano.</p>
         </div>
       {% endif %}
     </div>
@@ -127,9 +147,9 @@
         <div class="copy-row">
           <label class="sr-only" for="booking-url">Link de reservas</label>
           <input id="booking-url" type="text" value="{{ booking_url }}" readonly>
-          <button class="btn btn-dark btn-small" type="button" data-copy="booking-url" style="border-color: var(--ink); background: var(--ink)">Copiar</button>
+          <button class="btn btn-primary btn-small" type="button" data-copy="booking-url">Copiar</button>
         </div>
-        {% if not business.address %}<p class="helptext" style="margin: 12px 0 0">Tip: cargá tu dirección en <a href="{% url 'business_edit' %}">Mi negocio</a> para que tus clientes la vean.</p>{% endif %}
+        {% if not business.address %}<p class="helptext card-tip">Tip: cargá tu dirección en <a href="{% url 'business_edit' %}">Mi negocio</a> para que tus clientes la vean.</p>{% endif %}
       </section>
     </aside>
   </div>
