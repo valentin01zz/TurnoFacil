@@ -64,6 +64,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "billing.context_processors.subscription",
                 "legal.context_processors.legal_links",
+                "legal.context_processors.support",
             ],
         },
     },
@@ -148,6 +149,9 @@ LEGAL_CONTACT_EMAIL = os.environ.get("LEGAL_CONTACT_EMAIL", "")
 LEGAL_PRIVACY_EMAIL = os.environ.get("LEGAL_PRIVACY_EMAIL", "")
 LEGAL_CONTACT_PHONE = os.environ.get("LEGAL_CONTACT_PHONE", "")
 LEGAL_SUPPORT_HOURS = os.environ.get("LEGAL_SUPPORT_HOURS", "")
+# TurnoFacil's own support WhatsApp (for business owners, never for their customers). When set, the
+# contact page and the account menu show a button that opens the chat. Any format: "264 674-4363".
+SUPPORT_WHATSAPP = os.environ.get("SUPPORT_WHATSAPP", "")
 # Days a past appointment is kept before `purge_old_data` deletes it. Empty: never (the Founder has
 # not decided the period yet; see docs/agentic/legal/OWNER_LEGAL_DATA.md).
 _retention = os.environ.get("APPOINTMENT_RETENTION_DAYS", "").strip()

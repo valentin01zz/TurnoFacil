@@ -563,6 +563,8 @@ input[type="checkbox"] { flex-shrink: 0; }
 .legal-facts { display: grid; gap: 12px; margin: 0; }
 .legal-facts dt { font-weight: 700; }
 .legal-facts dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.support-wa { margin-top: 22px; }
+@media (max-width: 560px) { .support-wa { width: 100%; } }
 .legal-code { font-family: ui-monospace, Consolas, monospace; letter-spacing: .04em; }
 .deposit-note { margin: 0 0 16px; padding: 14px 16px; border: 1.5px dashed var(--ink); border-radius: 16px; background: var(--soft); text-align: left; font-size: 14px; }
 .deposit-note h3 { margin: 0 0 6px; font-size: 16px; }
