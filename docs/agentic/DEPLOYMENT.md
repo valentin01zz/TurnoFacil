@@ -219,6 +219,9 @@ sitio. Para cubrir eso, la PC del Founder (Movistar) corre una tarea programada 
 chequeo desde Movistar", cada 10 minutos, con el script `C:\Users\gilva\Documents\monitor-turnofacil\check.ps1`
 (fuera del repo). Muestra una notificación de Windows si el dominio no carga y otra cuando vuelve, y distingue
 "la app está caída" de "la app anda pero tu red no llega al dominio". Solo vigila mientras la PC está prendida.
+UptimeRobot también manda alertas push al celular del Founder (probadas el 2026-11-10).
+
+Si algo falla: diagnóstico en 2 minutos y mensajes para los negocios en `INCIDENTES.md`.
 
 ## Preparación para escalar (2026-11-02)
 - **Gunicorn con hilos** (`--workers 2 --threads 4`): una reserva que espera al servidor de email no traba al resto.
