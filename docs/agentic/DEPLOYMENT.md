@@ -15,9 +15,9 @@
 
 ## Estado actual (2026-10-19)
 - En producción: https://turnofacil.online (también `www` y `turnofacil-web.onrender.com`), HTTPS emitido por Render.
-- DNS en DonWeb: `A` de `turnofacil.online` a `216.24.57.1` (Render); `www` como CNAME; para Resend,
-  `resend._domainkey` (TXT), `send` y `rsend` (CNAME) y `_dmarc` (TXT). DonWeb pide el nombre completo
-  (por ejemplo `send.turnofacil.online`) y precarga `www.` en los CNAME: hay que borrarlo.
+- DNS en **Cloudflare** desde el 2026-11-10 (plan gratis; nameservers `maria.ns.cloudflare.com` y
+  `mike.ns.cloudflare.com`, cargados en DonWeb, que sigue siendo el registrador). Ver "DNS en Cloudflare" abajo.
+  Hasta esa fecha la zona estaba en DonWeb, con `A` de `turnofacil.online` a `216.24.57.1`.
 - Resend: dominio verificado (región São Paulo); la API key tiene solo permiso de envío.
 - Costo real informado por Render: USD 17,50 por mes, más la tarea programada (se cobra por segundo).
 
@@ -181,13 +181,44 @@ Qué pide en Render y en qué orden. Detalle legal en `docs/agentic/legal/LEGAL_
   suscripciones ya autorizadas siguen cobrándose en Mercado Pago: darlas de baja allá si hace falta.
 - **Volver a no estar publicado:** suspender el servicio web desde **Settings > Suspend**. Los datos quedan.
 
+## DNS en Cloudflare (2026-11-10)
+**Por qué:** el 2026-11-10 el sitio "se quedaba cargando" para clientes de Movistar Argentina (fibra y datos
+móviles). La app estaba bien: la IP fija `216.24.57.1` que Render da para dominios raíz no respondía desde
+Movistar, y sí desde Brasil, EE. UU. y Europa. DonWeb no permite un CNAME en la raíz; Cloudflare sí (lo
+"aplana"), así que el dominio sigue las IP que Render tenga activas en lugar de depender de una sola.
+
+Registros, **todos "DNS only" (nube gris)**:
+
+| Nombre | Tipo | Valor |
+|---|---|---|
+| `turnofacil.online` | CNAME (aplanado) | `turnofacil-web.onrender.com` |
+| `www` | CNAME | `turnofacil-web.onrender.com` (Render redirige `www` a la raíz) |
+| `send` | CNAME | `send.forge.rmta.net` (Resend) |
+| `rsend` | CNAME | `rsend-sae1.forge.rmta.net` (Resend) |
+| `resend._domainkey` | TXT | clave DKIM de Resend |
+| `_dmarc` | TXT | `v=DMARC1; p=none;` |
+| `_10b534bdd6a408b9f61ce732cda0c220` | CNAME | validación de Sectigo (heredado de DonWeb) |
+
+- **No activar el proxy (nube naranja):** Render ya está detrás de Cloudflare; con proxy el tráfico pasa dos
+  veces, cambia la cadena de `X-Forwarded-For` y deja de valer `CLIENT_IP_PROXY_COUNT=2`. Tampoco tocar SSL/TLS
+  en Cloudflare: el certificado lo emite Render.
+- La cuenta de Cloudflare controla el dominio: tiene verificación en dos pasos.
+- **Volver atrás:** en DonWeb, **Nameservers y Zona DNS > Editar nameservers**, poner `ns1.donweb.com` y
+  `ns2.donweb.com`. La zona vieja de DonWeb quedó intacta (con la IP que fallaba desde Movistar).
+- Si hace falta un registro nuevo (por ejemplo, otro proveedor de email), se carga en Cloudflare, no en DonWeb.
+
 ## Monitoreo externo
 UptimeRobot (plan gratis, alertas por email, cada 5 minutos) vigila desde el 2026-10-30:
 - `https://turnofacil.online/`: la web responde. Esta página no consulta la base.
-- [ ] `https://turnofacil.online/healthz/`: la app llega a la base (200) o no (503). Crear este monitor después
-      de desplegar este cambio, y comprobar que figure **Up**.
+- [x] `https://turnofacil.online/healthz/`: la app llega a la base (200) o no (503). Activo y **Up**.
 
 `/healthz/` no comprueba la tarea programada, los emails ni Mercado Pago.
+
+UptimeRobot gratis revisa desde fuera de Argentina: el 2026-11-10 marcó 100% mientras Movistar no llegaba al
+sitio. Para cubrir eso, la PC del Founder (Movistar) corre una tarea programada de Windows, "TurnoFacil -
+chequeo desde Movistar", cada 10 minutos, con el script `C:\Users\gilva\Documents\monitor-turnofacil\check.ps1`
+(fuera del repo). Muestra una notificación de Windows si el dominio no carga y otra cuando vuelve, y distingue
+"la app está caída" de "la app anda pero tu red no llega al dominio". Solo vigila mientras la PC está prendida.
 
 ## Preparación para escalar (2026-11-02)
 - **Gunicorn con hilos** (`--workers 2 --threads 4`): una reserva que espera al servidor de email no traba al resto.
