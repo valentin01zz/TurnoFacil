@@ -23,3 +23,30 @@ def legal_links(request):
             "contact": bool(settings.LEGAL_CONTACT_EMAIL),
         }
     }
+
+
+CONTACT_MESSAGE = "Hola, tengo una consulta sobre TurnoFacil."
+OWNER_MESSAGE = "Hola, soy de {name} y necesito ayuda con TurnoFacil."
+
+
+def support(request):
+    """Links to TurnoFacil's support WhatsApp, or empty strings when it is not configured."""
+    from bookings.whatsapp import chat_url
+
+    phone = settings.SUPPORT_WHATSAPP
+    if not phone:
+        return {"support": {"contact_url": "", "owner_url": ""}}
+
+    def owner_url():
+        user = request.user
+        business = getattr(user, "business", None) if user.is_authenticated else None
+        name = business.name if business else ""
+        text = OWNER_MESSAGE.format(name=name) if name else CONTACT_MESSAGE
+        return chat_url(phone, text) or ""
+
+    return {
+        "support": {
+            "contact_url": chat_url(phone, CONTACT_MESSAGE) or "",
+            "owner_url": SimpleLazyObject(owner_url),
+        }
+    }

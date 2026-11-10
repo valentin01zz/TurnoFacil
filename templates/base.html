@@ -35,6 +35,7 @@
             <a href="{% url 'deposit_settings' %}"{% if current == "deposit_settings" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="wallet" size=18 %}Seña por transferencia</a>
             <a href="{% url 'plans' %}"{% if current == "plans" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="card" size=18 %}Mi plan</a>
             {% if business.slug %}<a href="{% url 'booking_page' business.slug %}" target="_blank" rel="noopener">{% include "_icon.html" with name="external" size=18 %}Ver mi página de reservas</a>{% endif %}
+            {% if support.owner_url %}<a href="{{ support.owner_url }}" target="_blank" rel="noopener noreferrer">{% include "_icon.html" with name="chat" size=18 %}Ayuda por WhatsApp</a>{% endif %}
             <hr>
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
