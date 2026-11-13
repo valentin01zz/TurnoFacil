@@ -11,32 +11,51 @@
 <body class="{% block body_class %}{% if user.is_authenticated %}app{% endif %}{% endblock %}{% if request.GET or request.method == "POST" %} continuing{% endif %}">
 {% block header %}
   {% if user.is_authenticated %}
-    {% with current=request.resolver_match.url_name business=user.business %}
+    {% with current=request.resolver_match.url_name business=user.business profile=request.panel_profile %}
     {# Daily work in the tabs (a bottom bar on phones); settings and logout in the account menu. #}
     <header class="app-bar">
       <div class="inner">
         <a class="app-brand" href="{% url 'panel' %}"><span class="logo-mark">{% include "_icon.html" with name="calendar" size=18 stroke=2.6 %}</span><span class="app-brand-name">{{ business.name }}</span></a>
+        {% if profile %}
         <nav class="app-tabs" aria-label="Panel">
+          {% if not profile.is_owner %}
+          <a href="{% url 'panel' %}"{% if current == "panel" or current == "appointment_create" or current == "appointment_reschedule" or current == "appointment_cancel" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="agenda" size=22 %}<span>Mi agenda</span></a>
+          <a href="{% url 'time_off_list' %}"{% if current == "time_off_list" or current == "time_off_appointments" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="clock" size=22 %}<span>Bloqueos</span></a>
+          <a href="{% url 'reports' %}"{% if current == "reports" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="chart" size=22 %}<span>Reportes</span></a>
+          {% else %}
           <a href="{% url 'panel' %}"{% if current == "panel" or current == "appointment_create" or current == "appointment_reschedule" or current == "appointment_cancel" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="agenda" size=22 %}<span>Agenda</span></a>
           <a href="{% url 'service_list' %}"{% if current == "service_list" or current == "service_create" or current == "service_edit" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="scissors" size=22 %}<span>Servicios</span></a>
           <a href="{% url 'professional_list' %}"{% if current == "professional_list" or current == "professional_create" or current == "professional_edit" or current == "time_off_list" or current == "time_off_appointments" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="users" size=22 %}<span>Profesionales</span></a>
           <a href="{% url 'reports' %}"{% if current == "reports" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="chart" size=22 %}<span>Reportes</span></a>
+          {% endif %}
         </nav>
+        {% endif %}
         <details class="menu app-account">
           <summary{% if current == "business_edit" or current == "deposit_settings" or current == "plans" or current == "checkout" or current == "cancel_subscription" %} class="is-current"{% endif %}>
-            <span class="avatar" aria-hidden="true">{{ business.name|slice:":1"|upper }}</span>
-            <span class="app-account-label">Mi cuenta</span>
+            <span class="avatar" aria-hidden="true">{% if profile and not profile.is_owner %}{{ profile.name|slice:":1"|upper }}{% else %}{{ business.name|slice:":1"|upper }}{% endif %}</span>
+            <span class="app-account-label">{% if profile and not profile.is_owner %}{{ profile.name }}{% else %}Mi cuenta{% endif %}</span>
             <span class="sr-only">: menú de tu cuenta</span>
             {% include "_icon.html" with name="down" size=16 stroke=2.6 %}
           </summary>
           <div class="menu-panel">
-            <p class="menu-head"><strong>{{ business.name }}</strong><span>{{ user.email }}</span></p>
+            <p class="menu-head"><strong>{% if profile and not profile.is_owner %}{{ profile.name }}{% else %}{{ business.name }}{% endif %}</strong><span>{% if business.separate_agendas and profile %}{% if profile.is_owner %}Perfil de dueño · {% endif %}{{ business.name }}{% else %}{{ user.email }}{% endif %}</span></p>
+            {% if profile and profile.is_owner %}
             <a href="{% url 'business_edit' %}"{% if current == "business_edit" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="home" size=18 %}Mi negocio</a>
             <a href="{% url 'deposit_settings' %}"{% if current == "deposit_settings" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="wallet" size=18 %}Seña por transferencia</a>
+            <a href="{% url 'agenda_settings' %}"{% if current == "agenda_settings" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="users" size=18 %}Agendas separadas</a>
             <a href="{% url 'plans' %}"{% if current == "plans" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="card" size=18 %}Mi plan</a>
+            {% elif profile %}
+            <a href="{% url 'my_pin' %}"{% if current == "my_pin" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="lock" size=18 %}Cambiar mi PIN</a>
+            {% endif %}
             {% if business.slug %}<a href="{% url 'booking_page' business.slug %}" target="_blank" rel="noopener">{% include "_icon.html" with name="external" size=18 %}Ver mi página de reservas</a>{% endif %}
             {% if support.owner_url %}<a href="{{ support.owner_url }}" target="_blank" rel="noopener noreferrer">{% include "_icon.html" with name="chat" size=18 %}Ayuda por WhatsApp</a>{% endif %}
             <hr>
+            {% if business.separate_agendas and profile %}
+            <form method="post" action="{% url 'switch_profile' %}">
+              {% csrf_token %}
+              <button type="submit">{% include "_icon.html" with name="refresh" size=18 %}Cambiar de perfil</button>
+            </form>
+            {% endif %}
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
               <button type="submit">{% include "_icon.html" with name="logout" size=18 %}Salir</button>
@@ -47,9 +66,9 @@
     </header>
     {% if access %}
       {% if access.in_trial %}
-        <div class="sub-banner trial" role="status"><div class="inner">{% include "_icon.html" with name="star" size=18 %}<span>Prueba gratis: te quedan <strong>{{ access.trial_days_left }} día{{ access.trial_days_left|pluralize }}</strong> (termina el {{ access.trial_ends_at|date:"j \d\e F" }}).</span>{% if current != "plans" %}<a href="{% url 'plans' %}">Ver planes</a>{% endif %}</div></div>
+        <div class="sub-banner trial" role="status"><div class="inner">{% include "_icon.html" with name="star" size=18 %}<span>Prueba gratis: te quedan <strong>{{ access.trial_days_left }} día{{ access.trial_days_left|pluralize }}</strong> (termina el {{ access.trial_ends_at|date:"j \d\e F" }}).</span>{% if current != "plans" and profile.is_owner %}<a href="{% url 'plans' %}">Ver planes</a>{% endif %}</div></div>
       {% elif access.read_only %}
-        <div class="sub-banner locked" role="status"><div class="inner">{% include "_icon.html" with name="clock" size=18 %}<span><strong>Tu panel está en modo lectura.</strong> {% if access.status == "trial_expired" %}Tu prueba gratis terminó.{% else %}No tenés un plan activo.{% endif %} Tu página no toma reservas nuevas.</span>{% if current != "plans" %}<a href="{% url 'plans' %}">Elegir un plan</a>{% endif %}</div></div>
+        <div class="sub-banner locked" role="status"><div class="inner">{% include "_icon.html" with name="clock" size=18 %}<span><strong>Tu panel está en modo lectura.</strong> {% if access.status == "trial_expired" %}Tu prueba gratis terminó.{% else %}No tenés un plan activo.{% endif %} Tu página no toma reservas nuevas.</span>{% if current != "plans" and profile.is_owner %}<a href="{% url 'plans' %}">Elegir un plan</a>{% endif %}</div></div>
       {% endif %}
       {% if access.over_limit and current != "plans" %}
         <div class="sub-banner locked" role="status"><div class="inner"><span>Tenés {{ access.active_professionals }} profesionales activos y tu plan permite {{ access.max_professionals }}. No borramos nada, pero no vas a poder agregar ni reactivar profesionales.</span></div></div>

@@ -256,9 +256,12 @@ class AgendaForm(forms.Form):
         label="Profesional", queryset=None, required=False, empty_label="Todos"
     )
 
-    def __init__(self, *args, business, **kwargs):
+    def __init__(self, *args, business, only=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["professional"].queryset = business.professionals.all()
+        professionals = business.professionals.all()
+        self.fields["professional"].queryset = (
+            professionals.filter(pk=only.pk) if only else professionals
+        )
 
 
 class TimeOffForm(forms.Form):
@@ -294,10 +297,17 @@ class TimeOffForm(forms.Form):
         help_text="Opcional. Lo ves solo vos, tus clientes no.",
     )
 
-    def __init__(self, *args, business, **kwargs):
+    def __init__(self, *args, business, only=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.business = business
-        self.fields["professional"].queryset = business.professionals.filter(is_active=True)
+        professionals = business.professionals.filter(is_active=True)
+        if only:
+            # A professional's profile blocks only its own agenda, never the whole business.
+            professionals = professionals.filter(pk=only.pk)
+            self.fields["professional"].required = True
+            self.fields["professional"].empty_label = None
+            self.fields["professional"].initial = only.pk
+        self.fields["professional"].queryset = professionals
 
     def clean_reason(self):
         return single_line(self.cleaned_data["reason"])
@@ -376,3 +386,118 @@ def appointment_label(appointment):
         f"{start:%d/%m %H:%M} · {appointment.customer_name} · {appointment.service.name} "
         f"con {appointment.professional.name}"
     )
+
+
+def pin_input(label):
+    return forms.CharField(
+        label=label,
+        max_length=6,
+        strip=True,
+        widget=forms.PasswordInput(
+            attrs={"inputmode": "numeric", "autocomplete": "off", "pattern": "[0-9]*"}
+        ),
+    )
+
+
+class NewPinMixin:
+    """Two matching PIN fields (`pin` and `pin_again`) that pass `pin_problem`."""
+
+    def clean_new_pin(self, cleaned_data, required):
+        from .profiles import pin_problem
+
+        pin, again = cleaned_data.get("pin", ""), cleaned_data.get("pin_again", "")
+        if not pin and not again:
+            if required:
+                self.add_error("pin", "Elegí un PIN.")
+            return None
+        problem = pin_problem(pin)
+        if problem:
+            self.add_error("pin", problem)
+        elif pin != again:
+            self.add_error("pin_again", "Los dos PIN no coinciden.")
+        else:
+            return pin
+        return None
+
+
+class ChooseProfileForm(forms.Form):
+    profile = forms.CharField(widget=forms.HiddenInput)
+    pin = pin_input("PIN")
+
+
+class NewPinForm(NewPinMixin, forms.Form):
+    pin = pin_input("PIN nuevo")
+    pin_again = pin_input("Repetí el PIN")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data["new_pin"] = self.clean_new_pin(cleaned_data, required=True)
+        return cleaned_data
+
+
+class ChangeMyPinForm(NewPinForm):
+    current = pin_input("PIN actual")
+    field_order = ["current", "pin", "pin_again"]
+
+    def __init__(self, *args, hashed, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hashed = hashed
+
+    def clean_current(self):
+        from .profiles import pin_matches
+
+        if not pin_matches(self.cleaned_data["current"], self.hashed):
+            raise forms.ValidationError("El PIN actual no es correcto.")
+        return self.cleaned_data["current"]
+
+
+class AgendaSettingsForm(NewPinMixin, forms.Form):
+    separate_agendas = forms.BooleanField(
+        label="Agendas separadas por profesional",
+        required=False,
+        help_text=(
+            "Cada profesional entra con su PIN y ve solo sus turnos. Vos, con tu PIN de dueño, "
+            "seguís viendo todo."
+        ),
+    )
+    pin = pin_input("Tu PIN de dueño")
+    pin_again = pin_input("Repetí tu PIN")
+
+    def __init__(self, *args, business, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.business = business
+        has_pin = bool(business.owner_pin)
+        self.fields["pin"].required = False
+        self.fields["pin_again"].required = False
+        if has_pin:
+            self.fields["pin"].label = "Cambiar tu PIN de dueño"
+            self.fields["pin"].help_text = "Dejalo vacío para mantener el actual."
+
+    def clean(self):
+        cleaned_data = super().clean()
+        turning_on = cleaned_data.get("separate_agendas")
+        required = bool(turning_on and not self.business.owner_pin)
+        cleaned_data["new_pin"] = self.clean_new_pin(cleaned_data, required=required)
+        return cleaned_data
+
+
+class ProfessionalPinForm(NewPinMixin, forms.Form):
+    """The PIN a professional uses to open their agenda (ADR-0006). Empty keeps the current one."""
+
+    pin = pin_input("PIN de su agenda")
+    pin_again = pin_input("Repetí el PIN")
+
+    def __init__(self, *args, has_pin, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["pin"].required = False
+        self.fields["pin_again"].required = False
+        self.fields["pin"].help_text = (
+            "Dejalo vacío para mantener el actual."
+            if has_pin
+            else "Entre 4 y 6 números. Pasáselo en persona: con él entra solo a su agenda."
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data["new_pin"] = self.clean_new_pin(cleaned_data, required=False)
+        return cleaned_data

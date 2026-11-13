@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Agendas separadas · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Agendas separadas</h1>
+  <p class="page-lead">Para negocios donde cada profesional maneja sus propios turnos y no ve los de los demás.</p>
+  <div class="card">
+    <h2>Cómo funciona</h2>
+    <ul class="hours">
+      <li>Todos entran con el usuario del negocio y después eligen su perfil con un PIN.</li>
+      <li>Cada profesional ve y gestiona solo sus turnos, sus días bloqueados y sus reportes.</li>
+      <li>Vos, con el perfil de dueño, ves todo y administrás servicios, profesionales, seña y plan.</li>
+      <li>El PIN de cada profesional lo cargás en <a href="{% url 'professional_list' %}">Profesionales</a>. Pasáselo en persona.</li>
+    </ul>
+  </div>
+  {% if business.separate_agendas and without_pin %}
+    <p class="notice" role="status">{{ without_pin|length }} profesional{{ without_pin|length|pluralize:"es" }} todavía no tiene{{ without_pin|length|pluralize:"n" }} PIN y no puede{{ without_pin|length|pluralize:"n" }} entrar: {% for professional in without_pin %}<a href="{% url 'professional_edit' professional.pk %}">{{ professional.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+  {% endif %}
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

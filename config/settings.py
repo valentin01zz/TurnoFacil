@@ -46,6 +46,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "accounts.middleware.EmailVerificationRequiredMiddleware",
     "legal.middleware.TermsAcceptanceRequiredMiddleware",
+    "businesses.profiles.PanelProfileMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

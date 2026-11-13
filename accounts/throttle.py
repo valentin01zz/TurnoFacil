@@ -24,6 +24,8 @@ LIMITS = {
     "signup_ip": (5, timedelta(hours=1)),  # new accounts per IP
     "booking_ip": (20, timedelta(hours=1)),  # online bookings per IP
     "service_request_ip": (5, timedelta(hours=1)),  # public cancellation/withdrawal requests
+    "profile_pin": (5, timedelta(minutes=15)),  # wrong PINs per panel profile (ADR-0006)
+    "owner_pin_reset": (3, timedelta(hours=1)),  # owner PIN recovery emails per business
 }
 KEEP = timedelta(days=1)  # longer than any window
 

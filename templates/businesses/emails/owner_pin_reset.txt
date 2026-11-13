@@ -1,0 +1,10 @@
+{% autoescape off %}Hola,
+
+Pediste un PIN nuevo de dueño para {{ business.name }} en TurnoFacil. Elegilo con este link:
+
+{{ link }}
+
+El link vence en 1 hora y sirve una sola vez. Si no lo pediste vos, ignorá este email: tu PIN actual sigue funcionando.
+
+El equipo de TurnoFacil
+{% endautoescape %}

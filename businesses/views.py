@@ -26,11 +26,13 @@ from .forms import (
     CancelAffectedForm,
     DepositSettingsForm,
     ProfessionalForm,
+    ProfessionalPinForm,
     ServiceForm,
     TimeOffForm,
     working_hours_formset,
 )
 from .models import DepositSettings, Professional, Service, TimeOff
+from .profiles import hash_pin, scoped_professional
 from .reports import (
     DEFAULT_PERIOD,
     PERIODS,
@@ -52,6 +54,13 @@ WEEKDAY_INITIALS = ["L", "M", "M", "J", "V", "S", "D"]
 def get_owned_or_404(request, model, pk):
     """Fetch an object only if it belongs to the logged-in owner's business."""
     return get_object_or_404(model, pk=pk, business=request.user.business)
+
+
+def get_own_time_off_or_404(request, pk):
+    """A time off of the business; for a professional's profile, only one of their own."""
+    own = scoped_professional(request)
+    lookup = {"professional": own} if own else {}
+    return get_object_or_404(TimeOff, pk=pk, business=request.user.business, **lookup)
 
 
 def day_start(date):
@@ -116,13 +125,16 @@ def panel(request):
     data = request.GET.copy()
     if not data.get("date"):
         data["date"] = today.isoformat()
-    form = AgendaForm(data, business=business)
-    date, professional = today, None
+    own = scoped_professional(request)
+    if own:
+        data.pop("professional", None)  # a professional's profile has no filter to choose
+    form = AgendaForm(data, business=business, only=own)
+    date, professional = today, own
     if form.is_valid():
         date = form.cleaned_data["date"] or today
-        professional = form.cleaned_data["professional"]
+        professional = own or form.cleaned_data["professional"]
 
-    professionals = list(business.professionals.all())
+    professionals = [own] if own else list(business.professionals.all())
     tints = {
         pro.pk: PROFESSIONAL_TINTS[i % len(PROFESSIONAL_TINTS)]
         for i, pro in enumerate(professionals)
@@ -159,16 +171,21 @@ def panel(request):
     if professional:
         time_off = time_off.filter(Q(professional=professional) | Q(professional__isnull=True))
 
-    filters = [{"label": "Todos", "url": agenda_url(date), "selected": professional is None}]
-    filters += [
-        {
-            "label": pro.name,
-            "url": agenda_url(date, pro),
-            "selected": professional is not None and pro.pk == professional.pk,
-            "tint": tints[pro.pk],
-        }
-        for pro in professionals
-    ]
+    # A professional's profile has no filter: it only ever sees its own agenda.
+    filters = []
+    if own is None:
+        filters.append(
+            {"label": "Todos", "url": agenda_url(date), "selected": professional is None}
+        )
+        filters += [
+            {
+                "label": pro.name,
+                "url": agenda_url(date, pro),
+                "selected": professional is not None and pro.pk == professional.pk,
+                "tint": tints[pro.pk],
+            }
+            for pro in professionals
+        ]
 
     return render(
         request,
@@ -184,6 +201,7 @@ def panel(request):
             "today_url": agenda_url(today, professional),
             "professional": professional,
             "show_professional": len(professionals) > 1,
+            "own_agenda": own,
             "filters": filters,
             "appointments": appointments,
             "manual_count": sum(1 for a in appointments if a.source == Appointment.MANUAL),
@@ -304,6 +322,7 @@ def limit_message(access):
 def professional_form(request, professional, extra, is_new):
     was_active = bool(professional.pk) and professional.is_active
     form = ProfessionalForm(request.POST or None, instance=professional)
+    pin_form = ProfessionalPinForm(request.POST or None, has_pin=bool(professional.pin))
     formset = working_hours_formset(extra)(
         request.POST or None, instance=professional, prefix="hours"
     )
@@ -312,15 +331,26 @@ def professional_form(request, professional, extra, is_new):
         becomes_active = form.cleaned_data["is_active"] and not was_active
         if becomes_active and not request.access.can_add_professional:
             form.add_error("is_active", limit_message(request.access))
-    if request.method == "POST" and form.is_valid() and formset.is_valid():
+    if request.method == "POST" and all(f.is_valid() for f in (form, formset, pin_form)):
         with transaction.atomic():
-            form.save()
+            professional = form.save(commit=False)
+            if pin_form.cleaned_data["new_pin"]:
+                # A new PIN closes this professional's open sessions (ADR-0006).
+                professional.pin = hash_pin(pin_form.cleaned_data["new_pin"])
+                professional.pin_version += 1
+            professional.save()
             formset.save()
         return redirect("professional_list")
     return render(
         request,
         "businesses/professional_form.html",
-        {"form": form, "formset": formset, "is_new": is_new},
+        {
+            "form": form,
+            "formset": formset,
+            "pin_form": pin_form,
+            "is_new": is_new,
+            "separate_agendas": request.user.business.separate_agendas,
+        },
     )
 
 
@@ -340,8 +370,9 @@ def affected_appointments(time_off):
 @login_required
 def time_off_list(request):
     business = request.user.business
+    own = scoped_professional(request)
     can_edit = get_access(business).can(PANEL_EDIT)
-    form = TimeOffForm(request.POST or None, business=business)
+    form = TimeOffForm(request.POST or None, business=business, only=own)
     if request.method == "POST":
         # Same rule as requires_feature, but the list stays visible in read-only accounts.
         if not can_edit:
@@ -352,13 +383,15 @@ def time_off_list(request):
             if affected_appointments(time_off).exists():
                 return redirect("time_off_appointments", pk=time_off.pk)
             return redirect("time_off_list")
-    upcoming = list(
-        TimeOff.objects.filter(business=business, end_at__gt=timezone.now()).select_related(
-            "professional"
-        )
-    )
+    upcoming = TimeOff.objects.filter(business=business, end_at__gt=timezone.now())
+    if own:
+        # A professional sees their own blocks and the whole business's (holidays), and can
+        # only change their own.
+        upcoming = upcoming.filter(Q(professional=own) | Q(professional__isnull=True))
+    upcoming = list(upcoming.select_related("professional"))
     for time_off in upcoming:
         time_off.affected_count = affected_appointments(time_off).count()
+        time_off.editable = can_edit and (own is None or time_off.professional_id == own.pk)
     return render(
         request,
         "businesses/time_off.html",
@@ -370,7 +403,7 @@ def time_off_list(request):
 @require_POST
 @requires_feature(PANEL_EDIT)
 def time_off_delete(request, pk):
-    get_owned_or_404(request, TimeOff, pk).delete()
+    get_own_time_off_or_404(request, pk).delete()
     messages.success(
         request, "Listo, borramos el bloqueo. Esos horarios se pueden reservar de nuevo."
     )
@@ -382,7 +415,7 @@ def time_off_delete(request, pk):
 def time_off_appointments(request, pk):
     """Confirmed appointments inside a time off: keep them or cancel the chosen ones, with an
     email to each customer that has one."""
-    time_off = get_owned_or_404(request, TimeOff, pk)
+    time_off = get_own_time_off_or_404(request, pk)
     appointments = affected_appointments(time_off)
     form = CancelAffectedForm(request.POST or None, appointments=appointments)
     if request.method == "POST" and form.is_valid():
@@ -437,6 +470,9 @@ def report_filters(request, business):
     codes = {code for code, _ in PERIODS}
     period = request.GET.get("period")
     period = period if period in codes else DEFAULT_PERIOD
+    own = scoped_professional(request)
+    if own:
+        return period, own  # a professional's profile only ever gets its own figures
     professional = None
     professional_id = request.GET.get("professional", "")
     if professional_id.isdigit():
@@ -461,7 +497,7 @@ def reports(request):
             "report": build_report(business, period, professional),
             "periods": PERIODS,
             "period": period,
-            "professionals": business.professionals.all(),
+            "professionals": [] if scoped_professional(request) else business.professionals.all(),
             "professional": professional,
             "export_query": urlencode(params),
         },

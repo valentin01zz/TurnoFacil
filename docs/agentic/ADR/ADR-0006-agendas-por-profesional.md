@@ -1,6 +1,6 @@
 # ADR-0006: Agendas separadas por profesional (perfiles con PIN)
 
-- Estado: propuesto
+- Estado: aceptado (Founder, 2026-11-13)
 - Fecha: 2026-11-13
 - Decide: Founder
 
@@ -43,6 +43,9 @@ Opción 2, elegida por el Founder. Funciona así:
   negocio ni a los otros profesionales. Todo se controla en el servidor, no solo ocultando botones.
 - **Qué ve el dueño:** todo, como hoy, con el filtro por profesional.
 - **Link propio:** `/b/<negocio>/<profesional>/` muestra solo a ese profesional. El link general sigue igual.
+- **PIN olvidado:** el profesional le pide al dueño uno nuevo. El dueño recupera el suyo con un link al email
+  de la cuenta, no con la contraseña: los profesionales comparten esa contraseña y podrían usarla para quedarse
+  con el perfil del dueño.
 - **Avisos:** cada profesional puede tener su email. Los avisos de sus turnos le llegan **solo después de que
   confirme ese email** con un link (para que un email mal escrito no reciba datos de pacientes). Sin email
   confirmado, el aviso va al dueño, como hoy.

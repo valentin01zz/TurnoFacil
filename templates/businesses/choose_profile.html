@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Elegí tu perfil · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">¿Quién usa el panel?</h1>
+  <p class="page-lead">Elegí tu perfil y escribí tu PIN. Cada profesional ve solo sus turnos.</p>
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {{ form.non_field_errors }}
+      {% if form.profile.errors %}<ul class="errorlist"><li>Elegí tu perfil.</li></ul>{% endif %}
+      <fieldset class="profile-list">
+        <legend class="sr-only">Perfil</legend>
+        {% for choice in choices %}
+          <label class="profile-option{% if choice.disabled %} is-disabled{% endif %}">
+            <input type="radio" name="profile" value="{{ choice.value }}"{% if choice.value == chosen %} checked{% endif %}{% if choice.disabled %} disabled{% endif %}>
+            <span class="avatar" aria-hidden="true">{{ choice.name|slice:":1"|upper }}</span>
+            <span class="profile-text"><strong>{{ choice.name }}</strong><small>{{ choice.detail }}</small></span>
+          </label>
+        {% endfor %}
+      </fieldset>
+      <div>
+        {{ form.pin.label_tag }}
+        {{ form.pin }}
+        {{ form.pin.errors }}
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+    </form>
+    <p class="card-tip helptext">¿Sos el dueño y no te acordás el PIN? <a href="{% url 'owner_pin_forgot' %}">Te mandamos un link al email de la cuenta</a>. Si sos profesional, pedile uno nuevo al dueño.</p>
+  </div>
+</div>
+{% endblock %}

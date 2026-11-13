@@ -128,9 +128,13 @@ class PanelScheduleForm(forms.Form):
         label="Hora", widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M")
     )
 
-    def __init__(self, *args, business, **kwargs):
+    def __init__(self, *args, business, only=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["professional"].queryset = business.professionals.filter(is_active=True)
+        professionals = business.professionals.filter(is_active=True)
+        # A professional's profile can only book or move appointments into its own agenda.
+        self.fields["professional"].queryset = (
+            professionals.filter(pk=only.pk) if only else professionals
+        )
 
     def clean(self):
         cleaned_data = super().clean()
