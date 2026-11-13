@@ -273,3 +273,12 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] Los avisos de un turno van al email confirmado de su profesional (con agendas separadas); si no lo
       confirmó, al dueño. Cambiar el email pide confirmarlo de nuevo.
 
+## HU-38: Novedades dentro del panel
+- [ ] En el encabezado del panel hay una campanita con la cantidad de novedades sin leer de ese perfil.
+- [ ] "Novedades" lista las publicadas (las nuevas marcadas) y al abrirla quedan leídas solo para ese perfil.
+- [ ] Una cuenta nueva no ve como sin leer lo publicado antes de registrarse; sí lo ve en el historial.
+- [ ] Una novedad puede ser solo para el dueño; las de fecha futura no se ven hasta su fecha.
+- [ ] El operador publica con `publish_announcement` (título, texto, link opcional, `--only-owner`, `--email`);
+      el link solo puede ser una página del sitio o https.
+- [ ] Al publicar términos o privacidad se crea sola la novedad y se manda un email a cada dueño con email
+      verificado, uno por uno (`--no-notice` lo evita).

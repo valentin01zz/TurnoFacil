@@ -79,6 +79,19 @@ img, svg { max-width: 100%; }
 .app-tabs a:hover { color: #fff; background: rgba(255, 255, 255, .07); }
 .app-tabs a[aria-current="page"] { color: #fff; background: rgba(255, 255, 255, .13); }
 .app-account { flex: 0 0 auto; }
+/* The news bell, just before the account menu (HU-38). */
+.app-bell { position: relative; display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; margin-left: auto; border-radius: 999px; color: #e7e1f7; }
+.app-bell:hover, .app-bell[aria-current="page"] { background: rgba(255, 255, 255, .1); color: #fff; }
+.app-bell + .app-account { margin-left: 0; }
+.bell-count { position: absolute; top: 3px; right: 2px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--accent); color: var(--ink); font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px var(--ink); }
+.news-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.news-item { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); }
+.news-item.is-new { border-color: #c9bcff; box-shadow: 0 0 0 1px #c9bcff, var(--shadow); }
+.news-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.news-head strong { font-size: 16px; }
+.news-body { margin-top: 8px; color: var(--body); font-size: 15px; }
+.news-body p { margin: 0 0 8px; }
+.news-link { margin: 4px 0 0; font-weight: 700; }
 .app-account > summary { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px 0 4px; border-radius: 999px; color: #e7e1f7; font-weight: 600; font-size: 15px; }
 .app-account > summary:hover, .app-account[open] > summary, .app-account > summary.is-current { background: rgba(255, 255, 255, .1); color: #fff; }
 .app-account .menu-panel { color: var(--ink); }
@@ -478,7 +491,7 @@ input[type="checkbox"] { flex-shrink: 0; }
   .app-brand { font-size: 17px; }
   .app-account-label { display: none; }
   .app-account > summary { padding: 0 6px 0 4px; }
-  .app-tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .97); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(28, 21, 48, .06); }
+  .app-tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; margin: 0; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .97); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(28, 21, 48, .06); }
   .app-tabs a { flex-direction: column; justify-content: center; gap: 3px; height: 52px; padding: 0 2px; border-radius: 10px; color: var(--muted); font-size: 11.5px; font-weight: 700; }
   .app-tabs a svg { display: block; }
   .app-tabs a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -30,6 +30,13 @@
           {% endif %}
         </nav>
         {% endif %}
+        {% if profile %}
+        <a class="app-bell" href="{% url 'news' %}"{% if current == "news" %} aria-current="page"{% endif %}>
+          {% include "_icon.html" with name="bell" size=20 stroke=2.2 %}
+          <span class="sr-only">Novedades{% if unread_news %}: {{ unread_news }} sin leer{% endif %}</span>
+          {% if unread_news %}<span class="bell-count" aria-hidden="true">{% if unread_news > 9 %}9+{% else %}{{ unread_news }}{% endif %}</span>{% endif %}
+        </a>
+        {% endif %}
         <details class="menu app-account">
           <summary{% if current == "business_edit" or current == "deposit_settings" or current == "plans" or current == "checkout" or current == "cancel_subscription" %} class="is-current"{% endif %}>
             <span class="avatar" aria-hidden="true">{% if profile and not profile.is_owner %}{{ profile.name|slice:":1"|upper }}{% else %}{{ business.name|slice:":1"|upper }}{% endif %}</span>

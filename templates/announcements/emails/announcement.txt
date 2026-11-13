@@ -1,0 +1,10 @@
+{% autoescape off %}Hola,
+
+{{ announcement.body }}
+{% if link %}
+{{ announcement.link_label|default:"Ver más" }}: {{ link }}
+{% endif %}
+También lo vas a ver en la campanita de novedades de tu panel: {{ site_url }}/panel/novedades/
+
+El equipo de TurnoFacil
+{% endautoescape %}

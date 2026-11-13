@@ -236,6 +236,19 @@ Si algo falla: diagnóstico en 2 minutos y mensajes para los negocios en `INCIDE
 - **HSTS:** HTTPS funciona estable desde octubre; subir `SECURE_HSTS_SECONDS` a `31536000` en Render.
 - **Backups:** hacer uno manual en Render antes de cada migración delicada y probar restaurarlo una vez.
 
+## Novedades en el panel (HU-38)
+Publicar una novedad desde la PC del operador, con la External Database URL cargada como en
+`publish_legal_document` (ver el procedimiento de la política v1.1):
+
+```
+python manage.py publish_announcement --title "Agendas separadas por profesional" --body "Ahora cada profesional puede entrar con su PIN y ver solo sus turnos." --link /panel/business/agendas/ --link-label "Configurarlo"
+```
+
+- `--only-owner`: no la ven los perfiles de los profesionales.
+- `--email`: además la manda por email a cada dueño con email verificado (consume cupo de Resend).
+- `--body-file archivo.txt` para textos largos (hasta 2000 caracteres).
+- `publish_legal_document` crea la novedad y manda el email solo; `--no-notice` lo evita.
+
 ## Operación
 - Costo esperado: unos USD 15 por mes (servicio web, base y tarea), más el dominio. Emails: USD 0 hasta 100 por día.
 - HSTS arranca en 1 hora (`SECURE_HSTS_SECONDS=3600`). Cuando el dominio funcione estable por HTTPS durante unas

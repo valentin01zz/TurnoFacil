@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "bookings",
     "billing",
     "legal",
+    "announcements",
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,7 @@ TEMPLATES = [
                 "billing.context_processors.subscription",
                 "legal.context_processors.legal_links",
                 "legal.context_processors.support",
+                "announcements.context_processors.unread",
             ],
         },
     },
