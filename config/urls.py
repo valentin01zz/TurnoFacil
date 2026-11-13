@@ -5,5 +5,6 @@ urlpatterns = [
     path("", include("businesses.urls")),
     path("", include("bookings.urls")),
     path("", include("billing.urls")),
+    path("", include("announcements.urls")),
     path("", include("legal.urls")),
 ]

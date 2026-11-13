@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Novedades · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Novedades</h1>
+  <p class="page-lead">Funciones nuevas y cambios importantes de TurnoFacil.</p>
+  {% if items %}
+    <ul class="news-list">
+      {% for item in items %}
+        <li class="news-item{% if item.is_new %} is-new{% endif %}">
+          <div class="news-head">
+            <strong>{{ item.title }}</strong>
+            {% if item.is_new %}<span class="badge violet">Nuevo</span>{% endif %}
+          </div>
+          <time class="helptext" datetime="{{ item.published_at|date:'c' }}">{{ item.published_at|date:"j \d\e F \d\e Y" }}</time>
+          <div class="news-body">{{ item.body|linebreaks }}</div>
+          {% if item.link_url %}<p class="news-link"><a href="{{ item.link_url }}"{% if not item.link_url|slice:":1" == "/" %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.link_label|default:"Ver más" }}</a></p>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty-day">
+      <p class="empty-title">Todavía no hay novedades.</p>
+      <p>Cuando sumemos algo nuevo o cambie algo importante, te lo contamos acá.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

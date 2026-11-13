@@ -52,6 +52,7 @@ Estado: las 10 historias están implementadas y con tests (2026-10-18). Falta el
 | 31 | HU-35 Panel de ingresos y reportes | HU-33, HU-34 |
 | 32 | HU-36 Precios claros para el cliente | HU-33 |
 | 33 | HU-37 Agendas separadas por profesional (ADR-0006) | HU-03 |
+| 34 | HU-38 Novedades dentro del panel | HU-37 |
 
 ## Futuro
 - HU-11 Recordatorio automático por WhatsApp (API paga de Meta: después de los planes pagos)

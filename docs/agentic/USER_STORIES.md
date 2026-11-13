@@ -184,3 +184,10 @@ Se habla de "ingresos", no de "facturación": TurnoFacil no emite facturas.
 propio link, **para** gestionar mis turnos sin ver los de mis colegas.
 - Prioridad: Ampliación (Founder, 2026-11-13; caso consultorio de podología). Decisión: ADR-0006.
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-37)
+
+## HU-38: Novedades dentro del panel
+**Como** dueño o profesional, **quiero** ver en el panel las novedades de TurnoFacil (funciones nuevas, cambios de
+términos o privacidad), **para** enterarme sin depender del email.
+- Prioridad: Ampliación (Founder, 2026-11-13). Las ve el dueño y cada profesional con su perfil; las cuentas
+  nuevas solo ven como sin leer lo publicado después de registrarse; los cambios legales van además por email.
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-38)
