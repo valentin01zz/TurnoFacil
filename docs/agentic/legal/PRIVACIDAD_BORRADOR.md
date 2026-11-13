@@ -20,7 +20,7 @@ Versión: 1.0 · Vigente desde: [COMPLETAR al publicar]
 | Persona | Datos | Para qué | Base | ¿Obligatorio? |
 |---|---|---|---|---|
 | Dueño del negocio | Email, contraseña (guardada como hash, nunca en texto), nombre del negocio, fecha de alta, verificación del email | Crear y proteger la cuenta, avisos del servicio y de la prueba | Relación contractual (art. 5.2 d, Ley 25.326) | Sí: sin ellos no hay cuenta |
-| Dueño del negocio | Servicios, horarios, profesionales (nombres) | Mostrar la página de reservas | Relación contractual | Según lo que use |
+| Dueño del negocio | Servicios, horarios, profesionales (nombres; si el negocio usa agendas separadas, también el email de cada profesional y su PIN, guardado como hash) | Mostrar la página de reservas; que cada profesional entre solo a su agenda y reciba los avisos de sus turnos | Relación contractual | Según lo que use |
 | Dueño del negocio (si pide seña) | Monto, titular de la cuenta, alias, CBU/CVU, CUIT/CUIL (opcional) e indicaciones | Mostrárselos a cada cliente que reserva, en la página del turno y en el email de confirmación, para que le transfiera la seña **directamente** | Relación contractual; el negocio decide publicarlos | Solo si activa la seña |
 | Dueño del negocio | Plan, estado de la suscripción, email del pagador y referencia de Mercado Pago (no la tarjeta) | Cobrar la suscripción | Relación contractual | Solo si contrata un plan pago |
 | Cliente que reserva | Nombre y apellido, teléfono, email, turno elegido | Que el negocio gestione el turno (aviso por email al negocio, agenda, reportes y exportación de sus turnos); confirmación, recordatorio y link para cambiarlo o cancelarlo | Relación con el negocio (art. 5.2 d) | Sí para reservar online |
@@ -45,7 +45,9 @@ suscripción del negocio, la referencia de Mercado Pago.
 ## 3. Quién más recibe datos
 **El negocio donde reservás.** Tus datos (nombre, teléfono, email y el turno) se comunican solo al negocio o
 profesional que te da el turno, para gestionarlo:
-- Le avisamos por email cada vez que reservás, reprogramás o cancelás, al email verificado de su cuenta.
+- Le avisamos por email cada vez que reservás, reprogramás o cancelás, al email verificado de su cuenta o,
+  si el negocio separa las agendas, al email confirmado del profesional que te atiende.
+- Si el negocio separa las agendas, cada profesional ve solo los turnos de sus clientes.
 - Los ve en su panel, con acceso por usuario y contraseña. Ningún otro negocio puede verlos.
 - Puede bajar un archivo (Excel) con sus turnos para administrar su negocio. Ese archivo lo guarda el negocio,
   que se compromete a usarlo solo para gestionar sus turnos, no compartirlo ni usarlo para publicidad, y

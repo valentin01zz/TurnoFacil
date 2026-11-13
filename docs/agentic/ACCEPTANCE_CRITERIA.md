@@ -268,6 +268,8 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
       bloqueados, reportes y exportación), aunque fuerce un pedido con el id de un turno ajeno.
 - [ ] Un profesional no entra a servicios, profesionales, datos del negocio, seña ni planes.
 - [ ] El dueño ve y administra todo, como antes.
-- [ ] Cada profesional tiene su link `/b/<negocio>/<profesional>/`, que muestra solo su agenda.
-- [ ] Los avisos de un turno van al email confirmado de su profesional; si no tiene, al dueño.
+- [ ] Cada profesional tiene su link `/b/<negocio>/<profesional>/`, que muestra solo su agenda; el link no
+      cambia si se le cambia el nombre, y uno inactivo o de otro negocio da 404.
+- [ ] Los avisos de un turno van al email confirmado de su profesional (con agendas separadas); si no lo
+      confirmó, al dueño. Cambiar el email pide confirmarlo de nuevo.
 

@@ -278,6 +278,17 @@ valida el abogado.
 | Aviso al dueño con datos del cliente | Ley 25.326 arts. 4, 5 y 6 | Solo al email verificado de la cuenta; nunca el link privado del cliente; finalidad: gestionar el turno. Política 3: el negocio recibe los datos para gestionar la reserva. Decisión del Founder: el aviso conserva el email del cliente | Código en `main` (HU-14); textos en esta rama | MITIGADO al publicar la política |
 | Exportación con datos personales | Ley 25.326 arts. 4, 9 y 10 | Solo el dueño, solo su negocio (tests), sin links públicos, `Cache-Control: no-store`, celdas tipo fórmula escapadas, aviso junto al botón. Política 3 y Términos 9: uso solo para gestionar turnos, sin publicidad, borrado cuando no se necesite. Decisión del Founder: el archivo conserva el email | Código en `main` (HU-35, HU-36); textos en esta rama | MITIGADO al publicar la política |
 
+### 7.7 Agendas separadas por profesional (HU-37, ADR-0006, 2026-11-13)
+- Datos nuevos de la cuenta del negocio: el email de cada profesional (opcional) y su PIN, guardado como hash.
+  El email solo recibe avisos con datos de clientes después de que el profesional lo confirma con un link; antes,
+  los avisos van al dueño.
+- Minimización: con agendas separadas, cada profesional ve solo los turnos de sus clientes.
+- La política publicada (v1.0) no menciona los emails de los profesionales ni los avisos a ellos. El borrador ya
+  lo incluye (secciones 2 y 3): **publicar la v1.1 antes de que un negocio active las agendas separadas con
+  emails de profesionales**.
+- Decisión del Founder (2026-11-13): los datos de salud que puedan surgir en negocios como podología no se
+  derivan al abogado; se mantiene la recomendación de usar nombres de servicio sin diagnósticos.
+
 ## 8. Medidas recomendadas (priorizadas)
 Cambios técnicos (detalle en `PLAN_IMPLEMENTACION.md`):
 | Prioridad | Medida | Obligación legal o buena práctica | Hallazgo |

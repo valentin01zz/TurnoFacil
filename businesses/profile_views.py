@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from accounts.throttle import is_limited, record
 
 from .forms import AgendaSettingsForm, ChangeMyPinForm, ChooseProfileForm, NewPinForm
+from .professional_email import confirm as confirm_email
 from .profiles import close_profile, hash_pin, open_profile, pin_matches, safe_next
 
 logger = logging.getLogger(__name__)
@@ -203,4 +204,15 @@ def agenda_settings(request):
             "business": business,
             "without_pin": [p for p in professionals if not p.pin],
         },
+    )
+
+
+def confirm_professional_email(request, token):
+    """Opened from the professional's mailbox, logged in or not."""
+    professional = confirm_email(token)
+    return render(
+        request,
+        "businesses/professional_email_confirmed.html",
+        {"professional": professional},
+        status=200 if professional else 400,
     )

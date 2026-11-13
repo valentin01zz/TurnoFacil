@@ -16,6 +16,11 @@ urlpatterns = [
         name="owner_pin_reset",
     ),
     path("panel/mi-pin/", profile_views.my_pin, name="my_pin"),
+    path(
+        "confirmar-email/profesional/<str:token>/",
+        profile_views.confirm_professional_email,
+        name="confirm_professional_email",
+    ),
     path("panel/services/", views.service_list, name="service_list"),
     path("panel/services/new/", views.service_create, name="service_create"),
     path("panel/services/<int:pk>/edit/", views.service_edit, name="service_edit"),

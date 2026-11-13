@@ -92,12 +92,54 @@ class Professional(models.Model):
     is_active = models.BooleanField("activo", default=True)
     pin = models.CharField(max_length=128, blank=True, default="", db_default="")
     pin_version = models.PositiveIntegerField(default=0, db_default=0)
+    # Their own booking link, /b/<business>/<slug>/. Set once from the name and never changed
+    # afterwards, so links already shared keep working (ADR-0006).
+    slug = models.SlugField(max_length=90, blank=True, default="", db_default="")
+    # Notices of their appointments go here only once confirmed: a mistyped address must never
+    # receive customer data. Until then, they go to the owner.
+    email = models.EmailField("email", blank=True, default="", db_default="")
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+
+    # "book" is the booking form's own address under /b/<business>/.
+    RESERVED_SLUGS = {"book"}
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["business", "slug"],
+                condition=~models.Q(slug=""),
+                name="professional_unique_slug",
+            ),
+        ]
 
     def __str__(self):
         return self.name
+
+    @property
+    def email_confirmed(self):
+        return bool(self.email) and self.email_verified_at is not None
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.free_slug()
+        return super().save(*args, **kwargs)
+
+    def free_slug(self):
+        base = slugify(self.name) or "profesional"
+        taken = (
+            set(
+                Professional.objects.filter(business_id=self.business_id)
+                .exclude(pk=self.pk)
+                .values_list("slug", flat=True)
+            )
+            | self.RESERVED_SLUGS
+        )
+        slug, suffix = base, 2
+        while slug in taken:
+            slug = f"{base}-{suffix}"
+            suffix += 1
+        return slug
 
 
 class WorkingHours(models.Model):
