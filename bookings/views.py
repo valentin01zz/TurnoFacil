@@ -38,20 +38,29 @@ PROFESSIONAL_TINTS = ["#FFB59E", "#B9A8FF", "#8EE3D8", "#FFD98A", "#FF9EC4", "#A
 CONFETTI_COLORS = ["#2EC4B6", "#6E4BFF", "#FFC53D", "#FF8FB1", "#1C1530", "#8EE3D8"]
 
 
-def booking_page(request, slug):
+def business_and_professional(slug, professional_slug):
+    """The business, and the active professional of a personal link (None for the general one)."""
     business = get_object_or_404(Business, slug=slug)
-    selection = SlotQueryForm(request.GET or None, business=business)
-    return render_booking_page(request, business, selection)
+    if professional_slug is None:
+        return business, None
+    professional = get_object_or_404(business.professionals, slug=professional_slug, is_active=True)
+    return business, professional
+
+
+def booking_page(request, slug, professional_slug=None):
+    business, only = business_and_professional(slug, professional_slug)
+    selection = SlotQueryForm(request.GET or None, business=business, only=only)
+    return render_booking_page(request, business, selection, only=only)
 
 
 @require_POST
-def book(request, slug):
-    business = get_object_or_404(Business, slug=slug)
-    selection = SlotQueryForm(request.POST, business=business)
+def book(request, slug, professional_slug=None):
+    business, only = business_and_professional(slug, professional_slug)
+    selection = SlotQueryForm(request.POST, business=business, only=only)
     if not accepts_bookings(business):
-        return render_booking_page(request, business, selection, status=403)
+        return render_booking_page(request, business, selection, status=403, only=only)
     if not selection.is_valid():
-        return render_booking_page(request, business, selection, status=400)
+        return render_booking_page(request, business, selection, status=400, only=only)
 
     service = selection.cleaned_data["service"]
     professional = selection.cleaned_data["professional"]
@@ -61,7 +70,9 @@ def book(request, slug):
     if is_limited("booking_ip", ip):
         booking.is_valid()
         booking.add_error(None, TOO_MANY_BOOKINGS_MESSAGE)
-        return render_booking_page(request, business, selection, booking=booking, status=429)
+        return render_booking_page(
+            request, business, selection, booking=booking, status=429, only=only
+        )
     if booking.is_valid():
         appointment = create_appointment(business, professional, service, booking.cleaned_data)
         if appointment:
@@ -71,7 +82,7 @@ def book(request, slug):
             notify_owner_booked(appointment)
             return redirect(f"{manage_path}?nuevo=1")
         booking.add_error("start_at", TAKEN_MESSAGE)
-    return render_booking_page(request, business, selection, booking=booking)
+    return render_booking_page(request, business, selection, booking=booking, only=only)
 
 
 class CrossBusinessError(ValueError):
@@ -132,9 +143,18 @@ def month_links(base_url, strip, params):
     }
 
 
-def render_booking_page(request, business, selection, booking=None, status=200):
+def booking_urls(business, only):
+    """Where the page and its booking form live: the general link or a professional's own."""
+    if only is None:
+        return reverse("booking_page", args=[business.slug]), reverse("book", args=[business.slug])
+    args = [business.slug, only.slug]
+    return reverse("professional_booking_page", args=args), reverse("professional_book", args=args)
+
+
+def render_booking_page(request, business, selection, booking=None, status=200, only=None):
     services = list(business.services.filter(is_active=True))
-    professionals = list(business.professionals.filter(is_active=True))
+    professionals = [only] if only else list(business.professionals.filter(is_active=True))
+    page_url, book_url = booking_urls(business, only)
     is_taking_bookings = bool(services and professionals) and accepts_bookings(business)
 
     chosen = selected_values(selection)
@@ -149,7 +169,7 @@ def render_booking_page(request, business, selection, booking=None, status=200):
         strip = month_strip(month, [professional], selected=date)
         strip.update(
             month_links(
-                reverse("booking_page", args=[business.slug]),
+                page_url,
                 strip,
                 {"service": service.pk, "professional": professional.pk},
             )
@@ -200,6 +220,8 @@ def render_booking_page(request, business, selection, booking=None, status=200):
                 for i, p in enumerate(professionals)
             ],
             "choose_professional": len(professionals) > 1,
+            "only_professional": only,
+            "book_url": book_url,
             "service": service,
             "professional": professional,
             "date": date,

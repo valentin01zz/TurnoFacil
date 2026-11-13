@@ -46,10 +46,13 @@ class SlotQueryForm(BookingDateForm):
     )
     field_order = ["service", "professional", "date"]
 
-    def __init__(self, *args, business, **kwargs):
+    def __init__(self, *args, business, only=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["service"].queryset = business.services.filter(is_active=True)
         professionals = business.professionals.filter(is_active=True)
+        if only is not None:
+            # A professional's own link books only with them (ADR-0006).
+            professionals = professionals.filter(pk=only.pk)
         self.fields["professional"].queryset = professionals
         self.single_professional = professionals.first() if len(professionals) == 1 else None
         if self.single_professional:

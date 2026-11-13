@@ -1,0 +1,12 @@
+{% autoescape off %}Hola {{ professional.name }},
+
+{{ business.name }} cargó este email para mandarte los avisos de tus turnos en TurnoFacil: reservas nuevas, cambios y cancelaciones de tus clientes.
+
+Para recibirlos, confirmá tu email con este link:
+
+{{ link }}
+
+El link vence en 3 días. Si no trabajás en {{ business.name }}, ignorá este email: no te vamos a mandar nada.
+
+El equipo de TurnoFacil
+{% endautoescape %}

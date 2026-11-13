@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Confirmar email · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="auth">
+    <div class="card">
+      {% if professional %}
+        <h1>Listo, {{ professional.name }}</h1>
+        <p class="sub">Confirmamos tu email. Desde ahora te llegan los avisos de tus turnos en {{ professional.business.name }}.</p>
+      {% else %}
+        <h1>Este link no sirve</h1>
+        <p class="sub">Venció o el email cambió después de mandarlo. Pedile al negocio que te lo mande de nuevo desde Profesionales.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

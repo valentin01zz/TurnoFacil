@@ -47,7 +47,7 @@
             {% elif profile %}
             <a href="{% url 'my_pin' %}"{% if current == "my_pin" %} aria-current="page"{% endif %}>{% include "_icon.html" with name="lock" size=18 %}Cambiar mi PIN</a>
             {% endif %}
-            {% if business.slug %}<a href="{% url 'booking_page' business.slug %}" target="_blank" rel="noopener">{% include "_icon.html" with name="external" size=18 %}Ver mi página de reservas</a>{% endif %}
+            {% if business.slug and profile and not profile.is_owner %}<a href="{% url 'professional_booking_page' business.slug profile.professional.slug %}" target="_blank" rel="noopener">{% include "_icon.html" with name="external" size=18 %}Ver mi página de reservas</a>{% elif business.slug %}<a href="{% url 'booking_page' business.slug %}" target="_blank" rel="noopener">{% include "_icon.html" with name="external" size=18 %}Ver mi página de reservas</a>{% endif %}
             {% if support.owner_url %}<a href="{{ support.owner_url }}" target="_blank" rel="noopener noreferrer">{% include "_icon.html" with name="chat" size=18 %}Ayuda por WhatsApp</a>{% endif %}
             <hr>
             {% if business.separate_agendas and profile %}

@@ -83,7 +83,18 @@ class ServiceForm(forms.ModelForm):
 class ProfessionalForm(forms.ModelForm):
     class Meta:
         model = Professional
-        fields = ["name", "is_active"]
+        fields = ["name", "is_active", "email"]
+        labels = {"email": "Email para sus avisos (opcional)"}
+        help_texts = {
+            "email": (
+                "Con agendas separadas, le llegan acá los avisos de sus reservas, cambios y "
+                "cancelaciones. Le mandamos un link para confirmarlo; hasta entonces, los "
+                "avisos te llegan a vos."
+            )
+        }
+
+    def clean_email(self):
+        return self.cleaned_data["email"].strip().lower()
 
 
 ALIAS_PATTERN = re.compile(r"^[A-Za-z0-9.\-]{6,20}$")

@@ -75,7 +75,7 @@
         </section>
       </form>
 
-      <form method="post" action="{% url 'book' business.slug %}" id="book-form" novalidate>
+      <form method="post" action="{{ book_url }}" id="book-form" novalidate>
         {% csrf_token %}
         {% if service %}<input type="hidden" name="service" value="{{ service.pk }}">{% endif %}
         {% if professional %}<input type="hidden" name="professional" value="{{ professional.pk }}">{% endif %}

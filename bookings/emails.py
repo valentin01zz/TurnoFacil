@@ -116,11 +116,23 @@ def notify_owner_cancelled(appointment):
     )
 
 
+def notice_recipient(appointment):
+    """Who hears about a customer's change: with separate agendas, the appointment's professional
+    once they confirmed their email (ADR-0006); otherwise the owner's verified account email. Never
+    an unconfirmed address, so a typo never receives customer data."""
+    business = appointment.business
+    professional = appointment.professional
+    if business.separate_agendas and professional.email_confirmed:
+        return professional.email
+    owner = business.owner
+    return owner.email if owner.email_verified_at else None
+
+
 def send_owner_email(appointment, subject, template, **extra):
-    """Tell the owner about a change the customer made. Only to a verified account email, so a
-    mistyped sign-up never receives customer data. Returns whether it was sent; never raises."""
-    owner = appointment.business.owner
-    if not owner.email_verified_at:
+    """Tell the business about a change the customer made (see notice_recipient).
+    Returns whether it was sent; never raises."""
+    recipient = notice_recipient(appointment)
+    if recipient is None:
         return False
     context = {"appointment": appointment, "agenda_url": owner_agenda_url(appointment), **extra}
     try:
@@ -128,7 +140,7 @@ def send_owner_email(appointment, subject, template, **extra):
             subject=" ".join(subject.split()),
             message=render_to_string(template, context),
             from_email=None,
-            recipient_list=[owner.email],
+            recipient_list=[recipient],
         )
     except Exception:
         logger.exception("Could not send owner email for appointment %s", appointment.pk)

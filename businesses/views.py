@@ -32,6 +32,7 @@ from .forms import (
     working_hours_formset,
 )
 from .models import DepositSettings, Professional, Service, TimeOff
+from .professional_email import send_confirmation as send_email_confirmation
 from .profiles import hash_pin, scoped_professional
 from .reports import (
     DEFAULT_PERIOD,
@@ -118,7 +119,12 @@ def attendance_summary(appointments):
 @login_required
 def panel(request):
     business = request.user.business
-    booking_url = request.build_absolute_uri(reverse("booking_page", args=[business.slug]))
+    own_link = scoped_professional(request)
+    booking_url = request.build_absolute_uri(
+        reverse("professional_booking_page", args=[business.slug, own_link.slug])
+        if own_link
+        else reverse("booking_page", args=[business.slug])
+    )
 
     today = timezone.localdate()
     now = timezone.now()
@@ -321,6 +327,7 @@ def limit_message(access):
 
 def professional_form(request, professional, extra, is_new):
     was_active = bool(professional.pk) and professional.is_active
+    old_email = professional.email
     form = ProfessionalForm(request.POST or None, instance=professional)
     pin_form = ProfessionalPinForm(request.POST or None, has_pin=bool(professional.pin))
     formset = working_hours_formset(extra)(
@@ -334,12 +341,21 @@ def professional_form(request, professional, extra, is_new):
     if request.method == "POST" and all(f.is_valid() for f in (form, formset, pin_form)):
         with transaction.atomic():
             professional = form.save(commit=False)
+            email_changed = professional.email != old_email
+            if email_changed:
+                professional.email_verified_at = None  # a new address must be confirmed again
             if pin_form.cleaned_data["new_pin"]:
                 # A new PIN closes this professional's open sessions (ADR-0006).
                 professional.pin = hash_pin(pin_form.cleaned_data["new_pin"])
                 professional.pin_version += 1
             professional.save()
             formset.save()
+        if email_changed and professional.email:
+            if send_email_confirmation(request, professional):
+                messages.info(
+                    request,
+                    f"Le mandamos a {professional.email} un link para confirmar su email.",
+                )
         return redirect("professional_list")
     return render(
         request,
