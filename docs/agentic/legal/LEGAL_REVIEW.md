@@ -286,6 +286,9 @@ valida el abogado.
 - La política publicada (v1.0) no menciona los emails de los profesionales ni los avisos a ellos. El borrador ya
   lo incluye (secciones 2 y 3): **publicar la v1.1 antes de que un negocio active las agendas separadas con
   emails de profesionales**.
+- 2026-11-13: v1.1 preparada sobre el texto publicado de la v1.0 (fuera del repo, en "Estudio juridico\Para
+  publicar 2026-11-13\privacidad-1.1.md"). Cambia solo las secciones 2, 3, 4 y 5. Probada en una base local:
+  la v1.0 da el mismo sha256 que la de producción (d1ba9f04...) y la v1.1 da 794621d5....
 - Decisión del Founder (2026-11-13): los datos de salud que puedan surgir en negocios como podología no se
   derivan al abogado; se mantiene la recomendación de usar nombres de servicio sin diagnósticos.
 
