@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Mi PIN · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Cambiar mi PIN</h1>
+  <p class="page-lead">Con tu PIN entrás a tu agenda. Elegí uno que nadie más del negocio sepa.</p>
+  <div class="card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Guardar PIN</button>
+        <a class="link-button" href="{% url 'panel' %}">Volver a mi agenda</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

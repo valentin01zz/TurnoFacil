@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 
 from billing.catalog import PANEL_EDIT
 from billing.decorators import requires_feature
+from businesses.profiles import scoped_professional
 
 from .emails import send_cancelled, send_confirmation, send_rescheduled
 from .forms import PanelAppointmentForm, PanelScheduleForm
@@ -34,10 +35,13 @@ def agenda_url(appointment):
 
 
 def get_owned_appointment(request, pk, for_update=False):
+    """An appointment of the business; for a professional's profile, only one of their own."""
     queryset = Appointment.objects.select_related("business", "service", "professional")
     if for_update:
         queryset = queryset.select_for_update(of=("self",))
-    return get_object_or_404(queryset, pk=pk, business=request.user.business)
+    own = scoped_professional(request)
+    lookup = {"professional": own} if own else {}
+    return get_object_or_404(queryset, pk=pk, business=request.user.business, **lookup)
 
 
 @login_required
@@ -45,7 +49,12 @@ def get_owned_appointment(request, pk, for_update=False):
 def appointment_create(request):
     business = request.user.business
     initial = {"date": request.GET.get("date") or timezone.localdate()}
-    form = PanelAppointmentForm(request.POST or None, business=business, initial=initial)
+    form = PanelAppointmentForm(
+        request.POST or None,
+        business=business,
+        only=scoped_professional(request),
+        initial=initial,
+    )
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
         appointment = create_appointment(
@@ -71,7 +80,12 @@ def appointment_reschedule(request, pk):
         "date": local_start.date(),
         "time": local_start.time(),
     }
-    form = PanelScheduleForm(request.POST or None, business=business, initial=initial)
+    form = PanelScheduleForm(
+        request.POST or None,
+        business=business,
+        only=scoped_professional(request),
+        initial=initial,
+    )
     if request.method == "POST" and form.is_valid():
         professional = form.cleaned_data["professional"]
         try:

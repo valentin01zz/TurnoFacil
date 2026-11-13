@@ -16,6 +16,14 @@ class Business(models.Model):
     slug = models.SlugField(max_length=90, unique=True)
     address = models.CharField("dirección", max_length=200, blank=True)
     show_prices = models.BooleanField("mostrar precios a mis clientes", default=False)
+    # Separate agendas (ADR-0006): after logging in, each person picks a profile and types its PIN.
+    # PINs are stored hashed, like passwords; a new PIN bumps the version and closes old sessions.
+    # db_default too: code still running during a deploy inserts rows without these columns.
+    separate_agendas = models.BooleanField(
+        "agendas separadas por profesional", default=False, db_default=False
+    )
+    owner_pin = models.CharField(max_length=128, blank=True, default="", db_default="")
+    owner_pin_version = models.PositiveIntegerField(default=0, db_default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -82,6 +90,8 @@ class Professional(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="professionals")
     name = models.CharField("nombre", max_length=80)
     is_active = models.BooleanField("activo", default=True)
+    pin = models.CharField(max_length=128, blank=True, default="", db_default="")
+    pin_version = models.PositiveIntegerField(default=0, db_default=0)
 
     class Meta:
         ordering = ["name"]

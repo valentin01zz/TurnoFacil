@@ -179,3 +179,8 @@ Se habla de "ingresos", no de "facturación": TurnoFacil no emite facturas.
 - Prioridad: requisito legal (Ley 24.240 art. 4; Res. SICyC 4/2025).
 - Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-36)
 
+## HU-37: Agendas separadas por profesional
+**Como** profesional que comparte consultorio, **quiero** entrar a mi propia agenda con mi PIN y compartir mi
+propio link, **para** gestionar mis turnos sin ver los de mis colegas.
+- Prioridad: Ampliación (Founder, 2026-11-13; caso consultorio de podología). Decisión: ADR-0006.
+- Criterios: ver `ACCEPTANCE_CRITERIA.md` (HU-37)

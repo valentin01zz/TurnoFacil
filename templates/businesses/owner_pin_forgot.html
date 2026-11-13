@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}PIN de dueño · TurnoFacil{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">Recuperar tu PIN de dueño</h1>
+  <p class="page-lead">Te mandamos un link a <strong>{{ email }}</strong>, el email de la cuenta, para que elijas un PIN nuevo. Vence en 1 hora.</p>
+  <div class="card">
+    <p>Lo mandamos al email y no lo pedimos con la contraseña porque todos en el negocio usan la misma: así nadie más puede quedarse con tu perfil.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Mandarme el link</button>
+        <a class="link-button" href="{% url 'choose_profile' %}">Volver</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

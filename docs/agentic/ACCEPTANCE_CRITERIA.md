@@ -258,3 +258,16 @@ Cada criterio debe poder verificarse con sí/no. Los marcados con (S#) dependen 
 - [ ] Pendiente con el abogado: si corresponde informar el precio sin impuestos nacionales según la condición
       fiscal del negocio (Res. 4/2025).
 
+## HU-37: Agendas separadas por profesional
+- [ ] Con "Agendas separadas" apagado, el panel funciona igual que antes.
+- [ ] Prendida, después del login se elige perfil (dueño o un profesional activo) y su PIN; sin perfil no se
+      entra al panel. "Cambiar de perfil" y "Salir" cierran el perfil.
+- [ ] PIN de 4 a 6 números, guardado con hash; 5 intentos fallidos bloquean ese perfil 15 minutos; cambiar un
+      PIN cierra ese perfil en las sesiones abiertas.
+- [ ] Un profesional ve y gestiona solo sus turnos (agenda, cargar, reprogramar, cancelar, asistencia, días
+      bloqueados, reportes y exportación), aunque fuerce un pedido con el id de un turno ajeno.
+- [ ] Un profesional no entra a servicios, profesionales, datos del negocio, seña ni planes.
+- [ ] El dueño ve y administra todo, como antes.
+- [ ] Cada profesional tiene su link `/b/<negocio>/<profesional>/`, que muestra solo su agenda.
+- [ ] Los avisos de un turno van al email confirmado de su profesional; si no tiene, al dueño.
+

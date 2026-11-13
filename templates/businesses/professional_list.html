@@ -20,6 +20,7 @@
             <div class="item-head">
               <strong>{{ professional.name }}</strong>
               {% if not professional.is_active %}<span class="badge off">Inactivo</span>{% endif %}
+              {% if user.business.separate_agendas and professional.is_active %}{% if professional.pin %}<span class="badge">Con PIN</span>{% else %}<span class="badge off">Sin PIN</span>{% endif %}{% endif %}
               {% if not access.read_only %}<a class="btn btn-small" href="{% url 'professional_edit' professional.pk %}">Editar</a>{% endif %}
             </div>
             {# One line per day: "Lunes 09:00 a 13:00 · 16:00 a 20:30". #}

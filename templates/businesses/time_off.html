@@ -25,10 +25,10 @@
               <ul class="hours">
                 <li>{% include "businesses/_time_off_when.html" %}</li>
                 {% if block.reason %}<li>{{ block.reason }}</li>{% endif %}
-                {% if block.affected_count and can_edit %}<li><a href="{% url 'time_off_appointments' block.pk %}">{{ block.affected_count }} turno{{ block.affected_count|pluralize }} confirmado{{ block.affected_count|pluralize }} en este período</a></li>{% endif %}
+                {% if block.affected_count and block.editable %}<li><a href="{% url 'time_off_appointments' block.pk %}">{{ block.affected_count }} turno{{ block.affected_count|pluralize }} confirmado{{ block.affected_count|pluralize }} en este período</a></li>{% endif %}
               </ul>
             </div>
-            {% if can_edit %}
+            {% if block.editable %}
               <form method="post" action="{% url 'time_off_delete' block.pk %}">
                 {% csrf_token %}
                 <button class="btn btn-small danger" type="submit">Borrar</button>
@@ -41,6 +41,6 @@
       <p>No tenés días bloqueados. Tus clientes pueden reservar en todos tus horarios.</p>
     {% endif %}
   </div>
-  <p><a class="link-button" href="{% url 'professional_list' %}">Volver a profesionales</a></p>
+  {% if request.panel_profile.is_owner %}<p><a class="link-button" href="{% url 'professional_list' %}">Volver a profesionales</a></p>{% endif %}
 </div>
 {% endblock %}

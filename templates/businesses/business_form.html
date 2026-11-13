@@ -13,6 +13,11 @@
     </form>
   </div>
   <div class="card">
+    <h2>Agendas separadas por profesional</h2>
+    <p>{% if user.business.separate_agendas %}Activadas: cada profesional entra con su PIN y ve solo sus turnos.{% else %}Si cada profesional maneja sus turnos y no tiene que ver los de los demás.{% endif %}</p>
+    <a class="btn" href="{% url 'agenda_settings' %}">Configurar</a>
+  </div>
+  <div class="card">
     <h2>Seña por transferencia</h2>
     <p>Mostrales a tus clientes cuánto y a quién transferir cuando reservan.</p>
     <a class="btn" href="{% url 'deposit_settings' %}">Configurar seña</a>

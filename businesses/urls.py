@@ -1,11 +1,21 @@
 from django.urls import path
 
-from . import views
+from . import profile_views, views
 
 urlpatterns = [
     path("panel/", views.panel, name="panel"),
     path("panel/business/", views.business_edit, name="business_edit"),
     path("panel/business/deposit/", views.deposit_settings, name="deposit_settings"),
+    path("panel/business/agendas/", profile_views.agenda_settings, name="agenda_settings"),
+    path("panel/perfil/", profile_views.choose_profile, name="choose_profile"),
+    path("panel/perfil/cambiar/", profile_views.switch_profile, name="switch_profile"),
+    path("panel/perfil/olvide-pin/", profile_views.owner_pin_forgot, name="owner_pin_forgot"),
+    path(
+        "panel/perfil/nuevo-pin/<str:token>/",
+        profile_views.owner_pin_reset,
+        name="owner_pin_reset",
+    ),
+    path("panel/mi-pin/", profile_views.my_pin, name="my_pin"),
     path("panel/services/", views.service_list, name="service_list"),
     path("panel/services/new/", views.service_create, name="service_create"),
     path("panel/services/<int:pk>/edit/", views.service_edit, name="service_edit"),
